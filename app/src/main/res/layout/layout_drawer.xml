@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.navigation.NavigationView xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="wrap_content"
+  android:layout_height="match_parent"
+  android:layout_gravity="start"
+  android:fitsSystemWindows="true">
+
+  <LinearLayout
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+      android:layout_width="match_parent"
+      android:layout_height="160dp"
+      android:background="@color/gray"
+      android:clickable="true"
+      android:focusable="true"
+      android:foreground="?attr/selectableItemBackgroundBorderless"
+      android:padding="16dp">
+
+      <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/transparent"
+        android:text="@string/app_name"
+        android:textColor="?attr/colorOnPrimary"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="16dp" />
+
+      <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/transparent"
+        android:text="@string/app_description"
+        android:textColor="?attr/colorOnPrimary"
+        android:textSize="14sp"
+        android:alpha="0.5"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textView"
+        app:layout_constraintVertical_bias="0.0" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <ScrollView
+      android:layout_width="match_parent"
+      android:layout_height="0dp"
+      android:layout_weight="1">
+
+      <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <TextView
+          android:id="@+id/action_drawer_all"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:paddingVertical="16dp"
+          android:paddingHorizontal="16dp"
+          android:text="@string/action_drawer_all"
+          android:textColor="?attr/colorOnSecondary"
+          android:textSize="16sp"
+          app:drawableLeftCompat="@drawable/action_drawer_all"
+          android:drawablePadding="16dp"
+          android:background="?attr/colorPrimary" />
+
+        <TextView
+          android:id="@+id/action_drawer_favorites"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:paddingVertical="16dp"
+          android:paddingHorizontal="16dp"
+          android:text="@string/action_drawer_favorites"
+          android:textColor="?attr/colorOnSecondary"
+          android:textSize="16sp"
+          app:drawableLeftCompat="@drawable/action_drawer_favorites"
+          android:drawablePadding="16dp" />
+
+        <TextView
+          android:id="@+id/action_drawer_locked"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:paddingVertical="16dp"
+          android:paddingHorizontal="16dp"
+          android:text="@string/action_drawer_locked"
+          android:textColor="?attr/colorOnSecondary"
+          android:textSize="16sp"
+          app:drawableLeftCompat="@drawable/action_drawer_locked"
+          android:drawablePadding="16dp" />
+
+        <TextView
+          android:id="@+id/action_drawer_trash"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:paddingVertical="16dp"
+          android:paddingHorizontal="16dp"
+          android:text="@string/action_drawer_trash"
+          android:textColor="?attr/colorOnSecondary"
+          android:textSize="16sp"
+          app:drawableLeftCompat="@drawable/action_drawer_trash"
+          android:drawablePadding="16dp" />
+
+        <View
+          android:layout_width="match_parent"
+          android:layout_height="1dp"
+          android:background="?attr/colorPrimary" />
+
+        <ExpandableListView
+          android:id="@+id/expandableListView"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:divider="@color/transparent" />
+
+        <LinearLayout
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:orientation="horizontal">
+
+          <Button
+            android:id="@+id/action_drawer_manage"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginHorizontal="16dp"
+            android:text="@string/action_drawer_manage" />
+        </LinearLayout>
+      </LinearLayout>
+    </ScrollView>
+  </LinearLayout>
+</com.google.android.material.navigation.NavigationView>
