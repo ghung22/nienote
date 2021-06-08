@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <color name="pink_200">#F48FBE</color>
+  <color name="pink_500">#EC40BE</color>
+  <color name="pink_700">#C218BE</color>
+  <color name="violet_200">#B39DDB</color>
+  <color name="violet_700">#512DA8</color>
+
+  <color name="black">#000000</color>
+  <color name="darkgray">#282828</color>
+  <color name="gray">#303030</color>
+  <color name="lightgray">#484848</color>
+  <color name="light">#AFAFAF</color>
+  <color name="white">#FFFFFF</color>
+  <color name="transparent">#00000000</color>
+</resources>
