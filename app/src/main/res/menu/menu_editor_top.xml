@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:tools="http://schemas.android.com/tools"
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  tools:ignore="AlwaysShowAction">
+
+  <item
+    android:id="@+id/action_readonly"
+    android:title="@string/action_readonly"
+    android:icon="@drawable/action_readonly"
+    app:showAsAction="always" />
+  <item
+    android:id="@+id/action_remind"
+    android:title="@string/action_remind"
+    android:icon="@drawable/action_remind"
+    app:showAsAction="always" />
+  <item
+    android:id="@+id/action_share"
+    android:title="@string/action_share"
+    android:icon="@drawable/action_share"
+    app:showAsAction="always" />
+
+  <item
+    android:id="@+id/action_export"
+    android:title="@string/action_export"
+    app:showAsAction="never" />
+  <item
+    android:id="@+id/action_lock"
+    android:title="@string/action_lock"
+    app:showAsAction="never" />
+  <item
+    android:id="@+id/action_delete"
+    android:title="@string/action_delete"
+    app:showAsAction="never" />
+
+</menu>

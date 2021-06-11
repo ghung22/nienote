@@ -6,6 +6,8 @@
   <!-- Info text - To display any normal text -->
   <string name="info_search_hint">Enter anything…</string>
   <string name="info_folders">Folders</string>
+  <string name="info_title_hint">Title</string>
+  <string name="info_text_hint">Enter anything…</string>
 
   <!-- Alert text - To display warnings -->
   <string name="alert_permission_denied_title">Permission request was denied</string>
@@ -31,4 +33,19 @@
   <string name="action_drawer_locked">Locked notes</string>
   <string name="action_drawer_trash">Trash</string>
   <string name="action_drawer_manage">Manage folders</string>
+
+  <string name="action_readonly">Toggle readonly</string>
+  <string name="action_remind">Set a reminder</string>
+  <string name="action_share">Share</string>
+  <string name="action_export">Export as file…</string>
+  <string name="action_delete">Delete</string>
+  <string name="action_lock">Lock note</string>
+
+  <string name="action_undo">Undo</string>
+  <string name="action_redo">Redo</string>
+  <string name="action_format_size">Text size</string>
+  <string name="action_format_background">Background color</string>
+  <string name="action_format_color">Text color</string>
+  <string name="action_format_style">Text style</string>
+  <string name="action_add_content">Add…</string>
 </resources>

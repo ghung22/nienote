@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:orientation="vertical"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content">
+
+  <androidx.appcompat.widget.Toolbar
+    android:id="@+id/toolbar"
+    style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
+    android:layout_width="match_parent"
+    android:layout_height="?actionBarSize"
+    app:menu="@menu/menu_editor_top">
+
+    <EditText
+      android:id="@+id/editText"
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:background="@color/transparent"
+      android:inputType="text"
+      android:hint="@string/info_title_hint"
+      android:importantForAutofill="no" />
+  </androidx.appcompat.widget.Toolbar>
+
+  <View
+    android:background="?colorOnSecondary"
+    android:layout_width="match_parent"
+    android:layout_height="1dp" />
+</LinearLayout>
