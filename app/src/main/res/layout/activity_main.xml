@@ -4,8 +4,7 @@
   android:id="@+id/drawerLayout"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
-  tools:context=".MainActivity"
-  tools:openDrawer="start">
+  tools:context=".MainActivity">
 
   <include layout="@layout/layout_drawer" />
 
@@ -15,5 +14,5 @@
     android:layout_height="match_parent"
     android:background="?attr/colorPrimaryVariant" />
 
-  <include layout="@layout/layout_bottom_appbar" />
+  <include layout="@layout/layout_main_bottom_appbar" />
 </androidx.drawerlayout.widget.DrawerLayout>
