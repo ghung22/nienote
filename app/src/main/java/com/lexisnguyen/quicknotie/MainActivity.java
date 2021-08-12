@@ -138,6 +138,10 @@ public class MainActivity extends AppCompatActivity {
         bundle.putString("folder", currentFolder);
         intent.putExtras(bundle);
         startActivity(intent);
+        overridePendingTransition(
+                R.anim.anim_slide_up_ease_in,
+                R.anim.anim_null
+        );
     }
 
     /**
