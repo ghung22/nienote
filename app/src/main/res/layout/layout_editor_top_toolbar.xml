@@ -10,7 +10,8 @@
     style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
     android:layout_width="match_parent"
     android:layout_height="?actionBarSize"
-    app:menu="@menu/menu_editor_top">
+    app:menu="@menu/menu_editor_top"
+    android:background="@color/white">
 
     <EditText
       android:id="@+id/editTextTitle"

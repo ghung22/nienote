@@ -5,10 +5,16 @@
   tools:ignore="AlwaysShowAction">
 
   <item
-    android:id="@+id/action_readonly"
-    android:title="@string/action_readonly"
-    android:icon="@drawable/action_readonly"
+    android:id="@+id/action_preview"
+    android:title="@string/action_preview"
+    android:icon="@drawable/action_preview"
     app:showAsAction="always" />
+  <item
+    android:id="@+id/action_edit"
+    android:title="@string/action_edit"
+    android:icon="@drawable/action_edit"
+    app:showAsAction="always"
+    android:visible="false" />
   <item
     android:id="@+id/action_remind"
     android:title="@string/action_remind"

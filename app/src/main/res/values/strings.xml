@@ -34,7 +34,8 @@
   <string name="action_drawer_trash">Trash</string>
   <string name="action_drawer_manage">Manage folders</string>
 
-  <string name="action_readonly">Toggle readonly</string>
+  <string name="action_preview">Preview mode</string>
+  <string name="action_edit">Edit mode</string>
   <string name="action_remind">Set a reminder</string>
   <string name="action_share">Share</string>
   <string name="action_export">Export as file…</string>

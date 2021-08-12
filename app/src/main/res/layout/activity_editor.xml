@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
@@ -8,13 +8,31 @@
 
   <include
     android:id="@+id/layout_editor_top_toolbar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentTop="true"
     layout="@layout/layout_editor_top_toolbar" />
 
+  <!-- For previewing markdown -->
+  <TextView
+    android:id="@+id/textView"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_below="@id/layout_editor_top_toolbar"
+    android:layout_above="@id/layout_editor_bottom_appbar"
+    android:padding="12dp"
+    android:visibility="invisible"
+    android:background="@color/transparent"
+    android:gravity="start"
+    android:scrollHorizontally="false" />
+
+  <!-- For editing markdown -->
   <EditText
     android:id="@+id/editText"
     android:layout_width="match_parent"
-    android:layout_height="0dp"
-    android:layout_weight="1"
+    android:layout_height="match_parent"
+    android:layout_below="@id/layout_editor_top_toolbar"
+    android:layout_above="@id/layout_editor_bottom_appbar"
     android:padding="12dp"
     android:background="@color/transparent"
     android:inputType="textMultiLine"
@@ -24,6 +42,9 @@
     android:importantForAutofill="no" />
 
   <include
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentBottom="true"
     android:id="@+id/layout_editor_bottom_appbar"
     layout="@layout/layout_editor_bottom_appbar" />
-</LinearLayout>
+</RelativeLayout>

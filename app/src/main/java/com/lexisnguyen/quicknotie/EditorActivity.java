@@ -1,12 +1,15 @@
 package com.lexisnguyen.quicknotie;
 
 import android.os.Bundle;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.TextView;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
@@ -14,6 +17,7 @@ import androidx.appcompat.widget.Toolbar;
 
 public class EditorActivity extends AppCompatActivity {
     //GUI Elements
+    TextView textView;
     EditText editTextTitle, editText;
     ImageButton action_add_content, action_format_style,
             action_format_color, action_format_background,
@@ -22,7 +26,7 @@ public class EditorActivity extends AppCompatActivity {
     // Data
     private String title = "";
     private final String text = "";
-    private boolean readonly = false;
+    private boolean preview = false;
 
     // Debugging
     private final String TAG = "EditorActivity";
@@ -42,15 +46,18 @@ public class EditorActivity extends AppCompatActivity {
         action_format_color = findViewById(R.id.action_format_color);
         action_format_background = findViewById(R.id.action_format_background);
         action_undo = findViewById(R.id.action_undo);
+        action_undo.setEnabled(false);
         action_redo = findViewById(R.id.action_redo);
+        action_redo.setEnabled(false);
         // - Content Layout
+        textView = findViewById(R.id.textView);
         editText = findViewById(R.id.editText);
 
         /* INIT TOP TOOLBAR
-         * [BACK] [EDITTEXT] [READONLY] [REMIND] [SHARE] [OVERFLOW]
+         * [BACK] [EDITTEXT] [PREVIEW] [REMIND] [SHARE] [OVERFLOW]
          * - BACK:      Return to MainActivity
          * - EDITTEXT:  Show & set note title
-         * - READONLY:  Toggle readonly mode
+         * - PREVIEW:   Toggle preview/edit mode
          * - REMIND:    Set a reminder for this note
          * - SHARE:     Share this note
          * - OVERFLOW:  Show more options
@@ -107,18 +114,8 @@ public class EditorActivity extends AppCompatActivity {
         if (id == R.id.home) {
             // Trigger back key press
             onBackPressed();
-        } else if (id == R.id.action_readonly) {
-            readonly = !readonly;
-            // Disable interacting with EditText fields
-            editTextTitle.setFocusable(readonly);
-            editText.setFocusable(readonly);
-            // Disable editor buttons
-            action_add_content.setEnabled(readonly);
-            action_format_style.setEnabled(readonly);
-            action_format_color.setEnabled(readonly);
-            action_format_background.setEnabled(readonly);
-            action_undo.setEnabled(readonly);
-            action_redo.setEnabled(readonly);
+        } else if (id == R.id.action_preview) {
+            action_preview();
         } else if (id == R.id.action_remind) {
             // Use Intent to add a new event to calendar
             // TODO: https://stackoverflow.com/a/36947690
@@ -135,6 +132,44 @@ public class EditorActivity extends AppCompatActivity {
             Log.w(TAG, "OnMenuItemClick: Unknown menu item " + menuItem.getTitle());
         }
         return true;
+    }
+
+    public void action_preview() {
+        preview = !preview;
+
+        // Hide keyboard
+        // https://stackoverflow.com/a/17789187
+        InputMethodManager imm = (InputMethodManager) this.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE);
+        View v = this.getCurrentFocus();
+        if (v == null) {
+            v = new View(this);
+        }
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+
+        // Toggle allow interacting with title EditText
+        if (preview) {
+            editTextTitle.setInputType(InputType.TYPE_NULL);
+            editTextTitle.setTextIsSelectable(true);
+        } else {
+            editTextTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+        }
+
+        // Toggle visibility of content EditText and show a TextView
+        if (preview) {
+            textView.setVisibility(View.VISIBLE);
+            editText.setVisibility(View.INVISIBLE);
+        } else {
+            textView.setVisibility(View.INVISIBLE);
+            editText.setVisibility(View.VISIBLE);
+        }
+
+        // Toggle editor buttons
+        action_add_content.setEnabled(!preview);
+        action_format_style.setEnabled(!preview);
+        action_format_color.setEnabled(!preview);
+        action_format_background.setEnabled(!preview);
+        action_undo.setEnabled(!preview);
+        action_redo.setEnabled(!preview);
     }
 
     /**
