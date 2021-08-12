@@ -1,6 +1,7 @@
 package com.lexisnguyen.quicknotie;
 
 import android.os.Bundle;
+import android.text.Editable;
 import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
@@ -14,6 +15,8 @@ import android.widget.TextView;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import de.stocard.markdown_to_spanned.Markdown;
 
 public class EditorActivity extends AppCompatActivity {
     //GUI Elements
@@ -136,6 +139,10 @@ public class EditorActivity extends AppCompatActivity {
 
     public void action_preview() {
         preview = !preview;
+
+        // Parse content of EditText into TextView
+        Editable text = editText.getText();
+        textView.setText(Markdown.fromMarkdown(text.toString()));
 
         // Hide keyboard
         // https://stackoverflow.com/a/17789187
