@@ -93,6 +93,14 @@ public class EditorActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * <p>Perform an action based on which toolbar menu item was clicked.
+     * <p>The menu items are specified in
+     * {@link com.lexisnguyen.quicknotie.R.layout#layout_editor_top_toolbar}
+     *
+     * @param menuItem The selected menu item
+     * @return Result of performed action (should be true)
+     */
     @SuppressWarnings("StatementWithEmptyBody")
     private boolean OnMenuItemClick(MenuItem menuItem) {
         int id = menuItem.getItemId();
@@ -129,8 +137,15 @@ public class EditorActivity extends AppCompatActivity {
         return true;
     }
 
+    /**
+     * Start an action when user presses Back depending on the states of the app.
+     */
     @Override
     public void onBackPressed() {
         super.onBackPressed();
+        overridePendingTransition(
+                R.anim.anim_null,
+                R.anim.anim_slide_down_ease_out
+        );
     }
 }
