@@ -10,12 +10,6 @@
     android:icon="@drawable/action_preview"
     app:showAsAction="always" />
   <item
-    android:id="@+id/action_edit"
-    android:title="@string/action_edit"
-    android:icon="@drawable/action_edit"
-    app:showAsAction="always"
-    android:visible="false" />
-  <item
     android:id="@+id/action_remind"
     android:title="@string/action_remind"
     android:icon="@drawable/action_remind"

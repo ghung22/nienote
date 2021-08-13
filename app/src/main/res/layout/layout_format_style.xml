@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content">
+
+  <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="?actionBarSize">
+
+    <TextView
+      android:id="@+id/info_format_style"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_alignParentTop="true"
+      android:padding="@dimen/bottom_sheet_dialog_title_padding"
+      android:text="@string/action_format_style"
+      android:textAlignment="center"
+      android:textColor="?attr/colorOnSecondary"
+      android:textSize="@dimen/bottom_sheet_dialog_title_text_size" />
+
+    <RelativeLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_below="@id/info_format_style">
+
+      <RelativeLayout
+        android:id="@+id/layout_first_row"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true">
+
+        <LinearLayout
+          android:id="@+id/layout_text_font"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:padding="@dimen/rounded_layout_padding"
+          android:layout_margin="@dimen/rounded_layout_margin"
+          android:orientation="horizontal"
+          android:background="@drawable/rounded_rectangle"
+          android:backgroundTint="@color/light">
+
+          <Spinner
+            android:layout_width="@dimen/rounded_layout_spinner_width"
+            android:layout_height="@dimen/rounded_layout_icon_size" />
+        </LinearLayout>
+
+        <LinearLayout
+          android:id="@+id/layout_text_align"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_toEndOf="@id/layout_text_font"
+          android:padding="@dimen/rounded_layout_padding"
+          android:layout_margin="@dimen/rounded_layout_margin"
+          android:orientation="horizontal"
+          android:background="@drawable/rounded_rectangle"
+          android:backgroundTint="@color/light">
+
+          <ImageButton
+            android:id="@+id/action_table_align_left"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_table_align_left"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/white"
+            android:elevation="5dp"
+            android:contentDescription="@string/action_table_align_left" />
+
+          <ImageButton
+            android:id="@+id/action_table_align_center"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_table_align_center"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_table_align_center" />
+
+          <ImageButton
+            android:id="@+id/action_table_align_right"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_table_align_right"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_table_align_right" />
+        </LinearLayout>
+
+        <LinearLayout
+          android:id="@+id/layout_list_style"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_toEndOf="@id/layout_text_align"
+          android:padding="@dimen/rounded_layout_padding"
+          android:layout_margin="@dimen/rounded_layout_margin"
+          android:orientation="horizontal"
+          android:background="@drawable/rounded_rectangle"
+          android:backgroundTint="@color/light">
+
+          <ImageButton
+            android:id="@+id/action_bullet"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_bullet"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_bullet" />
+
+          <ImageButton
+            android:id="@+id/action_number"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_number"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_number" />
+        </LinearLayout>
+      </RelativeLayout>
+
+      <RelativeLayout
+        android:id="@+id/layout_second_row"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout_first_row"
+        android:layout_centerHorizontal="true">
+
+        <LinearLayout
+          android:id="@+id/layout_text_style"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:padding="@dimen/rounded_layout_padding"
+          android:layout_margin="@dimen/rounded_layout_margin"
+          android:orientation="horizontal"
+          android:background="@drawable/rounded_rectangle"
+          android:backgroundTint="@color/light">
+
+          <ImageButton
+            android:id="@+id/action_format_bold"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_format_bold"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_format_bold" />
+
+          <ImageButton
+            android:id="@+id/action_format_italic"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_format_italic"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_format_italic" />
+
+          <ImageButton
+            android:id="@+id/action_format_underline"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_format_underline"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_format_underline" />
+
+          <ImageButton
+            android:id="@+id/action_format_strikethrough"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_format_strikethrough"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_format_strikethrough" />
+        </LinearLayout>
+
+        <LinearLayout
+          android:id="@+id/layout_text_script"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_toEndOf="@id/layout_text_style"
+          android:padding="@dimen/rounded_layout_padding"
+          android:layout_margin="@dimen/rounded_layout_margin"
+          android:orientation="horizontal"
+          android:background="@drawable/rounded_rectangle"
+          android:backgroundTint="@color/light">
+
+          <ImageButton
+            android:id="@+id/action_format_superscript"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_format_superscript"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_format_superscript" />
+
+          <ImageButton
+            android:id="@+id/action_format_subscript"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_format_subscript"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_format_subscript" />
+        </LinearLayout>
+
+        <LinearLayout
+          android:id="@+id/layout_text_indent"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:layout_toEndOf="@id/layout_text_script"
+          android:padding="@dimen/rounded_layout_padding"
+          android:layout_margin="@dimen/rounded_layout_margin"
+          android:orientation="horizontal"
+          android:background="@drawable/rounded_rectangle"
+          android:backgroundTint="@color/light">
+
+          <ImageButton
+            android:id="@+id/action_format_indent_increase"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_format_indent_increase"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_format_indent_increase" />
+
+          <ImageButton
+            android:id="@+id/action_format_indent_decrease"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:src="@drawable/action_format_indent_decrease"
+            android:background="@drawable/rounded_rectangle"
+            android:backgroundTint="@color/transparent"
+            android:elevation="0dp"
+            android:contentDescription="@string/action_format_indent_decrease" />
+        </LinearLayout>
+      </RelativeLayout>
+    </RelativeLayout>
+  </RelativeLayout>
+</ScrollView>

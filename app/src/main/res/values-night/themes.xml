@@ -19,5 +19,23 @@
     <item name="homeAsUpIndicator">@drawable/action_back</item>
 
     <!-- Customize your theme here. -->
+    <item name="bottomSheetDialogTheme">@style/Theme.QuickNotie.BottomSheetDialog</item>
+  </style>
+
+  <!-- Create corners for bottom dialogs -->
+  <style name="Theme.QuickNotie.BottomSheetDialog" parent="@style/ThemeOverlay.MaterialComponents.BottomSheetDialog">
+    <item name="bottomSheetStyle">@style/Theme.QuickNotie.BottomSheet</item>
+  </style>
+
+  <style name="Theme.QuickNotie.BottomSheet" parent="Widget.MaterialComponents.BottomSheet">
+    <item name="shapeAppearanceOverlay">@style/Theme.QuickNotie.ShapeAppearanceBottomSheetDialog</item>
+  </style>
+
+  <style name="Theme.QuickNotie.ShapeAppearanceBottomSheetDialog" parent="">
+    <item name="cornerFamily">rounded</item>
+    <item name="cornerSizeTopRight">16dp</item>
+    <item name="cornerSizeTopLeft">16dp</item>
+    <item name="cornerSizeBottomRight">0dp</item>
+    <item name="cornerSizeBottomLeft">0dp</item>
   </style>
 </resources>

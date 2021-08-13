@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content">
+
+  <RelativeLayout
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingBottom="?actionBarSize">
+
+    <TextView
+      android:id="@+id/info_add_content"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_alignParentTop="true"
+      android:padding="@dimen/bottom_sheet_dialog_title_padding"
+      android:text="@string/action_add_content"
+      android:textAlignment="center"
+      android:textColor="?attr/colorOnSecondary"
+      android:textSize="@dimen/bottom_sheet_dialog_title_text_size" />
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_below="@id/info_add_content"
+      android:orientation="horizontal"
+      android:baselineAligned="false">
+
+      <LinearLayout
+        android:id="@+id/action_add_camera"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight=".25"
+        android:orientation="vertical">
+
+        <ImageButton
+          android:layout_width="match_parent"
+          android:layout_height="@dimen/large_icon_size"
+          android:padding="@dimen/large_icon_padding"
+          android:src="@drawable/action_add_camera"
+          android:scaleType="fitCenter"
+          android:background="@color/transparent"
+          android:contentDescription="@string/action_add_camera" />
+
+        <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="@string/action_add_camera"
+          android:textAlignment="center"
+          android:textColor="?attr/colorOnSecondary" />
+      </LinearLayout>
+
+      <LinearLayout
+        android:id="@+id/action_add_image"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight=".25"
+        android:orientation="vertical">
+
+        <ImageButton
+          android:layout_width="match_parent"
+          android:layout_height="@dimen/large_icon_size"
+          android:padding="@dimen/large_icon_padding"
+          android:src="@drawable/action_add_image"
+          android:scaleType="fitCenter"
+          android:background="@color/transparent"
+          android:contentDescription="@string/action_add_image" />
+
+        <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="@string/action_add_image"
+          android:textAlignment="center"
+          android:textColor="?attr/colorOnSecondary" />
+      </LinearLayout>
+
+      <LinearLayout
+        android:id="@+id/action_add_table"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight=".25"
+        android:orientation="vertical">
+
+        <ImageButton
+          android:layout_width="match_parent"
+          android:layout_height="@dimen/large_icon_size"
+          android:padding="@dimen/large_icon_padding"
+          android:src="@drawable/action_add_table"
+          android:scaleType="fitCenter"
+          android:background="@color/transparent"
+          android:contentDescription="@string/action_add_table" />
+
+        <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="@string/action_add_table"
+          android:textAlignment="center"
+          android:textColor="?attr/colorOnSecondary" />
+      </LinearLayout>
+
+      <LinearLayout
+        android:id="@+id/action_add_checklist"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight=".25"
+        android:orientation="vertical">
+
+        <ImageButton
+          android:layout_width="match_parent"
+          android:layout_height="@dimen/large_icon_size"
+          android:padding="@dimen/large_icon_padding"
+          android:src="@drawable/action_add_checklist"
+          android:scaleType="fitCenter"
+          android:background="@color/transparent"
+          android:contentDescription="@string/action_add_checklist" />
+
+        <TextView
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          android:text="@string/action_add_checklist"
+          android:textAlignment="center"
+          android:textColor="?attr/colorOnSecondary" />
+      </LinearLayout>
+    </LinearLayout>
+  </RelativeLayout>
+</ScrollView>

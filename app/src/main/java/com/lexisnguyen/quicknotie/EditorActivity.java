@@ -1,5 +1,6 @@
 package com.lexisnguyen.quicknotie;
 
+import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
@@ -12,9 +13,12 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.TextView;
 
+import androidx.annotation.LayoutRes;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 
 import de.stocard.markdown_to_spanned.Markdown;
 
@@ -45,13 +49,19 @@ public class EditorActivity extends AppCompatActivity {
         editTextTitle = findViewById(R.id.editTextTitle);
         // - Bottom Appbar
         action_add_content = findViewById(R.id.action_add_content);
+        action_add_content.setOnClickListener(this::onClick);
         action_format_style = findViewById(R.id.action_format_style);
+        action_format_style.setOnClickListener(this::onClick);
         action_format_color = findViewById(R.id.action_format_color);
+        action_format_color.setOnClickListener(this::onClick);
         action_format_background = findViewById(R.id.action_format_background);
+        action_format_background.setOnClickListener(this::onClick);
         action_undo = findViewById(R.id.action_undo);
         action_undo.setEnabled(false);
+        action_undo.setOnClickListener(this::onClick);
         action_redo = findViewById(R.id.action_redo);
         action_redo.setEnabled(false);
+        action_redo.setOnClickListener(this::onClick);
         // - Content Layout
         textView = findViewById(R.id.textView);
         editText = findViewById(R.id.editText);
@@ -90,16 +100,57 @@ public class EditorActivity extends AppCompatActivity {
          */
     }
 
+    /**
+     * An event when the top toolbar is shown
+     *
+     * @param menu The toolbar that is being created
+     * @return a boolean
+     */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.menu_editor_top, menu);
         return super.onCreateOptionsMenu(menu);
     }
 
+    /**
+     * An event when a view's focus changes
+     *
+     * @param view    The view in question
+     * @param onFocus The new focus state (true: in focus, false: out of focus)
+     */
     private void onFocusChange(View view, boolean onFocus) {
         if (!onFocus) {
             // Save title
             title = editTextTitle.getText().toString();
+        }
+    }
+
+    /**
+     * An event when a view (in most times, a button) is clicked
+     *
+     * @param view The view in question
+     */
+    @SuppressLint("NonConstantResourceId")
+    private void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.action_add_content:
+                showBottomDialog(R.layout.layout_add_content);
+                break;
+            case R.id.action_format_style:
+                showBottomDialog(R.layout.layout_format_style);
+                break;
+            case R.id.action_format_color:
+                showBottomDialog(R.layout.layout_format_color);
+                break;
+            case R.id.action_format_background:
+                showBottomDialog(R.layout.layout_format_background);
+                break;
+            case R.id.action_undo:
+                break;
+            case R.id.action_redo:
+                break;
+            default:
+                break;
         }
     }
 
@@ -111,33 +162,49 @@ public class EditorActivity extends AppCompatActivity {
      * @param menuItem The selected menu item
      * @return Result of performed action (should be true)
      */
-    @SuppressWarnings("StatementWithEmptyBody")
+    @SuppressLint("NonConstantResourceId")
     private boolean OnMenuItemClick(MenuItem menuItem) {
         int id = menuItem.getItemId();
-        if (id == R.id.home) {
-            // Trigger back key press
-            onBackPressed();
-        } else if (id == R.id.action_preview) {
-            action_preview();
-        } else if (id == R.id.action_remind) {
-            // Use Intent to add a new event to calendar
-            // TODO: https://stackoverflow.com/a/36947690
-        } else if (id == R.id.action_share) {
-            // Save a temporary pdf file and share to external app
-        } else if (id == R.id.action_export) {
-            // Save markdown to file using library
-            // TODO: https://github.com/Qkyrie/Markdown2Pdf
-        } else if (id == R.id.action_lock) {
+        switch (id) {
+            case R.id.home:
+                // Trigger back key press
+                onBackPressed();
+                break;
+            case R.id.action_preview:
+                action_preview(menuItem);
+                break;
+            case R.id.action_remind:
+                // Use Intent to add a new event to calendar
+                // TODO: https://stackoverflow.com/a/36947690
+                break;
+            case R.id.action_share:
+                // Save a temporary pdf file and share to external app
+                break;
+            case R.id.action_export:
+                // Save markdown to file using library
+                // TODO: https://github.com/Qkyrie/Markdown2Pdf
+                break;
+            case R.id.action_lock:
 
-        } else if (id == R.id.action_delete) {
+                break;
+            case R.id.action_delete:
 
-        } else {
-            Log.w(TAG, "OnMenuItemClick: Unknown menu item " + menuItem.getTitle());
+                break;
+            default:
+                Log.w(TAG, "OnMenuItemClick: Unknown menu item " + menuItem.getTitle());
+                break;
         }
         return true;
     }
 
-    public void action_preview() {
+    private void showBottomDialog(@LayoutRes int layoutId) {
+        BottomSheetDialog dialog = new BottomSheetDialog(this);
+        dialog.setContentView(layoutId);
+
+        dialog.show();
+    }
+
+    private void action_preview(MenuItem menuItem) {
         preview = !preview;
 
         // Parse content of EditText into TextView
@@ -177,6 +244,15 @@ public class EditorActivity extends AppCompatActivity {
         action_format_background.setEnabled(!preview);
         action_undo.setEnabled(!preview);
         action_redo.setEnabled(!preview);
+
+        // Change icon of action_preview
+        if (preview) {
+            menuItem.setIcon(R.drawable.action_edit);
+            menuItem.setTooltipText(getString(R.string.action_edit));
+        } else {
+            menuItem.setIcon(R.drawable.action_preview);
+            menuItem.setTooltipText(getString(R.string.action_preview));
+        }
     }
 
     /**

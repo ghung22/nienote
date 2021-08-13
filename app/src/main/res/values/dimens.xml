@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!-- EditorActivity bottom sheet dialog -->
+  <dimen name="bottom_sheet_dialog_title_text_size">20sp</dimen>
+  <dimen name="bottom_sheet_dialog_title_padding">16dp</dimen>
+  <!-- EditorActivity action_add_content bottom dialog -->
+  <dimen name="large_icon_size">64dp</dimen>
+  <dimen name="large_icon_padding">12dp</dimen>
+  <!-- EditorActivity action_format_style bottom dialog -->
+  <dimen name="rounded_layout_padding">4dp</dimen>
+  <dimen name="rounded_layout_margin">4dp</dimen>
+  <dimen name="rounded_layout_icon_size">40dp</dimen>
+  <dimen name="rounded_layout_spinner_width">150dp</dimen>
+</resources>

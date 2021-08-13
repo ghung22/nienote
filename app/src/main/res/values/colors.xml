@@ -1,16 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-  <color name="pink_200">#F48FBE</color>
-  <color name="pink_500">#EC40BE</color>
-  <color name="pink_700">#C218BE</color>
-  <color name="violet_200">#B39DDB</color>
-  <color name="violet_700">#512DA8</color>
-
   <color name="black">#000000</color>
   <color name="darkgray">#282828</color>
+  <color name="darkgrey">#282828</color>
   <color name="gray">#303030</color>
+  <color name="grey">#303030</color>
   <color name="lightgray">#484848</color>
+  <color name="lightgrey">#484848</color>
+  <color name="lightergray">#646464</color>
+  <color name="lightergrey">#646464</color>
   <color name="light">#AFAFAF</color>
   <color name="white">#FFFFFF</color>
   <color name="transparent">#00000000</color>
+
+
+  <color name="red">#EF5350</color>
+  <color name="orange">#FF7043</color>
+  <color name="yellow">#FFEE58</color>
+  <color name="green">#66BB6A</color>
+  <color name="tortoise">#26A69A</color>
+  <color name="cyan">#26C6DA</color>
+  <color name="blue">#42A5F5</color>
+  <color name="violet">#5C6BC0</color>
+  <color name="purple">#7E57C2</color>
+  <color name="magenta">#AB47BC</color>
+  <color name="pink">#EC407A</color>
+
+  <color name="lightred">#EF9A9A</color>
+  <color name="lightorange">#FFAB91</color>
+  <color name="lightyellow">#FFF59D</color>
+  <color name="lightgreen">#A5D6A7</color>
+  <color name="lighttortoise">#80CBC4</color>
+  <color name="lightcyan">#80DEEA</color>
+  <color name="lightblue">#81D4FA</color>
+  <color name="lightviolet">#9FA8DA</color>
+  <color name="lightpurple">#B39DDB</color>
+  <color name="lightmagenta">#CE93D8</color>
+  <color name="lightpink">#F48FB1</color>
 </resources>
