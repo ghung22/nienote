@@ -22,6 +22,11 @@
     <item name="bottomSheetDialogTheme">@style/Theme.QuickNotie.BottomSheetDialog</item>
   </style>
 
+  <!-- EditorActivity bottom appbar -->
+  <style name="Theme.QuickNotie.BottomAppBar" parent="@style/Widget.MaterialComponents.BottomAppBar.Colored">
+    <item name="backgroundTint">@color/faded_black</item>
+  </style>
+
   <!-- Create corners for bottom dialogs -->
   <style name="Theme.QuickNotie.BottomSheetDialog" parent="@style/ThemeOverlay.MaterialComponents.BottomSheetDialog">
     <item name="bottomSheetStyle">@style/Theme.QuickNotie.BottomSheet</item>

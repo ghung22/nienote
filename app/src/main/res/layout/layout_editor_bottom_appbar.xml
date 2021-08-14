@@ -6,7 +6,7 @@
 
   <com.google.android.material.bottomappbar.BottomAppBar
     android:id="@+id/bottomAppBar"
-    style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
+    style="@style/Theme.QuickNotie.BottomAppBar"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_gravity="bottom"

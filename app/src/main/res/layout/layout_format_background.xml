@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+  android:id="@+id/layout_root"
   android:layout_width="match_parent"
   android:layout_height="wrap_content">
 
@@ -14,7 +15,7 @@
       android:layout_height="wrap_content"
       android:layout_alignParentTop="true"
       android:padding="@dimen/bottom_sheet_dialog_title_padding"
-      android:text="@string/action_format_color"
+      android:text="@string/action_format_background"
       android:textAlignment="center"
       android:textColor="?attr/colorOnSecondary"
       android:textSize="@dimen/bottom_sheet_dialog_title_text_size" />
@@ -29,7 +30,7 @@
       android:gravity="center_horizontal">
 
       <ImageButton
-        android:id="@+id/action_color_light_red"
+        android:id="@+id/action_color_lightred"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
@@ -38,7 +39,7 @@
         android:contentDescription="@string/action_color_light_red" />
 
       <ImageButton
-        android:id="@+id/action_color_light_orange"
+        android:id="@+id/action_color_lightorange"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
@@ -47,7 +48,7 @@
         android:contentDescription="@string/action_color_light_orange" />
 
       <ImageButton
-        android:id="@+id/action_color_light_yellow"
+        android:id="@+id/action_color_lightyellow"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
@@ -56,7 +57,7 @@
         android:contentDescription="@string/action_color_light_yellow" />
 
       <ImageButton
-        android:id="@+id/action_color_light_green"
+        android:id="@+id/action_color_lightgreen"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
@@ -65,7 +66,7 @@
         android:contentDescription="@string/action_color_light_green" />
 
       <ImageButton
-        android:id="@+id/action_color_light_tortoise"
+        android:id="@+id/action_color_lighttortoise"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
@@ -74,7 +75,7 @@
         android:contentDescription="@string/action_color_light_tortoise" />
 
       <ImageButton
-        android:id="@+id/action_color_light_cyan"
+        android:id="@+id/action_color_lightcyan"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
@@ -93,7 +94,7 @@
       android:gravity="center_horizontal">
 
       <ImageButton
-        android:id="@+id/action_color_light_blue"
+        android:id="@+id/action_color_lightblue"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
@@ -102,7 +103,7 @@
         android:contentDescription="@string/action_color_light_blue" />
 
       <ImageButton
-        android:id="@+id/action_color_light_violet"
+        android:id="@+id/action_color_lightviolet"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
@@ -111,7 +112,7 @@
         android:contentDescription="@string/action_color_light_violet" />
 
       <ImageButton
-        android:id="@+id/action_color_light_purple"
+        android:id="@+id/action_color_lightpurple"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
@@ -120,7 +121,7 @@
         android:contentDescription="@string/action_color_light_purple" />
 
       <ImageButton
-        android:id="@+id/action_color_light_magenta"
+        android:id="@+id/action_color_lightmagenta"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
@@ -129,7 +130,7 @@
         android:contentDescription="@string/action_color_light_magenta" />
 
       <ImageButton
-        android:id="@+id/action_color_light_pink"
+        android:id="@+id/action_color_lightpink"
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
