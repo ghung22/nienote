@@ -580,6 +580,15 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         dialog.onBackPressed();
     }
 
+    /**
+     * <p>Toggle between Preview mode and Edit mode</p>
+     * <p>- Preview mode: View result of the markdown text</p>
+     * <p>- Edit mode: Make edits to the markdown text</p>
+     *
+     * @param menuItem The
+     *                 {@link com.lexisnguyen.quicknotie.R.id#action_preview action_preview}
+     *                 button to update its icon
+     */
     private void action_preview(MenuItem menuItem) {
         preview = !preview;
 
