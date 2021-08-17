@@ -1,4 +1,4 @@
-package com.lexisnguyen.quicknotie;
+package com.lexisnguyen.quicknotie.activities;
 
 import android.Manifest;
 import android.content.DialogInterface;
@@ -20,6 +20,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.lexisnguyen.quicknotie.R;
 
 /**
  * Introduction screen to the app

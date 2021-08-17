@@ -1,10 +1,11 @@
-package com.lexisnguyen.quicknotie;
+package com.lexisnguyen.quicknotie.activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -29,11 +30,16 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.color.MaterialColors;
+import com.lexisnguyen.quicknotie.R;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.Executors;
 
-import de.stocard.markdown_to_spanned.Markdown;
+import io.noties.markwon.Markwon;
+import io.noties.markwon.editor.MarkwonEditor;
+import io.noties.markwon.editor.MarkwonEditorTextWatcher;
+import io.noties.markwon.ext.tables.TablePlugin;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class EditorActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
@@ -48,12 +54,25 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             action_undo, action_redo;
 
     // Data
-    private @ColorRes
-    int bgColor;
+    @ColorRes
+    private int bgColor;
     private boolean preview = false;
+    private int textSelectionStart = 0, // Start of text selection
+            textSelectionEnd = 0, // End of selection
+            textSelectionPoint = 0; // Original cursor position
     private final ArrayList<String> textFonts = new ArrayList<>(
-            Arrays.asList("Normal", "Heading 1", "Heading 2", "Heading 3", "Heading 4", "Heading 5", "Heading 6")
+            Arrays.asList(
+                    "###### Heading 6",
+                    "##### Heading 5",
+                    "#### Heading 4",
+                    "### Heading 3",
+                    "## Heading 2",
+                    "# Heading 1",
+                    "Normal"
+            )
     );
+    private Markwon markwon;
+    private MarkwonEditor markwonEditor;
 
     // Debugging
     private final String TAG = "EditorActivity";
@@ -71,6 +90,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         } else {
             bgColor = R.color.white;
         }
+
+        /* INIT MARKDOWN BACKEND */
+        markwon = Markwon.builder(this)
+                .usePlugin(TablePlugin.create(this))
+                .build();
+        markwonEditor = MarkwonEditor.create(markwon);
 
         /* INIT GUI ELEMENTS */
         // - Root layout
@@ -134,6 +159,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         action_redo.setOnClickListener(this::onClick);
 
         /* INIT CONTENT LAYOUT */
+        editText.addTextChangedListener(
+                MarkwonEditorTextWatcher.withPreRender(
+                        markwonEditor,
+                        Executors.newCachedThreadPool(),
+                        editText
+                )
+        );
         setBackground(bgColor);
     }
 
@@ -156,6 +188,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     @SuppressLint("NonConstantResourceId")
     private void onClick(View view) {
+        getTextSelection();
         switch (view.getId()) {
             // Bottom bar
             case R.id.action_add_content:
@@ -183,10 +216,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 // TODO: Upload image to note
                 break;
             case R.id.action_add_table:
-                // TODO: Add table on the line under typing cursor
+                action_add_table();
                 break;
-            case R.id.action_add_checklist:
-                // TODO: Add checklist symbol at the start of line
+            case R.id.action_add_codeblock:
+                action_add_codeblock();
                 break;
 
             // Format style dialog
@@ -301,6 +334,43 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     public void onNothingSelected(AdapterView<?> adapterView) {}
 
     /**
+     * Get the position of selected text in editText to be used in format-related functions
+     */
+    private void getTextSelection() {
+        if (!editText.isFocused()) {
+            textSelectionStart = editText.length();
+            textSelectionEnd = editText.length();
+            textSelectionPoint = editText.length();
+            return;
+        } else if (editText.length() == 0) {
+            textSelectionStart = 0;
+            textSelectionEnd = 0;
+            textSelectionPoint = 0;
+            return;
+        }
+
+        // Get selection
+        textSelectionStart = editText.getSelectionStart();
+        textSelectionEnd = editText.getSelectionEnd();
+
+        // Select whole line or everything if nothing is selected
+        textSelectionPoint = textSelectionStart;
+        if (textSelectionStart == textSelectionEnd) {
+            String str = editText.getText().toString();
+            textSelectionEnd = str.indexOf("\n", textSelectionStart);
+            if (textSelectionEnd == -1) {
+                textSelectionEnd = editText.length();
+            }
+
+            str = str.substring(0, textSelectionEnd);
+            textSelectionStart = str.lastIndexOf("\n");
+            if (textSelectionStart == -1) {
+                textSelectionStart = 0;
+            }
+        }
+    }
+
+    /**
      * Shows a BottomSheetDialog with the specified layout
      *
      * @param layoutId The ID of the layout
@@ -346,14 +416,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         LinearLayout action_add_camera = dialog.findViewById(R.id.action_add_camera),
                 action_add_image = dialog.findViewById(R.id.action_add_image),
                 action_add_table = dialog.findViewById(R.id.action_add_table),
-                action_add_checklist = dialog.findViewById(R.id.action_add_checklist);
-        if (action_add_camera == null || action_add_image == null || action_add_table == null || action_add_checklist == null) {
+                action_add_codeblock = dialog.findViewById(R.id.action_add_codeblock);
+        if (action_add_camera == null || action_add_image == null || action_add_table == null || action_add_codeblock == null) {
             throw new Throwable("Missing button in Add Content dialog");
         }
         action_add_camera.setOnClickListener(this::onClick);
         action_add_image.setOnClickListener(this::onClick);
         action_add_table.setOnClickListener(this::onClick);
-        action_add_checklist.setOnClickListener(this::onClick);
+        action_add_codeblock.setOnClickListener(this::onClick);
     }
 
     /**
@@ -365,8 +435,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private void layout_format_style(BottomSheetDialog dialog) throws Throwable {
         // Font spinner
         Spinner action_text_font = dialog.findViewById(R.id.action_text_font);
-        ArrayAdapter<String> textFontAdapter =
-                new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, textFonts);
+        ArrayList<Spanned> textFontsSpanned = new ArrayList<>();
+        for (String font : textFonts) {
+            textFontsSpanned.add(markwon.toMarkdown(font));
+        }
+        ArrayAdapter<Spanned> textFontAdapter =
+                new ArrayAdapter<>(this, android.R.layout.simple_spinner_dropdown_item, textFontsSpanned);
         if (action_text_font == null) {
             throw new Throwable("Missing font spinner in Format Style dialog");
         }
@@ -581,6 +655,38 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     }
 
     /**
+     * TODO: Add table on the line under typing cursor
+     */
+    private void action_add_table() {
+
+    }
+
+    /**
+     * Put selection/line in between a new codeblock
+     */
+    private void action_add_codeblock() {
+        // Put ``` before and after content
+        CharSequence newString = editText.getText();
+        if (textSelectionStart == textSelectionEnd) {
+            newString = "```\n```\n";
+        } else {
+            newString = newString.subSequence(0, textSelectionStart) +
+                    "\n```\n" +
+                    newString.subSequence(textSelectionStart, textSelectionEnd) +
+                    "\n```\n" +
+                    newString.subSequence(textSelectionEnd, editText.length());
+        }
+        editText.setText(newString);
+
+        // Update new cursor position
+        // - Retain original cursor position (or Put cursor at the end of selection)
+        // - The string "\n```\n" has 5 characters -> offset by 5 chars
+        editText.setSelection(textSelectionPoint
+                + ((textSelectionPoint != textSelectionStart) ? 0 : textSelectionEnd - textSelectionStart)
+                + 5);
+    }
+
+    /**
      * <p>Toggle between Preview mode and Edit mode</p>
      * <p>- Preview mode: View result of the markdown text</p>
      * <p>- Edit mode: Make edits to the markdown text</p>
@@ -594,7 +700,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         // Parse content of EditText into TextView
         Editable text = editText.getText();
-        textView.setText(Markdown.fromMarkdown(text.toString()));
+        markwon.setMarkdown(textView, text.toString());
 
         // Hide keyboard
         // https://stackoverflow.com/a/17789187
@@ -605,23 +711,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
         imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
 
-        // Toggle allow interacting with title EditText
-        if (preview) {
-            editTextTitle.setInputType(InputType.TYPE_NULL);
-            editTextTitle.setTextIsSelectable(true);
-        } else {
-            editTextTitle.setInputType(InputType.TYPE_CLASS_TEXT);
-        }
-
-        // Toggle visibility of content EditText and show a TextView
-        if (preview) {
-            textView.setVisibility(View.VISIBLE);
-            editText.setVisibility(View.INVISIBLE);
-        } else {
-            textView.setVisibility(View.INVISIBLE);
-            editText.setVisibility(View.VISIBLE);
-        }
-
         // Toggle editor buttons
         action_add_content.setEnabled(!preview);
         action_format_style.setEnabled(!preview);
@@ -630,11 +719,32 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         action_undo.setEnabled(!preview);
         action_redo.setEnabled(!preview);
 
-        // Change icon of action_preview
+        // Switching functions and UI based on current mode:
+        // - Interacting with title EditText
+        // - Visibility of content EditText or TextView
+        // - Visibility of hint text of both EditText
+        // - Icon of action_preview
         if (preview) {
+            editTextTitle.setInputType(InputType.TYPE_NULL);
+            editTextTitle.setTextIsSelectable(true);
+
+            textView.setVisibility(View.VISIBLE);
+            editText.setVisibility(View.INVISIBLE);
+
+            editText.setHint("");
+            editTextTitle.setHint("");
+
             menuItem.setIcon(R.drawable.action_edit);
             menuItem.setTooltipText(getString(R.string.action_edit));
         } else {
+            editTextTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+
+            textView.setVisibility(View.INVISIBLE);
+            editText.setVisibility(View.VISIBLE);
+
+            editText.setHint(R.string.info_title_hint);
+            editTextTitle.setHint(R.string.info_text_hint);
+
             menuItem.setIcon(R.drawable.action_preview);
             menuItem.setTooltipText(getString(R.string.action_preview));
         }

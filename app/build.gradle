@@ -40,5 +40,7 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
 
     // External libraries
-    implementation 'com.github.Stocard:markdown-to-spanned:0.1.0'
+    implementation "io.noties.markwon:core:4.6.2"
+    implementation "io.noties.markwon:editor:4.6.2"
+    implementation "io.noties.markwon:ext-tables:4.6.2"
 }

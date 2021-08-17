@@ -1,4 +1,4 @@
-package com.lexisnguyen.quicknotie;
+package com.lexisnguyen.quicknotie.activities;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -13,6 +13,7 @@ import androidx.customview.widget.ViewDragHelper;
 import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.lexisnguyen.quicknotie.R;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
         // INIT GUI ELEMENTS
         // - Bottom Appbar
         ImageButton action_show_menu = findViewById(R.id.action_show_menu),
-                action_add_checklist = findViewById(R.id.action_add_checklist),
+                action_add_checklist = findViewById(R.id.action_add_codeblock),
                 action_add_image = findViewById(R.id.action_add_image),
                 action_settings = findViewById(R.id.action_settings);
         FloatingActionButton fab = findViewById(R.id.fab);

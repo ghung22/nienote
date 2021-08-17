@@ -5,7 +5,7 @@
   android:layout_width="match_parent"
   android:layout_height="match_parent"
   android:orientation="vertical"
-  tools:context=".EditorActivity">
+  tools:context=".activities.EditorActivity">
 
   <include
     android:id="@+id/layout_editor_top_toolbar"
@@ -15,6 +15,7 @@
     layout="@layout/layout_editor_top_toolbar" />
 
   <!-- For previewing markdown -->
+  <!-- TODO: Replace with https://github.com/tiagohm/MarkdownView -->
   <TextView
     android:id="@+id/textView"
     android:layout_width="match_parent"
