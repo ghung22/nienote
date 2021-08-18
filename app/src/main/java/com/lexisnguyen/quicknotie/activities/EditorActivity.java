@@ -434,7 +434,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @throws Throwable Any error occurred
      */
     private void layout_add_content(BottomSheetDialog dialog) throws Throwable {
-        LinearLayout action_add_camera = dialog.findViewById(R.id.action_add_camera),
+        Button action_add_camera = dialog.findViewById(R.id.action_add_camera),
                 action_add_image = dialog.findViewById(R.id.action_add_image),
                 action_add_table = dialog.findViewById(R.id.action_add_table),
                 action_add_codeblock = dialog.findViewById(R.id.action_add_codeblock);

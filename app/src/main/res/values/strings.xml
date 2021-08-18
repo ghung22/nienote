@@ -25,7 +25,7 @@
   <!-- MainActivity bottom bar -->
   <string name="action_add">Add a Note</string>
   <string name="action_show_menu">Show menu</string>
-  <string name="action_add_codeblock">Code block</string>
+  <string name="action_add_codeblock">Codeblock</string>
   <string name="action_add_image">Image</string>
   <string name="action_settings">Settings</string>
   <!-- MainActivity drawer -->
