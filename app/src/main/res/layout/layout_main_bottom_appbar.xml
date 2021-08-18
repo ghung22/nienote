@@ -23,21 +23,25 @@
       <ImageButton
         android:id="@+id/action_show_menu"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="?actionBarSize"
         android:layout_weight="1"
+        android:paddingVertical="@dimen/xlarge_icon_padding"
         android:background="@color/transparent"
         android:contentDescription="@string/action_show_menu"
         android:src="@drawable/action_show_menu"
+        android:scaleType="fitCenter"
         app:tint="?attr/colorOnPrimary" />
 
       <ImageButton
         android:id="@+id/action_add_codeblock"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="?actionBarSize"
         android:layout_weight="1"
+        android:paddingVertical="@dimen/xlarge_icon_padding"
         android:background="@color/transparent"
         android:contentDescription="@string/action_add_codeblock"
         android:src="@drawable/action_add_checklist"
+        android:scaleType="fitCenter"
         app:tint="?attr/colorOnPrimary" />
 
       <Space
@@ -48,21 +52,25 @@
       <ImageButton
         android:id="@+id/action_add_image"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="?actionBarSize"
         android:layout_weight="1"
+        android:paddingVertical="@dimen/xlarge_icon_padding"
         android:background="@color/transparent"
         android:contentDescription="@string/action_add_image"
         android:src="@drawable/action_add_image"
+        android:scaleType="fitCenter"
         app:tint="?attr/colorOnPrimary" />
 
       <ImageButton
         android:id="@+id/action_settings"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="?actionBarSize"
         android:layout_weight="1"
+        android:paddingVertical="@dimen/xlarge_icon_padding"
         android:background="@color/transparent"
         android:contentDescription="@string/action_settings"
         android:src="@drawable/action_settings"
+        android:scaleType="fitCenter"
         app:tint="?attr/colorOnPrimary" />
     </LinearLayout>
   </com.google.android.material.bottomappbar.BottomAppBar>
