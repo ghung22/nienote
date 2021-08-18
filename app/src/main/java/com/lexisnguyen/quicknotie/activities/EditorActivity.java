@@ -441,10 +441,22 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (action_add_camera == null || action_add_image == null || action_add_table == null || action_add_codeblock == null) {
             throw new Throwable("Missing button in Add Content dialog");
         }
-        action_add_camera.setOnClickListener(this::onClick);
-        action_add_image.setOnClickListener(this::onClick);
-        action_add_table.setOnClickListener(this::onClick);
-        action_add_codeblock.setOnClickListener(this::onClick);
+        action_add_camera.setOnClickListener(view -> {
+            onClick(view);
+            dialog.onBackPressed();
+        });
+        action_add_image.setOnClickListener(view -> {
+            onClick(view);
+            dialog.onBackPressed();
+        });
+        action_add_table.setOnClickListener(view -> {
+            onClick(view);
+            dialog.onBackPressed();
+        });
+        action_add_codeblock.setOnClickListener(view -> {
+            onClick(view);
+            dialog.onBackPressed();
+        });
     }
 
     /**
