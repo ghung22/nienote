@@ -15,9 +15,9 @@ import android.view.WindowManager;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
@@ -37,9 +37,11 @@ import java.util.Arrays;
 import java.util.concurrent.Executors;
 
 import io.noties.markwon.Markwon;
+import io.noties.markwon.SoftBreakAddsNewLinePlugin;
 import io.noties.markwon.editor.MarkwonEditor;
 import io.noties.markwon.editor.MarkwonEditorTextWatcher;
 import io.noties.markwon.ext.tables.TablePlugin;
+import io.noties.markwon.linkify.LinkifyPlugin;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class EditorActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
@@ -93,7 +95,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         /* INIT MARKDOWN BACKEND */
         markwon = Markwon.builder(this)
+                .usePlugin(SoftBreakAddsNewLinePlugin.create())
                 .usePlugin(TablePlugin.create(this))
+                .usePlugin(LinkifyPlugin.create())
                 .build();
         markwonEditor = MarkwonEditor.create(markwon);
 
@@ -182,6 +186,47 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     }
 
     /**
+     * <p>Perform an action based on which toolbar menu item was clicked.
+     * <p>The menu items as specified in
+     * {@link com.lexisnguyen.quicknotie.R.layout#layout_editor_top_toolbar layout_editor_top_toolbar}
+     *
+     * @param menuItem The selected menu item
+     * @return Result of performed action (should be true)
+     */
+    @SuppressLint("NonConstantResourceId")
+    private boolean OnMenuItemClick(MenuItem menuItem) {
+        int id = menuItem.getItemId();
+        switch (id) {
+            case R.id.home:
+                // Trigger back key press
+                onBackPressed();
+                break;
+            case R.id.action_preview:
+                action_preview(menuItem);
+                break;
+            case R.id.action_remind:
+                // Use Intent to add a new event to calendar
+                // TODO: https://stackoverflow.com/a/36947690
+                break;
+            case R.id.action_share:
+                // Save a temporary pdf file and share to external app
+                break;
+            case R.id.action_export:
+                // Save markdown to file using library
+                // TODO: https://github.com/Qkyrie/Markdown2Pdf
+                break;
+            case R.id.action_lock:
+                break;
+            case R.id.action_delete:
+                break;
+            default:
+                Log.w(TAG, "OnMenuItemClick: Unknown menu item " + menuItem.getTitle());
+                break;
+        }
+        return true;
+    }
+
+    /**
      * An event triggered when a view (in most times, a button) is clicked
      *
      * @param view The view in question
@@ -262,53 +307,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 break;
             // - Indent group
             case R.id.action_format_indent_increase:
-                // TODO: Add 1 tab character at the start of line
+                action_format_indent(true);
                 break;
             case R.id.action_format_indent_decrease:
-                // TODO: Remove 1 tab character at the start of line
+                action_format_indent(false);
                 break;
         }
-    }
-
-    /**
-     * <p>Perform an action based on which toolbar menu item was clicked.
-     * <p>The menu items as specified in
-     * {@link com.lexisnguyen.quicknotie.R.layout#layout_editor_top_toolbar layout_editor_top_toolbar}
-     *
-     * @param menuItem The selected menu item
-     * @return Result of performed action (should be true)
-     */
-    @SuppressLint("NonConstantResourceId")
-    private boolean OnMenuItemClick(MenuItem menuItem) {
-        int id = menuItem.getItemId();
-        switch (id) {
-            case R.id.home:
-                // Trigger back key press
-                onBackPressed();
-                break;
-            case R.id.action_preview:
-                action_preview(menuItem);
-                break;
-            case R.id.action_remind:
-                // Use Intent to add a new event to calendar
-                // TODO: https://stackoverflow.com/a/36947690
-                break;
-            case R.id.action_share:
-                // Save a temporary pdf file and share to external app
-                break;
-            case R.id.action_export:
-                // Save markdown to file using library
-                // TODO: https://github.com/Qkyrie/Markdown2Pdf
-                break;
-            case R.id.action_lock:
-                break;
-            case R.id.action_delete:
-                break;
-            default:
-                Log.w(TAG, "OnMenuItemClick: Unknown menu item " + menuItem.getTitle());
-                break;
-        }
-        return true;
     }
 
     /**
@@ -352,22 +356,39 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // Get selection
         textSelectionStart = editText.getSelectionStart();
         textSelectionEnd = editText.getSelectionEnd();
+        textSelectionPoint = textSelectionStart;
 
         // Select whole line or everything if nothing is selected
-        textSelectionPoint = textSelectionStart;
         if (textSelectionStart == textSelectionEnd) {
             String str = editText.getText().toString();
-            textSelectionEnd = str.indexOf("\n", textSelectionStart);
-            if (textSelectionEnd == -1) {
-                textSelectionEnd = editText.length();
-            }
-
-            str = str.substring(0, textSelectionEnd);
-            textSelectionStart = str.lastIndexOf("\n");
-            if (textSelectionStart == -1) {
-                textSelectionStart = 0;
-            }
+            textSelectionStart = getStartOfLine(str, textSelectionPoint);
+            textSelectionEnd = getEndOfLine(str, textSelectionPoint);
         }
+    }
+
+    /**
+     * Get cursor position for the start of current line
+     *
+     * @param str       The whole text
+     * @param cursorPos Current cursor position
+     * @return The start position of current line
+     */
+    private int getStartOfLine(String str, int cursorPos) {
+        str = str.substring(0, cursorPos);
+        int start = str.lastIndexOf("\n");
+        return (start == -1) ? 0 : start + 1;
+    }
+
+    /**
+     * Get cursor position for the end of current line
+     *
+     * @param str       The whole text
+     * @param cursorPos Current cursor position
+     * @return The end position of current line
+     */
+    private int getEndOfLine(String str, int cursorPos) {
+        int end = str.indexOf("\n", cursorPos);
+        return (end == -1) ? str.length() : end;
     }
 
     /**
@@ -446,6 +467,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
         action_text_font.setAdapter(textFontAdapter);
         action_text_font.setOnItemSelectedListener(this);
+        action_text_font.setSelection(textFonts.size() - 1);
 
         // Align group
         ImageButton action_table_align_left = dialog.findViewById(R.id.action_table_align_left),
@@ -668,13 +690,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // Put ``` before and after content
         CharSequence newString = editText.getText();
         if (textSelectionStart == textSelectionEnd) {
-            newString = "```\n```\n";
+            newString = "```\n\n```\n";
+            textSelectionEnd--;
         } else {
             newString = newString.subSequence(0, textSelectionStart) +
                     "\n```\n" +
                     newString.subSequence(textSelectionStart, textSelectionEnd) +
                     "\n```\n" +
-                    newString.subSequence(textSelectionEnd, editText.length());
+                    newString.subSequence(textSelectionEnd, newString.length());
         }
         editText.setText(newString);
 
@@ -684,6 +707,102 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         editText.setSelection(textSelectionPoint
                 + ((textSelectionPoint != textSelectionStart) ? 0 : textSelectionEnd - textSelectionStart)
                 + 5);
+    }
+
+    /**
+     * Increase/decrease 1 level of indent at the start of line
+     *
+     * @param increasing Will this function increase the indent? (decrease if not)
+     */
+    private void action_format_indent(boolean increasing) {
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint),
+                cursorMoveAmount = 0;
+        String newString = editText.getText().toString();
+
+        // Get current line
+        CharSequence line = newString.subSequence(startOfLine, endOfLine);
+        Editable lineEditable = Editable.Factory.getInstance().newEditable(line);
+        String lineString = line.toString();
+        int tabPos = lineString.indexOf("&ensp;");
+        if (tabPos != -1) {
+            // - If there is tab character -> add/remove a tab character
+            if (increasing) {
+                lineEditable.insert(tabPos, "&ensp;");
+                cursorMoveAmount += 6;
+            } else {
+                lineEditable.replace(tabPos, tabPos + 6, "");
+                cursorMoveAmount -= 6;
+            }
+        } else {
+            // - Validate for an indent indicator and perform appropriate actions
+            int charPos = -1;
+            char curChar = '\0';
+            for (int i = 0; i < line.length(); i++) {
+                char c = line.charAt(i);
+                if (c == ' ') {
+                    continue;
+                }
+                switch (c) {
+                    case '>':
+                    case '-':
+                    case '+':
+                    case '*':
+                        charPos = i;
+                        curChar = c;
+                        continue;
+                }
+                if (curChar == '\0') {
+                    // No special indent -> Add normal indent
+                    // TODO: Check for numbered list indent
+                    if (increasing) {
+                        lineEditable.insert(i, "&ensp;");
+                        cursorMoveAmount += 6;
+                    }
+                } else {
+                    switch (curChar) {
+                        case '>':
+                            // Quote indent -> Add nested quote/remove quote
+                            if (increasing) {
+                                lineEditable.insert(charPos, ">");
+                                cursorMoveAmount += 1;
+                            } else {
+                                lineEditable.replace(charPos, charPos + 1, "");
+                                cursorMoveAmount -= 1;
+                            }
+                            break;
+                        case '-':
+                        case '+':
+                        case '*':
+                            // Bullet list -> Add/remove 2 spaces to increase/decrease 1 indent level
+                            if (i > charPos + 1) {
+                                if (increasing) {
+                                    lineEditable.insert(charPos, "  ");
+                                    cursorMoveAmount += 2;
+                                } else if (charPos >= 2) {
+                                    if (line.subSequence(charPos - 2, charPos).equals("  ")) {
+                                        lineEditable.replace(charPos - 2, charPos, "");
+                                        cursorMoveAmount -= 2;
+                                    }
+                                }
+                            } else {
+                                // Actually not a bullet -> Add normal indent
+                                if (increasing) {
+                                    lineEditable.insert(charPos, "&ensp;");
+                                    cursorMoveAmount += 6;
+                                }
+                            }
+                            break;
+                    }
+                }
+                break;
+            }
+        }
+        newString = newString.substring(0, startOfLine) +
+                lineEditable.toString() +
+                newString.substring(endOfLine);
+        editText.setText(newString);
+        editText.setSelection(textSelectionPoint + cursorMoveAmount);
     }
 
     /**
