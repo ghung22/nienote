@@ -754,7 +754,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             newSelectionEnd = textSelectionPoint + 1 + "Link name".length();
         } else {
             // Use selected text as Link name
-            CharSequence selection = newString.subSequence(textSelectionStart, textSelectionEnd);
             newString.insert(textSelectionStart, "[");
             newString.insert(textSelectionEnd + 1, "](link)");
             newSelectionStart++;
