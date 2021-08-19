@@ -735,80 +735,76 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // Get current line
         CharSequence line = newString.subSequence(startOfLine, endOfLine);
         Editable lineEditable = Editable.Factory.getInstance().newEditable(line);
-        String lineString = line.toString();
-        int tabPos = lineString.indexOf("&ensp;");
-        if (tabPos != -1) {
-            // - If there is tab character -> add/remove a tab character
-            if (increasing) {
-                lineEditable.insert(tabPos, "&ensp;");
-                cursorMoveAmount += 6;
-            } else {
-                lineEditable.replace(tabPos, tabPos + 6, "");
-                cursorMoveAmount -= 6;
+
+        // Scanning for an indent indicator and perform appropriate actions
+        int charPos = -1;
+        char curChar = '\0';
+        for (int i = 0; i < line.length(); i++) {
+            char c = line.charAt(i);
+            if (c == ' ' || c == '>') {
+                continue;
+            } else if (cursorMoveAmount != 0) {
+                break;
             }
-        } else {
-            // - Validate for an indent indicator and perform appropriate actions
-            int charPos = -1;
-            char curChar = '\0';
-            for (int i = 0; i < line.length(); i++) {
-                char c = line.charAt(i);
-                if (c == ' ') {
-                    continue;
-                }
-                switch (c) {
-                    case '>':
-                    case '-':
-                    case '+':
-                    case '*':
+            switch (c) {
+                case '-':
+                case '+':
+                case '*':
+                    // Bullet indent -> Keep going until reaching end of space sequence
+                    if (curChar == '\0') {
                         charPos = i;
                         curChar = c;
                         continue;
-                }
-                if (curChar == '\0') {
-                    // No special indent -> Add normal indent
-                    // TODO: Check for numbered list indent
-                    if (increasing) {
-                        lineEditable.insert(i, "&ensp;");
-                        cursorMoveAmount += 6;
                     }
-                } else {
-                    switch (curChar) {
-                        case '>':
-                            // Quote indent -> Add nested quote/remove quote
-                            if (increasing) {
-                                lineEditable.insert(charPos, ">");
-                                cursorMoveAmount += 1;
-                            } else {
-                                lineEditable.replace(charPos, charPos + 1, "");
-                                cursorMoveAmount -= 1;
-                            }
-                            break;
-                        case '-':
-                        case '+':
-                        case '*':
-                            // Bullet list -> Add/remove 2 spaces to increase/decrease 1 indent level
-                            if (i > charPos + 1) {
-                                if (increasing) {
-                                    lineEditable.insert(charPos, "  ");
-                                    cursorMoveAmount += 2;
-                                } else if (charPos >= 2) {
-                                    if (line.subSequence(charPos - 2, charPos).equals("  ")) {
-                                        lineEditable.replace(charPos - 2, charPos, "");
-                                        cursorMoveAmount -= 2;
-                                    }
-                                }
-                            } else {
-                                // Actually not a bullet -> Add normal indent
-                                if (increasing) {
-                                    lineEditable.insert(charPos, "&ensp;");
-                                    cursorMoveAmount += 6;
-                                }
-                            }
-                            break;
+                    break;
+                case '&':
+                    if (line.subSequence(i, i + 6).equals("&ensp;")) {
+                        // Normal indent -> Add/remove 1 normal indent and end loop
+                        if (increasing) {
+                            lineEditable.insert(i, "&ensp;");
+                            cursorMoveAmount += 6;
+                        } else {
+                            lineEditable.replace(i, i + 6, "");
+                            cursorMoveAmount -= 6;
+                        }
+                        continue;
                     }
-                }
-                break;
+                    break;
             }
+            if (curChar == '\0') {
+                // No special indent -> Add normal indent only
+                // TODO: Check for numbered list indent
+                if (increasing) {
+                    lineEditable.insert(i, "&ensp;");
+                    cursorMoveAmount += 6;
+                }
+            } else {
+                switch (curChar) {
+                    case '-':
+                    case '+':
+                    case '*':
+                        // Bullet list -> Add/remove 2 spaces to increase/decrease 1 indent level
+                        if (i > charPos + 1) {
+                            if (increasing) {
+                                lineEditable.insert(charPos, "  ");
+                                cursorMoveAmount += 2;
+                            } else if (charPos >= 2) {
+                                if (line.subSequence(charPos - 2, charPos).equals("  ")) {
+                                    lineEditable.replace(charPos - 2, charPos, "");
+                                    cursorMoveAmount -= 2;
+                                }
+                            }
+                        } else {
+                            // Actually not a bullet -> Add normal indent
+                            if (increasing) {
+                                lineEditable.insert(charPos, "&ensp;");
+                                cursorMoveAmount += 6;
+                            }
+                        }
+                        break;
+                }
+            }
+            break;
         }
         newString = newString.substring(0, startOfLine) +
                 lineEditable.toString() +
