@@ -324,6 +324,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
     }
 
+    // region Spinner select events
+
     /**
      * An event triggered when an option of a spinner is clicked
      *
@@ -345,6 +347,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {}
+
+    // endregion
+
+    // region Handling text selection
 
     /**
      * Get the position of selected text in editText to be used in format-related functions
@@ -400,6 +406,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         return (end == -1) ? str.length() : end;
     }
 
+    // endregion
+
     /**
      * Shows a BottomSheetDialog with the specified layout
      *
@@ -435,6 +443,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         dialog.show();
     }
+
+    // region Init dialogs in Bottom Appbar
 
     /**
      * Init elements in the Add Content dialog
@@ -586,7 +596,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 action_color_blue == null || action_color_violet == null || action_color_purple == null ||
                 action_color_magenta == null || action_color_pink == null || action_color_black == null ||
                 action_color_lightgray == null || action_color_light == null || action_color_white == null) {
-            throw new Throwable("Missing button in Text Color dialog");
+            throw new Throwable("Missing button in Format Color dialog");
         }
         action_color_red.setOnClickListener((view) -> setTextColor(R.color.red));
         action_color_orange.setOnClickListener((view) -> setTextColor(R.color.orange));
@@ -632,7 +642,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 action_color_lightblue == null || action_color_lightviolet == null || action_color_lightpurple == null ||
                 action_color_lightmagenta == null || action_color_lightpink == null || action_color_lightgray == null ||
                 action_color_lightergray == null || action_color_light == null || action_color_white == null) {
-            throw new Throwable("Missing button in Background dialog");
+            throw new Throwable("Missing button in Format Background dialog");
         }
         action_color_lightred.setOnClickListener((view) -> setBackground(dialog, R.color.lightred));
         action_color_lightorange.setOnClickListener((view) -> setBackground(dialog, R.color.lightorange));
@@ -651,67 +661,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         action_color_white.setOnClickListener((view) -> setBackground(dialog, R.color.white));
     }
 
-    private void setTextColor(@ColorRes int colorId) {
-        // TODO: Add color tag to cursor position or surrounding selection
-    }
+    // endregion
 
-    /**
-     * Set the background of the note
-     *
-     * @param colorId The id of the note as specified in
-     *                {@link com.lexisnguyen.quicknotie.R.color#black values/colors.xml}
-     */
-    @SuppressWarnings({"ConstantConditions", "deprecation"})
-    private void setBackground(@ColorRes int colorId) {
-        // Set background color
-        window.setStatusBarColor(getColor(colorId));
-        toolbar.setBackgroundColor(getColor(colorId));
-        layout_root.setBackgroundColor(getColor(colorId));
-
-        // Update icon color based on background color
-        // - Get color and filter (?colorOnSecondary is the default color for icons)
-        int iconColor, statusBarIconColor, hintTextColor;
-        if (colorId == R.color.lightgray || colorId == R.color.lightergray) {
-            iconColor = getColor(R.color.white);
-            statusBarIconColor = 0;
-            hintTextColor = getColor(R.color.faded_white);
-        } else {
-            iconColor = MaterialColors.getColor(layout_root, R.attr.colorOnSecondary);
-            statusBarIconColor = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            hintTextColor = getColor(R.color.faded_black);
-        }
-        // - Root layout
-        getWindow().getDecorView().setSystemUiVisibility(statusBarIconColor);
-        // - Top Toolbar
-        Menu menu = toolbar.getMenu();
-        MenuItem action_preview = menu.findItem(R.id.action_preview),
-                action_remind = menu.findItem(R.id.action_remind),
-                action_share = menu.findItem(R.id.action_share);
-        toolbar.getNavigationIcon().setTint(iconColor);
-        action_preview.getIcon().setTint(iconColor);
-        action_remind.getIcon().setTint(iconColor);
-        action_share.getIcon().setTint(iconColor);
-        toolbar.getOverflowIcon().setTint(iconColor);
-        // - Content Layout
-        editTextTitle.setTextColor(iconColor);
-        editTextTitle.setHintTextColor(hintTextColor);
-        editText.setTextColor(iconColor);
-        editText.setHintTextColor(hintTextColor);
-        textView.setTextColor(iconColor);
-        textView.setHintTextColor(hintTextColor);
-    }
-
-    /**
-     * Set note background and dismiss the current showing BottomSheetDialog
-     *
-     * @param dialog  The dialog in question
-     * @param colorId The id of the note as specified in
-     *                {@link com.lexisnguyen.quicknotie.R.color#black values/colors.xml}
-     */
-    private void setBackground(BottomSheetDialog dialog, @ColorRes int colorId) {
-        setBackground(colorId);
-        dialog.onBackPressed();
-    }
+    // region Button actions in Add Content dialog
 
     /**
      * TODO: Add table on the line under typing cursor
@@ -769,6 +721,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         newString.insert(endOfLine, "\n***\n");
     }
 
+    // endregion
+
+    // region Button actions in Format Style dialog
 
     /**
      * Increase/decrease 1 level of indent at the start of line
@@ -862,6 +817,80 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         editText.setSelection(textSelectionPoint + cursorMoveAmount);
     }
 
+    // endregion
+
+    // region Button actions in Format Color dialog
+
+    private void setTextColor(@ColorRes int colorId) {
+        // TODO: Add color tag to cursor position or surrounding selection
+    }
+
+    // endregion
+
+    // region Button actions in Format Background dialog
+
+    /**
+     * Set the background of the note
+     *
+     * @param colorId The id of the note as specified in
+     *                {@link com.lexisnguyen.quicknotie.R.color#black values/colors.xml}
+     */
+    @SuppressWarnings({"ConstantConditions", "deprecation"})
+    private void setBackground(@ColorRes int colorId) {
+        // Set background color
+        window.setStatusBarColor(getColor(colorId));
+        toolbar.setBackgroundColor(getColor(colorId));
+        layout_root.setBackgroundColor(getColor(colorId));
+
+        // Update icon color based on background color
+        // - Get color and filter (?colorOnSecondary is the default color for icons)
+        int iconColor, statusBarIconColor, hintTextColor;
+        if (colorId == R.color.lightgray || colorId == R.color.lightergray) {
+            iconColor = getColor(R.color.white);
+            statusBarIconColor = 0;
+            hintTextColor = getColor(R.color.faded_white);
+        } else {
+            iconColor = MaterialColors.getColor(layout_root, R.attr.colorOnSecondary);
+            statusBarIconColor = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            hintTextColor = getColor(R.color.faded_black);
+        }
+        // - Root layout
+        getWindow().getDecorView().setSystemUiVisibility(statusBarIconColor);
+        // - Top Toolbar
+        Menu menu = toolbar.getMenu();
+        MenuItem action_preview = menu.findItem(R.id.action_preview),
+                action_remind = menu.findItem(R.id.action_remind),
+                action_share = menu.findItem(R.id.action_share);
+        toolbar.getNavigationIcon().setTint(iconColor);
+        action_preview.getIcon().setTint(iconColor);
+        action_remind.getIcon().setTint(iconColor);
+        action_share.getIcon().setTint(iconColor);
+        toolbar.getOverflowIcon().setTint(iconColor);
+        // - Content Layout
+        editTextTitle.setTextColor(iconColor);
+        editTextTitle.setHintTextColor(hintTextColor);
+        editText.setTextColor(iconColor);
+        editText.setHintTextColor(hintTextColor);
+        textView.setTextColor(iconColor);
+        textView.setHintTextColor(hintTextColor);
+    }
+
+    /**
+     * Set note background and dismiss the current showing BottomSheetDialog
+     *
+     * @param dialog  The dialog in question
+     * @param colorId The id of the note as specified in
+     *                {@link com.lexisnguyen.quicknotie.R.color#black values/colors.xml}
+     */
+    private void setBackground(BottomSheetDialog dialog, @ColorRes int colorId) {
+        setBackground(colorId);
+        dialog.onBackPressed();
+    }
+
+    // endregion
+
+    // region Button actions in Top Toolbar
+
     /**
      * <p>Toggle between Preview mode and Edit mode</p>
      * <p>- Preview mode: View result of the markdown text</p>
@@ -925,6 +954,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             menuItem.setTooltipText(getString(R.string.action_preview));
         }
     }
+
+    // endregion
 
     /**
      * Start an action when user presses Back depending on the states of the app.
