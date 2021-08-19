@@ -42,6 +42,7 @@ import io.noties.markwon.SoftBreakAddsNewLinePlugin;
 import io.noties.markwon.editor.MarkwonEditor;
 import io.noties.markwon.editor.MarkwonEditorTextWatcher;
 import io.noties.markwon.ext.tables.TablePlugin;
+import io.noties.markwon.html.HtmlPlugin;
 import io.noties.markwon.linkify.LinkifyPlugin;
 
 @SuppressWarnings("FieldCanBeLocal")
@@ -97,12 +98,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         /* INIT MARKDOWN BACKEND
          * - SoftBreakAddsNewLinePlugin: Treat user newline as Markdown's newline (it is ignored by default)
-         * - LinkifyPlugin: Enable Markdown's link functionality
-         * - TablePlugin: Enable Markdown's table functionality
+         * - Html: Enable HTML support
+         * - LinkifyPlugin: Enable Markdown's link display
+         * - TablePlugin: Enable Markdown's table display
          * - Editor: Enable Markdown syntax highlighting
          */
         markwon = Markwon.builder(this)
                 .usePlugin(SoftBreakAddsNewLinePlugin.create())
+                .usePlugin(HtmlPlugin.create())
                 .usePlugin(LinkifyPlugin.create())
                 .usePlugin(TablePlugin.create(builder ->
                         builder.tableBorderWidth(2)
@@ -310,23 +313,23 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 break;
             // - Text style group
             case R.id.action_format_bold:
-                // TODO: Add/remove bold symbol at current position or surrounding selection
+                action_format_style('b');
                 break;
             case R.id.action_format_italic:
-                // TODO: Add/remove italic symbol at current position or surrounding selection
+                action_format_style('i');
                 break;
             case R.id.action_format_underline:
-                // TODO: Add/remove underline symbol at current position or surrounding selection
+                action_format_style('u');
                 break;
             case R.id.action_format_strikethrough:
-                // TODO: Add/remove strikethrough symbol at current position or surrounding selection
+                action_format_style('s');
                 break;
             // - Script group
             case R.id.action_format_superscript:
-                // TODO: Add/remove sup tag at current position or surrounding selection
+                action_format_style('^');
                 break;
             case R.id.action_format_subscript:
-                // TODO: Add/remove sub tag at current position or surrounding selection
+                action_format_style('_');
                 break;
             // - Indent group
             case R.id.action_format_indent_increase:
@@ -764,8 +767,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 newSelectionStart = textSelectionStart, newSelectionEnd = textSelectionEnd;
         Editable newString = editText.getText();
         if (textSelectionStart == startOfLine && textSelectionEnd == endOfLine &&
-                // If nothing is selected, insert a link preset
                 (textSelectionStart != textSelectionPoint || textSelectionEnd != textSelectionPoint)) {
+            // If nothing is selected, insert a link preset
             newString.insert(textSelectionPoint, "[Link name](link)");
             newSelectionStart = textSelectionPoint + 1;
             newSelectionEnd = textSelectionPoint + 1 + "Link name".length();
@@ -801,6 +804,134 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     // endregion
 
     // region Button actions in Format Style dialog
+
+    /**
+     * Insert/remove a pair of format symbols at the cursor position, or put/remove them between a selection
+     *
+     * @param type Type of format
+     *             <ul> Allowed types:
+     *                 <li>b: Bold <b>Text</b></li>
+     *                 <li>i: Italic <i>Text</i></li>
+     *                 <li>u: Underline <u>Text</u></li>
+     *                 <li>s: Strikethrough <s>Text</s></li>
+     *                 <li>^: Superscript <sup>Text</sup></li>
+     *                 <li>_: Subscript <sub>Text</sub></li>
+     *                 </ul>
+     */
+    private void action_format_style(char type) {
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+
+        // Get the format tags based on type
+        String format = "";
+        switch (type) {
+            case 'b':
+            case 'i':
+            case 'u':
+            case 's':
+                format = String.valueOf(type);
+                break;
+            case '^':
+                format = "sup";
+                break;
+            case '_':
+                format = "sub";
+                break;
+        }
+        String openTag = "<" + format + ">",
+                endTag = "</" + format + ">";
+
+        // Start formatting
+        Editable newString = editText.getText();
+        int check;
+        if (textSelectionStart == startOfLine && textSelectionEnd == endOfLine &&
+                (textSelectionStart != textSelectionPoint || textSelectionEnd != textSelectionPoint)) {
+            // If nothing is selected
+            // - If the cursor is not surrounded by similar format tags, insert them
+            // - If it is surrounded, remove them
+            check = action_format_style_check(format, textSelectionPoint, textSelectionPoint);
+            if (check <= 0) {
+                newString.insert(textSelectionPoint, openTag + endTag);
+            } else {
+                openTag = "";
+                newString.replace(textSelectionPoint, textSelectionPoint + check + ((check < 3) ? 0 : 1), "");
+                newString.replace(textSelectionPoint - check, textSelectionPoint, "");
+                textSelectionPoint -= check;
+            }
+            textSelectionStart = textSelectionPoint;
+            textSelectionEnd = textSelectionPoint;
+        } else {
+            // Apply format to selection
+            // - If the selection is not surrounded by a similar format, insert them
+            // - If it is surrounded, remove them
+            check = action_format_style_check(format, textSelectionStart, textSelectionEnd);
+            if (check <= 0) {
+                newString.insert(textSelectionStart, openTag);
+                newString.insert(textSelectionEnd + openTag.length(), endTag);
+            } else {
+                openTag = "";
+                newString.replace(textSelectionEnd, textSelectionEnd + check + ((check < 3) ? 0 : 1), "");
+                newString.replace(textSelectionStart - check, textSelectionStart, "");
+                textSelectionPoint -= check;
+            }
+        }
+
+        // Update new cursor position and show keyboard
+        // - Retain original cursor position (or Put cursor at the end of selection)
+        // - Offset by the length of opening format tag
+        showKeyboard();
+        editText.setSelection(
+                textSelectionPoint + openTag.length(),
+                textSelectionPoint + openTag.length() +
+                        (textSelectionEnd - textSelectionStart));
+    }
+
+    /**
+     * Check if the given range is surrounded by a format tag
+     *
+     * @param format Format tag type
+     * @param start  Start of range
+     * @param end    End of range
+     * @return The length of the open tag
+     * <ul> Lengths this function could return:
+     *     <li>0: No tags found</li>
+     *     <li>< 3: A Markdown tag</li>
+     *     <li>>= 3: A HTML tag</li>
+     *     </ul>
+     */
+    private int action_format_style_check(String format, int start, int end) {
+        String str = editText.getText().toString();
+        String openTag = "<" + format + ">",
+                endTag = "</" + format + ">",
+                mdSymbol = "", mdSymbolAlt = "";
+        if (start > end) {
+            return 0;
+        }
+        if (str.startsWith(openTag, start - openTag.length()) &&
+                str.startsWith(endTag, end)) {
+            return openTag.length();
+        }
+        switch (format) {
+            case "b":
+                mdSymbol = "**";
+                mdSymbolAlt = "__";
+                break;
+            case "i":
+                mdSymbol = "*";
+                mdSymbolAlt = "_";
+                break;
+            case "s":
+                mdSymbol = "~~";
+                mdSymbolAlt = "~~";
+                break;
+        }
+        if (!mdSymbol.equals("")) {
+            if ((str.startsWith(mdSymbol, start - mdSymbol.length()) && str.startsWith(mdSymbol, end)) ||
+                    (str.startsWith(mdSymbolAlt, start - mdSymbolAlt.length()) && str.startsWith(mdSymbolAlt, end)))
+                return mdSymbol.length();
+        }
+        return 0;
+    }
 
     /**
      * Increase/decrease 1 level of indent at the start of line
