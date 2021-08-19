@@ -266,6 +266,15 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             case R.id.action_add_codeblock:
                 action_add_codeblock();
                 break;
+            case R.id.action_add_link:
+                action_add_link();
+                break;
+            case R.id.action_add_quote:
+                action_add_quote();
+                break;
+            case R.id.action_add_line:
+                action_add_line();
+                break;
 
             // Format style dialog
             // - Align group
@@ -437,8 +446,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         Button action_add_camera = dialog.findViewById(R.id.action_add_camera),
                 action_add_image = dialog.findViewById(R.id.action_add_image),
                 action_add_table = dialog.findViewById(R.id.action_add_table),
-                action_add_codeblock = dialog.findViewById(R.id.action_add_codeblock);
-        if (action_add_camera == null || action_add_image == null || action_add_table == null || action_add_codeblock == null) {
+                action_add_codeblock = dialog.findViewById(R.id.action_add_codeblock),
+                action_add_link = dialog.findViewById(R.id.action_add_link),
+                action_add_quote = dialog.findViewById(R.id.action_add_quote),
+                action_add_line = dialog.findViewById(R.id.action_add_line);
+        if (action_add_camera == null || action_add_image == null || action_add_table == null || action_add_codeblock == null
+                || action_add_link == null || action_add_quote == null || action_add_line == null) {
             throw new Throwable("Missing button in Add Content dialog");
         }
         action_add_camera.setOnClickListener(view -> {
@@ -454,6 +467,18 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             dialog.onBackPressed();
         });
         action_add_codeblock.setOnClickListener(view -> {
+            onClick(view);
+            dialog.onBackPressed();
+        });
+        action_add_link.setOnClickListener(view -> {
+            onClick(view);
+            dialog.onBackPressed();
+        });
+        action_add_quote.setOnClickListener(view -> {
+            onClick(view);
+            dialog.onBackPressed();
+        });
+        action_add_line.setOnClickListener(view -> {
             onClick(view);
             dialog.onBackPressed();
         });
@@ -720,6 +745,26 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 + ((textSelectionPoint != textSelectionStart) ? 0 : textSelectionEnd - textSelectionStart)
                 + 5);
     }
+
+    private void action_add_link() {
+        // TODO: action_add_link
+
+    }
+
+    private void action_add_quote() {
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
+                cursorMoveAmount = 0;
+        Editable newString = editText.getText();
+
+        // Put a quote at the start of line
+        newString.insert(startOfLine, " > ");
+    }
+
+    private void action_add_line() {
+        // TODO: action_add_line
+
+    }
+
 
     /**
      * Increase/decrease 1 level of indent at the start of line

@@ -25,8 +25,6 @@
   <!-- MainActivity bottom bar -->
   <string name="action_add">Add a Note</string>
   <string name="action_show_menu">Show menu</string>
-  <string name="action_add_codeblock">Codeblock</string>
-  <string name="action_add_image">Image</string>
   <string name="action_settings">Settings</string>
   <!-- MainActivity drawer -->
   <string name="action_drawer_all">All notes</string>
@@ -52,7 +50,12 @@
   <string name="action_add_content">Add a Content</string>
   <!-- EditorActivity action_add_content bottom dialog -->
   <string name="action_add_camera">Capture</string>
+  <string name="action_add_image">Image</string>
   <string name="action_add_table">Table</string>
+  <string name="action_add_codeblock">Codeblock</string>
+  <string name="action_add_link">Link</string>
+  <string name="action_add_quote">Quote</string>
+  <string name="action_add_line">Horizontal line</string>
   <!-- EditorActivity action_format_style bottom dialog -->
   <string name="action_table_align_left">Align left</string>
   <string name="action_table_align_center">Align center</string>
