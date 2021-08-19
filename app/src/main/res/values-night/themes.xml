@@ -20,11 +20,17 @@
 
     <!-- Customize your theme here. -->
     <item name="bottomSheetDialogTheme">@style/Theme.QuickNotie.BottomSheetDialog</item>
+    <item name="imageButtonStyle">@style/Theme.QuickNotie.Button</item>
   </style>
 
   <!-- EditorActivity bottom appbar -->
   <style name="Theme.QuickNotie.BottomAppBar" parent="@style/Widget.MaterialComponents.BottomAppBar.Colored">
     <item name="backgroundTint">@color/faded_black</item>
+  </style>
+
+  <!-- EditorActivity grouped buttons -->
+  <style name="Theme.QuickNotie.Button" parent="@style/Widget.AppCompat.ImageButton">
+    <item name="elevation">0dp</item>
   </style>
 
   <!-- Create corners for bottom dialogs -->

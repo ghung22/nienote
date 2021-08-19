@@ -76,7 +76,6 @@
             android:src="@drawable/action_table_align_center"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_table_align_center" />
 
           <ImageButton
@@ -86,15 +85,21 @@
             android:src="@drawable/action_table_align_right"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_table_align_right" />
         </LinearLayout>
+      </RelativeLayout>
+
+      <RelativeLayout
+        android:id="@+id/layout_second_row"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout_first_row"
+        android:layout_centerHorizontal="true">
 
         <LinearLayout
           android:id="@+id/layout_list_style"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:layout_toEndOf="@id/layout_text_align"
           android:padding="@dimen/rounded_layout_padding"
           android:layout_margin="@dimen/rounded_layout_margin"
           android:orientation="horizontal"
@@ -108,7 +113,6 @@
             android:src="@drawable/action_bullet"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_bullet" />
 
           <ImageButton
@@ -118,22 +122,14 @@
             android:src="@drawable/action_number"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_number" />
         </LinearLayout>
-      </RelativeLayout>
-
-      <RelativeLayout
-        android:id="@+id/layout_second_row"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/layout_first_row"
-        android:layout_centerHorizontal="true">
 
         <LinearLayout
           android:id="@+id/layout_text_style"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
+          android:layout_toEndOf="@id/layout_list_style"
           android:padding="@dimen/rounded_layout_padding"
           android:layout_margin="@dimen/rounded_layout_margin"
           android:orientation="horizontal"
@@ -147,7 +143,6 @@
             android:src="@drawable/action_format_bold"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_format_bold" />
 
           <ImageButton
@@ -157,7 +152,6 @@
             android:src="@drawable/action_format_italic"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_format_italic" />
 
           <ImageButton
@@ -167,7 +161,6 @@
             android:src="@drawable/action_format_underline"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_format_underline" />
 
           <ImageButton
@@ -177,15 +170,21 @@
             android:src="@drawable/action_format_strikethrough"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_format_strikethrough" />
         </LinearLayout>
+      </RelativeLayout>
+
+      <RelativeLayout
+        android:id="@+id/layout_third_row"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/layout_second_row"
+        android:layout_centerHorizontal="true">
 
         <LinearLayout
           android:id="@+id/layout_text_script"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
-          android:layout_toEndOf="@id/layout_text_style"
           android:padding="@dimen/rounded_layout_padding"
           android:layout_margin="@dimen/rounded_layout_margin"
           android:orientation="horizontal"
@@ -199,7 +198,6 @@
             android:src="@drawable/action_format_superscript"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_format_superscript" />
 
           <ImageButton
@@ -209,7 +207,6 @@
             android:src="@drawable/action_format_subscript"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_format_subscript" />
         </LinearLayout>
 
@@ -231,7 +228,6 @@
             android:src="@drawable/action_format_indent_increase"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_format_indent_increase" />
 
           <ImageButton
@@ -241,7 +237,6 @@
             android:src="@drawable/action_format_indent_decrease"
             android:background="@drawable/rounded_rectangle"
             android:backgroundTint="@color/transparent"
-            android:elevation="0dp"
             android:contentDescription="@string/action_format_indent_decrease" />
         </LinearLayout>
       </RelativeLayout>

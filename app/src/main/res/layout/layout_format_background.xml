@@ -34,6 +34,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightred"
         android:contentDescription="@string/action_color_light_red" />
@@ -43,6 +45,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightorange"
         android:contentDescription="@string/action_color_light_orange" />
@@ -52,6 +56,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightyellow"
         android:contentDescription="@string/action_color_light_yellow" />
@@ -61,6 +67,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightgreen"
         android:contentDescription="@string/action_color_light_green" />
@@ -70,6 +78,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lighttortoise"
         android:contentDescription="@string/action_color_light_tortoise" />
@@ -79,6 +89,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightcyan"
         android:contentDescription="@string/action_color_light_cyan" />
@@ -98,6 +110,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightblue"
         android:contentDescription="@string/action_color_light_blue" />
@@ -107,6 +121,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightviolet"
         android:contentDescription="@string/action_color_light_violet" />
@@ -116,6 +132,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightpurple"
         android:contentDescription="@string/action_color_light_purple" />
@@ -125,6 +143,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightmagenta"
         android:contentDescription="@string/action_color_light_magenta" />
@@ -134,6 +154,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightpink"
         android:contentDescription="@string/action_color_light_pink" />
@@ -153,6 +175,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightgray"
         android:contentDescription="@string/action_color_lightgray" />
@@ -162,6 +186,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/lightergray"
         android:contentDescription="@string/action_color_lightergray" />
@@ -171,6 +197,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/light"
         android:contentDescription="@string/action_color_light" />
@@ -180,6 +208,8 @@
         android:layout_width="@dimen/rounded_layout_icon_size"
         android:layout_height="@dimen/rounded_layout_icon_size"
         android:layout_marginHorizontal="@dimen/rounded_layout_margin"
+        android:layout_marginVertical="5dp"
+        android:elevation="2dp"
         android:background="@drawable/rounded_rectangle"
         android:backgroundTint="@color/white"
         android:contentDescription="@string/action_color_white" />
