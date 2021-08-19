@@ -2,6 +2,7 @@ package com.lexisnguyen.quicknotie.activities;
 
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
@@ -70,6 +71,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                     "### Heading 3",
                     "## Heading 2",
                     "# Heading 1",
+                    "`Monospace`",
                     "Normal"
             )
     );
@@ -93,12 +95,24 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             bgColor = R.color.white;
         }
 
-        /* INIT MARKDOWN BACKEND */
+        /* INIT MARKDOWN BACKEND
+         * - SoftBreakAddsNewLinePlugin: Treat user newline as Markdown's newline (it is ignored by default)
+         * - LinkifyPlugin: Enable Markdown's link functionality
+         * - TablePlugin: Enable Markdown's table functionality
+         * - Editor: Enable Markdown syntax highlighting
+         */
         markwon = Markwon.builder(this)
                 .usePlugin(SoftBreakAddsNewLinePlugin.create())
-                .usePlugin(TablePlugin.create(this))
                 .usePlugin(LinkifyPlugin.create())
-                .build();
+                .usePlugin(TablePlugin.create(builder ->
+                        builder.tableBorderWidth(2)
+                                .tableCellPadding(16)
+                                .tableBorderColor(Color.DKGRAY)
+                                .tableHeaderRowBackgroundColor(Color.LTGRAY)
+                                .tableEvenRowBackgroundColor(Color.TRANSPARENT)
+                                .tableOddRowBackgroundColor(Color.TRANSPARENT)
+                                .build()
+                )).build();
         markwonEditor = MarkwonEditor.create(markwon);
 
         /* INIT GUI ELEMENTS */
@@ -741,6 +755,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                         + 5), 50);
     }
 
+    /**
+     * Insert a new link or make a selection as a link
+     */
     private void action_add_link() {
         int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
                 endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint),
