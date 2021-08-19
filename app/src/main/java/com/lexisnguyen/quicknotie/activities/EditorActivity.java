@@ -408,6 +408,42 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     // endregion
 
+    // region Handling soft keyboard
+
+    /**
+     * Hide the soft keyboard
+     *
+     * @see <a href="https://stackoverflow.com/a/17789187">
+     * How do you close/hide the Android soft keyboard programmatically? - StackOverflow
+     * </a>
+     */
+    private void hideKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE);
+        View v = this.getCurrentFocus();
+        if (v == null) {
+            v = new View(this);
+        }
+        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+    }
+
+    /**
+     * Show the soft keyboard
+     *
+     * @see <a href="https://stackoverflow.com/a/34306427">
+     * Android - show keyboard programmatically - StackOverflow
+     * </a>
+     */
+    private void showKeyboard() {
+        InputMethodManager imm = (InputMethodManager) getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE);
+        View v = this.getCurrentFocus();
+        if (v == null) {
+            v = new View(this);
+        }
+        imm.showSoftInput(v, 0);
+    }
+
+    // endregion
+
     /**
      * Shows a BottomSheetDialog with the specified layout
      *
@@ -666,41 +702,66 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     // region Button actions in Add Content dialog
 
     /**
-     * TODO: Add table on the line under typing cursor
+     * Put a table after the current line
      */
     private void action_add_table() {
-
+        int endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+        Editable newString = editText.getText();
+        String tablePreset =
+                "Column 1 | Column 2 | Column 3\n" +
+                        "--- | --- | ---\n" +
+                        "Line 1 |  | \n";
+        newString.insert(endOfLine, tablePreset);
+        editText.setSelection(textSelectionPoint, textSelectionPoint + "Column 1".length());
+        showKeyboard();
     }
 
     /**
-     * Put selection/line in between a new codeblock
+     * Put lines in between a new codeblock
      */
     private void action_add_codeblock() {
         // Put ``` before and after content
-        CharSequence newString = editText.getText();
-        if (textSelectionStart == textSelectionEnd) {
-            newString = "```\n\n```\n";
-            textSelectionEnd--;
+        Editable newString = editText.getText();
+        if (textSelectionStart != textSelectionEnd) {
+            textSelectionStart = getStartOfLine(editText.getText().toString(), textSelectionStart);
+            textSelectionEnd = getEndOfLine(editText.getText().toString(), textSelectionEnd);
+            newString.insert(textSelectionStart, "\n```\n");
+            newString.insert(textSelectionEnd + 5, "\n```\n");
         } else {
-            newString = newString.subSequence(0, textSelectionStart) +
-                    "\n```\n" +
-                    newString.subSequence(textSelectionStart, textSelectionEnd) +
-                    "\n```\n" +
-                    newString.subSequence(textSelectionEnd, newString.length());
+            newString.insert(textSelectionPoint, "```\n\n```\n");
+            textSelectionEnd--;
         }
-        editText.setText(newString);
 
         // Update new cursor position
         // - Retain original cursor position (or Put cursor at the end of selection)
         // - The string "\n```\n" has 5 characters -> offset by 5 chars
-        editText.setSelection(textSelectionPoint
-                + ((textSelectionPoint != textSelectionStart) ? 0 : textSelectionEnd - textSelectionStart)
-                + 5);
+        editText.postDelayed(() ->
+                editText.setSelection(textSelectionPoint
+                        + ((textSelectionPoint != textSelectionStart) ? 0 : textSelectionEnd - textSelectionStart)
+                        + 5), 50);
     }
 
     private void action_add_link() {
-        // TODO: action_add_link
-
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint),
+                newSelectionStart = textSelectionStart, newSelectionEnd = textSelectionEnd;
+        Editable newString = editText.getText();
+        if (textSelectionStart == startOfLine && textSelectionEnd == endOfLine &&
+                // If nothing is selected, insert a link preset
+                (textSelectionStart != textSelectionPoint || textSelectionEnd != textSelectionPoint)) {
+            newString.insert(textSelectionPoint, "[Link name](link)");
+            newSelectionStart = textSelectionPoint + 1;
+            newSelectionEnd = textSelectionPoint + 1 + "Link name".length();
+        } else {
+            // Use selected text as Link name
+            CharSequence selection = newString.subSequence(textSelectionStart, textSelectionEnd);
+            newString.insert(textSelectionStart, "[");
+            newString.insert(textSelectionEnd + 1, "](link)");
+            newSelectionStart++;
+            newSelectionEnd++;
+        }
+        showKeyboard();
+        editText.setSelection(newSelectionStart, newSelectionEnd);
     }
 
     /**
@@ -907,14 +968,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         Editable text = editText.getText();
         markwon.setMarkdown(textView, text.toString());
 
-        // Hide keyboard
-        // https://stackoverflow.com/a/17789187
-        InputMethodManager imm = (InputMethodManager) this.getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE);
-        View v = this.getCurrentFocus();
-        if (v == null) {
-            v = new View(this);
-        }
-        imm.hideSoftInputFromWindow(v.getWindowToken(), 0);
+        hideKeyboard();
 
         // Toggle editor buttons
         action_add_content.setEnabled(!preview);
