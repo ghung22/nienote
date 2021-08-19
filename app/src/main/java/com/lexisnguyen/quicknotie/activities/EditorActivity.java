@@ -751,18 +751,22 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     }
 
+    /**
+     * Put a quote symbol at the start of line
+     */
     private void action_add_quote() {
-        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
-                cursorMoveAmount = 0;
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint);
         Editable newString = editText.getText();
-
-        // Put a quote at the start of line
         newString.insert(startOfLine, " > ");
     }
 
+    /**
+     * Put a horizontal line after the current line
+     */
     private void action_add_line() {
-        // TODO: action_add_line
-
+        int endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+        Editable newString = editText.getText();
+        newString.insert(endOfLine, "\n***\n");
     }
 
 
