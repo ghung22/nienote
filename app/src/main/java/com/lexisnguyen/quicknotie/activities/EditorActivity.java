@@ -373,6 +373,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 action_format_indent(false);
                 break;
         }
+        getTextSelection();
     }
 
     /**
@@ -918,9 +919,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // - If already aligned, delete the old tags if type is different
         // - If type is the same, return
         // - Add a pair of align tags only if the type is center or end
+        int openTagStart = 0, openTagEnd = 0, endTagStart, endTagEnd = line.length();
         if (action_align_tag_exists(line)) {
-            int openTagStart = 0, openTagEnd = line.toString().indexOf(">") + 1,
-                    endTagStart = line.toString().lastIndexOf("</"), endTagEnd = line.length();
+            openTagEnd = line.toString().indexOf(">") + 1;
+            endTagStart = line.toString().lastIndexOf("</");
             if (line.subSequence(openTagStart, openTagEnd).toString().contains(type)) {
                 return;
             } else {
@@ -941,7 +943,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         // Update new cursor position and show keyboard
         showKeyboard();
-        editText.setSelection(textSelectionPoint + openTag.length());
+        editText.setSelection(textSelectionPoint - (openTagEnd - openTagStart) + openTag.length());
     }
 
     /**
