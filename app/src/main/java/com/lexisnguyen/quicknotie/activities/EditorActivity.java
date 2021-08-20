@@ -4,7 +4,6 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.content.Intent;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.InputType;
@@ -48,6 +47,7 @@ import io.noties.markwon.AbstractMarkwonPlugin;
 import io.noties.markwon.Markwon;
 import io.noties.markwon.MarkwonPlugin;
 import io.noties.markwon.SoftBreakAddsNewLinePlugin;
+import io.noties.markwon.core.MarkwonTheme;
 import io.noties.markwon.editor.MarkwonEditor;
 import io.noties.markwon.editor.MarkwonEditorTextWatcher;
 import io.noties.markwon.ext.tables.TablePlugin;
@@ -108,12 +108,19 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         /* INIT MARKDOWN FUNCTIONALITIES
          * - SoftBreakAddsNewLinePlugin: Treat user newline as Markdown's newline (it is ignored by default)
          * - LinkifyPlugin: Enable Markdown's link display
+         * - headingTheme: Custom theme for headers
          * - Html: Enable HTML support
          * - alignTags: Align text using HTML tags
          * - tablePlugin: Enable Markdown's table display
+         * - inlineCodeNoBackground: Disable inline code background (for monospace font functionality)
          * - Editor: Enable Markdown syntax highlighting
          */
-        MarkwonPlugin alignTags = new AbstractMarkwonPlugin() {
+        MarkwonPlugin headingTheme = new AbstractMarkwonPlugin() {
+            @Override
+            public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
+                builder.headingBreakHeight(0);
+            }
+        }, alignTags = new AbstractMarkwonPlugin() {
             @Override
             public void configure(@NonNull Registry registry) {
                 registry.require(HtmlPlugin.class, htmlPlugin ->
@@ -122,18 +129,24 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }, tablePlugin = TablePlugin.create(builder ->
                 builder.tableBorderWidth(2)
                         .tableCellPadding(16)
-                        .tableBorderColor(Color.DKGRAY)
-                        .tableHeaderRowBackgroundColor(Color.LTGRAY)
-                        .tableEvenRowBackgroundColor(Color.TRANSPARENT)
-                        .tableOddRowBackgroundColor(Color.TRANSPARENT)
-                        .build()
-        );
+                        .tableBorderColor(getColor(R.color.faded_black))
+                        .tableHeaderRowBackgroundColor(getColor(R.color.faded_black))
+                        .tableEvenRowBackgroundColor(getColor(R.color.transparent))
+                        .tableOddRowBackgroundColor(getColor(R.color.transparent))
+        ), inlineCodeNoBackground = new AbstractMarkwonPlugin() {
+            @Override
+            public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
+                builder.codeBackgroundColor(getColor(R.color.transparent));
+            }
+        };
         markwon = Markwon.builder(this)
                 .usePlugin(SoftBreakAddsNewLinePlugin.create())
                 .usePlugin(LinkifyPlugin.create())
+                .usePlugin(headingTheme)
                 .usePlugin(HtmlPlugin.create())
                 .usePlugin(alignTags)
                 .usePlugin(tablePlugin)
+                .usePlugin(inlineCodeNoBackground)
                 .build();
         markwonEditor = MarkwonEditor.create(markwon);
 
@@ -220,6 +233,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         getMenuInflater().inflate(R.menu.menu_editor_top, menu);
         return super.onCreateOptionsMenu(menu);
     }
+
+    // region User click events
 
     /**
      * <p>Perform an action based on which toolbar menu item was clicked.
@@ -359,8 +374,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 break;
         }
     }
-
-    // region Spinner select events
 
     /**
      * An event triggered when an option of a spinner is clicked
@@ -881,11 +894,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *
      * @param type Type of alignment
      *             <ul> Allowed types:
-     *                 <li>start: Align left</li>
-     *                 <li>center: Align center</li>
-     *                 <li>end: Align end</li>
-     *                 <li>anything else: Treated as Align start</li>
-     *                 </ul>
+     *             <li><b>start</b>: Align left</li>
+     *             <li><b>center</b>: Align center</li>
+     *             <li><b>end</b>: Align end</li>
+     *             <li><b>anything else</b>: Treated as Align start</li>
+     *             </ul>
      */
     private void action_align(String type) {
         int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
@@ -969,13 +982,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *
      * @param type Type of format
      *             <ul> Allowed types:
-     *                 <li>b: Bold <b>Text</b></li>
-     *                 <li>i: Italic <i>Text</i></li>
-     *                 <li>u: Underline <u>Text</u></li>
-     *                 <li>s: Strikethrough <s>Text</s></li>
-     *                 <li>^: Superscript <sup>Text</sup></li>
-     *                 <li>_: Subscript <sub>Text</sub></li>
-     *                 </ul>
+     *             <li><b>b</b>: Bold <b>Text</b></li>
+     *             <li><b>i</b>: Italic <i>Text</i></li>
+     *             <li><b>u</b>: Underline <u>Text</u></li>
+     *             <li><b>s</b>: Strikethrough <s>Text</s></li>
+     *             <li><b>^</b>: Superscript <sup>Text</sup></li>
+     *             <li><b>_</b>: Subscript <sub>Text</sub></li>
+     *             </ul>
      */
     private void action_format_style(char type) {
         int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
@@ -1053,10 +1066,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @param end    End of range
      * @return The length of the open tag
      * <ul> Lengths this function could return:
-     *     <li>0: No tags found</li>
-     *     <li>< 3: A Markdown tag</li>
-     *     <li>>= 3: A HTML tag</li>
-     *     </ul>
+     * <li><b>0</b>: No tags found</li>
+     * <li><b>< 3</b>: A Markdown tag</li>
+     * <li><b>>= 3</b>: A HTML tag</li>
+     * </ul>
      */
     private int action_format_style_tag_exists(String format, int start, int end) {
         String str = editText.getText().toString();
