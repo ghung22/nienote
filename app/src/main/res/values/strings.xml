@@ -14,9 +14,11 @@
   <string name="alert_permission_denied_message_storage">Storage permission is needed by \'%s\' to save notes into the device.</string>
 
   <!-- Placeholder text - Temporary text for development -->
-  <string name="placeholder_lorem">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Phasellus in convallis dolor, at ullamcorper enim. Integer a ante sed odio eleifend imperdiet. Morbi auctor lorem.</string>
-  <string name="placeholder_menu_item">Item lorem</string>
-  <string name="placeholder_menu_group">Group lorem</string>
+
+  <!-- RegEx patterns - For matching text -->
+  <string name="regex_align_tags">
+    <![CDATA[[\\s\\t]*<[\\s\\t]*align[\\s\\t]*.*[\\s\\t]*>.*</[\\s\\t]*align[\\s\\t]*>[\\s\\t]*]]>
+  </string>
 
   <!-- Actions - Labels for buttons, menus -->
   <!-- General -->
@@ -57,9 +59,10 @@
   <string name="action_add_quote">Quote</string>
   <string name="action_add_line">Horizontal line</string>
   <!-- EditorActivity action_format_style bottom dialog -->
-  <string name="action_table_align_left">Align left</string>
-  <string name="action_table_align_center">Align center</string>
-  <string name="action_table_align_right">Align right</string>
+  <string name="action_align_active">Alignment</string>
+  <string name="action_align_start">Align left</string>
+  <string name="action_align_center">Align center</string>
+  <string name="action_align_end">Align right</string>
   <string name="action_bullet">Bulleted list</string>
   <string name="action_number">Numbered list</string>
   <string name="action_format_bold">Bold</string>

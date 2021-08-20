@@ -40,7 +40,7 @@
           android:layout_margin="@dimen/rounded_layout_margin"
           android:orientation="horizontal"
           android:background="@drawable/rounded_rectangle"
-          android:backgroundTint="@color/light">
+          android:backgroundTint="?colorPrimary">
 
           <Spinner
             android:id="@+id/action_text_font"
@@ -48,45 +48,56 @@
             android:layout_height="@dimen/rounded_layout_icon_size" />
         </LinearLayout>
 
-        <LinearLayout
+        <RelativeLayout
           android:id="@+id/layout_text_align"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
           android:layout_toEndOf="@id/layout_text_font"
           android:padding="@dimen/rounded_layout_padding"
           android:layout_margin="@dimen/rounded_layout_margin"
-          android:orientation="horizontal"
           android:background="@drawable/rounded_rectangle"
-          android:backgroundTint="@color/light">
+          android:backgroundTint="?colorPrimary"
+          android:animateLayoutChanges="true">
 
-          <ImageButton
-            android:id="@+id/action_table_align_left"
+          <ImageView
+            android:id="@+id/action_align_active"
             android:layout_width="@dimen/rounded_layout_icon_size"
             android:layout_height="@dimen/rounded_layout_icon_size"
-            android:src="@drawable/action_table_align_left"
             android:background="@drawable/rounded_rectangle"
-            android:backgroundTint="@color/white"
+            android:backgroundTint="?colorOnPrimary"
             android:elevation="5dp"
-            android:contentDescription="@string/action_table_align_left" />
+            android:contentDescription="@string/action_align_active" />
 
           <ImageButton
-            android:id="@+id/action_table_align_center"
+            android:id="@+id/action_align_start"
             android:layout_width="@dimen/rounded_layout_icon_size"
             android:layout_height="@dimen/rounded_layout_icon_size"
+            android:layout_alignParentStart="true"
+            android:src="@drawable/action_table_align_left"
+            android:background="@color/transparent"
+            android:elevation="5dp"
+            android:contentDescription="@string/action_align_start" />
+
+          <ImageButton
+            android:id="@+id/action_align_center"
+            android:layout_width="@dimen/rounded_layout_icon_size"
+            android:layout_height="@dimen/rounded_layout_icon_size"
+            android:layout_toEndOf="@id/action_align_start"
             android:src="@drawable/action_table_align_center"
-            android:background="@drawable/rounded_rectangle"
-            android:backgroundTint="@color/transparent"
-            android:contentDescription="@string/action_table_align_center" />
+            android:background="@color/transparent"
+            android:elevation="5dp"
+            android:contentDescription="@string/action_align_center" />
 
           <ImageButton
-            android:id="@+id/action_table_align_right"
+            android:id="@+id/action_align_end"
             android:layout_width="@dimen/rounded_layout_icon_size"
             android:layout_height="@dimen/rounded_layout_icon_size"
+            android:layout_toEndOf="@id/action_align_center"
             android:src="@drawable/action_table_align_right"
-            android:background="@drawable/rounded_rectangle"
-            android:backgroundTint="@color/transparent"
-            android:contentDescription="@string/action_table_align_right" />
-        </LinearLayout>
+            android:background="@color/transparent"
+            android:elevation="5dp"
+            android:contentDescription="@string/action_align_end" />
+        </RelativeLayout>
       </RelativeLayout>
 
       <RelativeLayout
@@ -104,7 +115,7 @@
           android:layout_margin="@dimen/rounded_layout_margin"
           android:orientation="horizontal"
           android:background="@drawable/rounded_rectangle"
-          android:backgroundTint="@color/light">
+          android:backgroundTint="?colorPrimary">
 
           <ImageButton
             android:id="@+id/action_bullet"
@@ -134,7 +145,7 @@
           android:layout_margin="@dimen/rounded_layout_margin"
           android:orientation="horizontal"
           android:background="@drawable/rounded_rectangle"
-          android:backgroundTint="@color/light">
+          android:backgroundTint="?colorPrimary">
 
           <ImageButton
             android:id="@+id/action_format_bold"
@@ -189,7 +200,7 @@
           android:layout_margin="@dimen/rounded_layout_margin"
           android:orientation="horizontal"
           android:background="@drawable/rounded_rectangle"
-          android:backgroundTint="@color/light">
+          android:backgroundTint="?colorPrimary">
 
           <ImageButton
             android:id="@+id/action_format_superscript"
@@ -219,7 +230,7 @@
           android:layout_margin="@dimen/rounded_layout_margin"
           android:orientation="horizontal"
           android:background="@drawable/rounded_rectangle"
-          android:backgroundTint="@color/light">
+          android:backgroundTint="?colorPrimary">
 
           <ImageButton
             android:id="@+id/action_format_indent_increase"

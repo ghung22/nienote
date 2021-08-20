@@ -1,5 +1,7 @@
 package com.lexisnguyen.quicknotie.activities;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.graphics.Color;
@@ -19,12 +21,14 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.ColorRes;
 import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -32,12 +36,17 @@ import androidx.appcompat.widget.Toolbar;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.color.MaterialColors;
 import com.lexisnguyen.quicknotie.R;
+import com.lexisnguyen.quicknotie.components.AlignTagHandler;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.Executors;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import io.noties.markwon.AbstractMarkwonPlugin;
 import io.noties.markwon.Markwon;
+import io.noties.markwon.MarkwonPlugin;
 import io.noties.markwon.SoftBreakAddsNewLinePlugin;
 import io.noties.markwon.editor.MarkwonEditor;
 import io.noties.markwon.editor.MarkwonEditorTextWatcher;
@@ -96,26 +105,36 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             bgColor = R.color.white;
         }
 
-        /* INIT MARKDOWN BACKEND
+        /* INIT MARKDOWN FUNCTIONALITIES
          * - SoftBreakAddsNewLinePlugin: Treat user newline as Markdown's newline (it is ignored by default)
-         * - Html: Enable HTML support
          * - LinkifyPlugin: Enable Markdown's link display
-         * - TablePlugin: Enable Markdown's table display
+         * - Html: Enable HTML support
+         * - alignTags: Align text using HTML tags
+         * - tablePlugin: Enable Markdown's table display
          * - Editor: Enable Markdown syntax highlighting
          */
+        MarkwonPlugin alignTags = new AbstractMarkwonPlugin() {
+            @Override
+            public void configure(@NonNull Registry registry) {
+                registry.require(HtmlPlugin.class, htmlPlugin ->
+                        htmlPlugin.addHandler(new AlignTagHandler()));
+            }
+        }, tablePlugin = TablePlugin.create(builder ->
+                builder.tableBorderWidth(2)
+                        .tableCellPadding(16)
+                        .tableBorderColor(Color.DKGRAY)
+                        .tableHeaderRowBackgroundColor(Color.LTGRAY)
+                        .tableEvenRowBackgroundColor(Color.TRANSPARENT)
+                        .tableOddRowBackgroundColor(Color.TRANSPARENT)
+                        .build()
+        );
         markwon = Markwon.builder(this)
                 .usePlugin(SoftBreakAddsNewLinePlugin.create())
-                .usePlugin(HtmlPlugin.create())
                 .usePlugin(LinkifyPlugin.create())
-                .usePlugin(TablePlugin.create(builder ->
-                        builder.tableBorderWidth(2)
-                                .tableCellPadding(16)
-                                .tableBorderColor(Color.DKGRAY)
-                                .tableHeaderRowBackgroundColor(Color.LTGRAY)
-                                .tableEvenRowBackgroundColor(Color.TRANSPARENT)
-                                .tableOddRowBackgroundColor(Color.TRANSPARENT)
-                                .build()
-                )).build();
+                .usePlugin(HtmlPlugin.create())
+                .usePlugin(alignTags)
+                .usePlugin(tablePlugin)
+                .build();
         markwonEditor = MarkwonEditor.create(markwon);
 
         /* INIT GUI ELEMENTS */
@@ -295,14 +314,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
             // Format style dialog
             // - Align group
-            case R.id.action_table_align_left:
-                // TODO: Add 3x1 table and put text on the 1st cell
+            case R.id.action_align_start:
+                action_align("start");
                 break;
-            case R.id.action_table_align_center:
-                // TODO: Add 3x1 table and put text on the 2nd cell
+            case R.id.action_align_center:
+                action_align("center");
                 break;
-            case R.id.action_table_align_right:
-                // TODO: Add 3x1 table and put text on the 3rd cell
+            case R.id.action_align_end:
+                action_align("end");
                 break;
             // - List style group
             case R.id.action_bullet:
@@ -570,15 +589,67 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         action_text_font.setSelection(textFonts.size() - 1);
 
         // Align group
-        ImageButton action_table_align_left = dialog.findViewById(R.id.action_table_align_left),
-                action_table_align_center = dialog.findViewById(R.id.action_table_align_center),
-                action_table_align_right = dialog.findViewById(R.id.action_table_align_right);
-        if (action_table_align_left == null || action_table_align_center == null || action_table_align_right == null) {
+        ImageView action_align_active = dialog.findViewById(R.id.action_align_active);
+        ImageButton action_align_start = dialog.findViewById(R.id.action_align_start),
+                action_align_center = dialog.findViewById(R.id.action_align_center),
+                action_align_end = dialog.findViewById(R.id.action_align_end);
+        if (action_align_active == null || action_align_start == null ||
+                action_align_center == null || action_align_end == null) {
             throw new Throwable("Missing button in Align group of the Format Style dialog");
         }
-        action_table_align_left.setOnClickListener(this::onClick);
-        action_table_align_center.setOnClickListener(this::onClick);
-        action_table_align_right.setOnClickListener(this::onClick);
+        float iconSize = getResources().getDimension(R.dimen.rounded_layout_icon_size);
+        action_align_start.setOnClickListener(view -> {
+            int type = action_align_tag_exists();
+            if (type == 1 || type == 2) {
+                action_align_active.animate()
+                        .translationXBy(iconSize * ((type == 1) ? -1 : -2))
+                        .setDuration((type == 1) ? 150 : 300)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                onClick(view);
+                            }
+                        });
+            }
+        });
+        action_align_center.setOnClickListener(view -> {
+            int type = action_align_tag_exists();
+            if (type != 1) {
+                action_align_active.animate()
+                        .translationXBy(iconSize * ((type == 2) ? -1 : 1))
+                        .setDuration(150)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                onClick(view);
+                            }
+                        });
+            }
+        });
+        action_align_end.setOnClickListener(view -> {
+            int type = action_align_tag_exists();
+            if (type != 2) {
+                action_align_active.animate()
+                        .translationXBy(iconSize * ((type == 1) ? 1 : 2))
+                        .setDuration((type == 1) ? 150 : 300)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                onClick(view);
+                            }
+                        });
+            }
+        });
+        // - Update the active alignment state
+        int type = action_align_tag_exists();
+        if (type == 1) {
+            action_align_active.setX(iconSize);
+        } else if (type == 2) {
+            action_align_active.setX(iconSize * 2);
+        }
 
         // List Style group
         ImageButton action_bullet = dialog.findViewById(R.id.action_bullet),
@@ -806,6 +877,94 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     // region Button actions in Format Style dialog
 
     /**
+     * Insert/remove a pair of alignment tags surrounding the line with the typing cursor
+     *
+     * @param type Type of alignment
+     *             <ul> Allowed types:
+     *                 <li>start: Align left</li>
+     *                 <li>center: Align center</li>
+     *                 <li>end: Align end</li>
+     *                 <li>anything else: Treated as Align start</li>
+     *                 </ul>
+     */
+    private void action_align(String type) {
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+        if (type.equals("")) {
+            type = "start";
+        }
+        String openTag = "<align " + type + ">",
+                endTag = "</align>";
+
+        // Get current line
+        String newString = editText.getText().toString();
+        CharSequence line = newString.substring(startOfLine, endOfLine);
+        Editable lineEditable = Editable.Factory.getInstance().newEditable(line);
+
+        // Align current line
+        // - If already aligned, delete the old tags if type is different
+        // - If type is the same, return
+        // - Add a pair of align tags only if the type is center or end
+        if (action_align_tag_exists(line)) {
+            int openTagStart = 0, openTagEnd = line.toString().indexOf(">") + 1,
+                    endTagStart = line.toString().lastIndexOf("</"), endTagEnd = line.length();
+            if (line.subSequence(openTagStart, openTagEnd).toString().contains(type)) {
+                return;
+            } else {
+                lineEditable.replace(endTagStart, endTagEnd, "");
+                lineEditable.replace(openTagStart, openTagEnd, "");
+            }
+        }
+        if (type.equals("center") || type.equals("end")) {
+            lineEditable.insert(0, openTag);
+            lineEditable.insert(lineEditable.length(), endTag);
+        } else {
+            openTag = "";
+        }
+        newString = newString.substring(0, startOfLine) +
+                lineEditable +
+                newString.substring(endOfLine);
+        editText.setText(newString);
+
+        // Update new cursor position and show keyboard
+        showKeyboard();
+        editText.setSelection(textSelectionPoint + openTag.length());
+    }
+
+    /**
+     * Check if the given line is surrounded by a pair of alignment tags
+     *
+     * @param line The line is question
+     * @return If it is surrounded by said tags
+     */
+    private boolean action_align_tag_exists(CharSequence line) {
+        Pattern pattern = Pattern.compile(getString(R.string.regex_align_tags));
+        Matcher matcher = pattern.matcher(line);
+        return matcher.matches();
+    }
+
+    /**
+     * Check which pair of alignment tags are surrounding the current line under the cursor
+     *
+     * @return The typeId of alignment tags (start: 0, center: 1, end: 2)
+     */
+    private int action_align_tag_exists() {
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+        CharSequence line = editText.getText().subSequence(startOfLine, endOfLine);
+        if (action_align_tag_exists(line)) {
+            int openTagStart = 0, openTagEnd = line.toString().indexOf(">") + 1;
+            String lineString = line.subSequence(openTagStart, openTagEnd).toString();
+            if (lineString.contains("center")) {
+                return 1;
+            } else if (lineString.contains("end")) {
+                return 2;
+            }
+        }
+        return 0;
+    }
+
+    /**
      * Insert/remove a pair of format symbols at the cursor position, or put/remove them between a selection
      *
      * @param type Type of format
@@ -843,20 +1002,20 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         // Start formatting
         Editable newString = editText.getText();
-        int check;
+        int existingTag;
         if (textSelectionStart == startOfLine && textSelectionEnd == endOfLine &&
                 (textSelectionStart != textSelectionPoint || textSelectionEnd != textSelectionPoint)) {
             // If nothing is selected
             // - If the cursor is not surrounded by similar format tags, insert them
             // - If it is surrounded, remove them
-            check = action_format_style_check(format, textSelectionPoint, textSelectionPoint);
-            if (check <= 0) {
+            existingTag = action_format_style_tag_exists(format, textSelectionPoint, textSelectionPoint);
+            if (existingTag <= 0) {
                 newString.insert(textSelectionPoint, openTag + endTag);
             } else {
                 openTag = "";
-                newString.replace(textSelectionPoint, textSelectionPoint + check + ((check < 3) ? 0 : 1), "");
-                newString.replace(textSelectionPoint - check, textSelectionPoint, "");
-                textSelectionPoint -= check;
+                newString.replace(textSelectionPoint, textSelectionPoint + existingTag + ((existingTag < 3) ? 0 : 1), "");
+                newString.replace(textSelectionPoint - existingTag, textSelectionPoint, "");
+                textSelectionPoint -= existingTag;
             }
             textSelectionStart = textSelectionPoint;
             textSelectionEnd = textSelectionPoint;
@@ -864,15 +1023,15 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             // Apply format to selection
             // - If the selection is not surrounded by a similar format, insert them
             // - If it is surrounded, remove them
-            check = action_format_style_check(format, textSelectionStart, textSelectionEnd);
-            if (check <= 0) {
+            existingTag = action_format_style_tag_exists(format, textSelectionStart, textSelectionEnd);
+            if (existingTag <= 0) {
                 newString.insert(textSelectionStart, openTag);
                 newString.insert(textSelectionEnd + openTag.length(), endTag);
             } else {
                 openTag = "";
-                newString.replace(textSelectionEnd, textSelectionEnd + check + ((check < 3) ? 0 : 1), "");
-                newString.replace(textSelectionStart - check, textSelectionStart, "");
-                textSelectionPoint -= check;
+                newString.replace(textSelectionEnd, textSelectionEnd + existingTag + ((existingTag < 3) ? 0 : 1), "");
+                newString.replace(textSelectionStart - existingTag, textSelectionStart, "");
+                textSelectionPoint -= existingTag;
             }
         }
 
@@ -899,7 +1058,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *     <li>>= 3: A HTML tag</li>
      *     </ul>
      */
-    private int action_format_style_check(String format, int start, int end) {
+    private int action_format_style_tag_exists(String format, int start, int end) {
         String str = editText.getText().toString();
         String openTag = "<" + format + ">",
                 endTag = "</" + format + ">",

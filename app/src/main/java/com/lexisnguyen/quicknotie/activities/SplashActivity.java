@@ -90,7 +90,7 @@ public class SplashActivity extends AppCompatActivity {
                 Log.w(TAG, "onRequestPermissionsResult: " + permissions[0] + " is denied, asking the user to retry…");
 
                 // Get message string to show on the dialog
-                @StringRes int messageId = R.string.placeholder_lorem;
+                @StringRes int messageId = R.string.app_name;
                 if (requestCode == STORAGE_PERMISSION_REQUEST_CODE) {
                     messageId = R.string.alert_permission_denied_message_storage;
                 }
