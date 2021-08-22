@@ -76,6 +76,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             action_undo, action_redo;
 
     // Data
+    // - Animation
+    float bounceAmount = 20;
+    long quickAni = 150, normalAni = 300;
     // - Root layout
     @ColorRes
     private int bgColor;
@@ -407,22 +410,106 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         switch (view.getId()) {
             // Bottom bar
             case R.id.action_add_content:
-                showBottomDialog(R.layout.layout_add_content);
+                action_add_content.animate().translationYBy(-bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                showBottomDialog(R.layout.layout_add_content);
+                                action_add_content.animate().translationYBy(bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                            }
+                                        });
+                            }
+                        });
                 break;
             case R.id.action_format_style:
-                showBottomDialog(R.layout.layout_format_style);
+                action_format_style.animate().translationYBy(-bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                showBottomDialog(R.layout.layout_format_style);
+                                action_format_style.animate().translationYBy(bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                            }
+                                        });
+                            }
+                        });
                 break;
             case R.id.action_format_color:
-                showBottomDialog(R.layout.layout_format_color);
+                action_format_color.animate().translationYBy(-bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                showBottomDialog(R.layout.layout_format_color);
+                                action_format_color.animate().translationYBy(bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                            }
+                                        });
+                            }
+                        });
                 break;
             case R.id.action_format_background:
-                showBottomDialog(R.layout.layout_format_background);
+                action_format_background.animate().translationYBy(-bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                showBottomDialog(R.layout.layout_format_background);
+                                action_format_background.animate().translationYBy(bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                            }
+                                        });
+                            }
+                        });
                 break;
             case R.id.action_undo:
-                undoManager.undo();
+                action_undo.animate().translationXBy(-bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                undoManager.undo();
+                                action_undo.animate().translationXBy(bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                            }
+                                        });
+                            }
+                        });
                 break;
             case R.id.action_redo:
-                undoManager.redo();
+                action_redo.animate().translationXBy(bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                undoManager.redo();
+                                action_redo.animate().translationXBy(-bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                            }
+                                        });
+                            }
+                        });
                 break;
 
             // Add content dialog
@@ -545,10 +632,38 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private boolean onLongClick(View view) {
         switch (view.getId()) {
             case R.id.action_undo:
-                showBottomDialog(R.layout.layout_undo_redo, "undo");
+                action_format_background.animate().translationYBy(-bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                showBottomDialog(R.layout.layout_undo_redo, "undo");
+                                action_format_background.animate().translationYBy(bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                            }
+                                        });
+                            }
+                        });
                 break;
             case R.id.action_redo:
-                showBottomDialog(R.layout.layout_undo_redo, "redo");
+                action_format_background.animate().translationYBy(-bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                showBottomDialog(R.layout.layout_undo_redo, "redo");
+                                action_format_background.animate().translationYBy(bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                            }
+                                        });
+                            }
+                        });
                 break;
         }
         return true;
@@ -816,7 +931,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             if (type == 1 || type == 2) {
                 action_align_active.animate()
                         .translationXBy(iconSize * ((type == 1) ? -1 : -2))
-                        .setDuration((type == 1) ? 150 : 300)
+                        .setDuration((type == 1) ? quickAni : normalAni)
                         .setListener(new AnimatorListenerAdapter() {
                             @Override
                             public void onAnimationEnd(Animator animation) {
@@ -831,7 +946,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             if (type != 1) {
                 action_align_active.animate()
                         .translationXBy(iconSize * ((type == 2) ? -1 : 1))
-                        .setDuration(150)
+                        .setDuration(quickAni)
                         .setListener(new AnimatorListenerAdapter() {
                             @Override
                             public void onAnimationEnd(Animator animation) {
@@ -846,7 +961,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             if (type != 2) {
                 action_align_active.animate()
                         .translationXBy(iconSize * ((type == 1) ? 1 : 2))
-                        .setDuration((type == 1) ? 150 : 300)
+                        .setDuration((type == 1) ? quickAni : normalAni)
                         .setListener(new AnimatorListenerAdapter() {
                             @Override
                             public void onAnimationEnd(Animator animation) {

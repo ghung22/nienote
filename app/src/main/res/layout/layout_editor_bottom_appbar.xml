@@ -10,7 +10,7 @@
     android:id="@+id/bottomAppBar"
     style="@style/Theme.QuickNotie.BottomAppBar"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="?actionBarSize"
     android:layout_gravity="bottom"
     app:contentInsetStart="0dp"
     app:fabAlignmentMode="end"
@@ -20,12 +20,13 @@
     <LinearLayout
       android:layout_width="match_parent"
       android:layout_height="match_parent"
+      android:gravity="center_vertical"
       android:orientation="horizontal">
 
       <ImageButton
         android:id="@+id/action_add_content"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
         android:background="@color/transparent"
         android:contentDescription="@string/action_add_content"
@@ -35,7 +36,7 @@
       <ImageButton
         android:id="@+id/action_format_style"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
         android:background="@color/transparent"
         android:contentDescription="@string/action_format_style"
@@ -45,7 +46,7 @@
       <ImageButton
         android:id="@+id/action_format_color"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
         android:background="@color/transparent"
         android:contentDescription="@string/action_format_color"
@@ -55,7 +56,7 @@
       <ImageButton
         android:id="@+id/action_format_background"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
         android:background="@color/transparent"
         android:contentDescription="@string/action_format_background"
@@ -65,7 +66,7 @@
       <ImageButton
         android:id="@+id/action_undo"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
         android:background="@color/transparent"
         android:contentDescription="@string/action_undo"
@@ -75,7 +76,7 @@
       <ImageButton
         android:id="@+id/action_redo"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_weight="1"
         android:background="@color/transparent"
         android:contentDescription="@string/action_redo"
