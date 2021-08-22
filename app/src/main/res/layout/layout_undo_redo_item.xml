@@ -3,22 +3,23 @@
   xmlns:tools="http://schemas.android.com/tools"
   android:layout_width="match_parent"
   android:layout_height="wrap_content"
-  tools:context=".activities.EditorActivity"
-  tools:ignore="RtlHardcoded">
+  tools:context=".activities.EditorActivity">
 
   <Button
     android:id="@+id/action_undo_redo"
-    android:layout_width="wrap_content"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:drawableTint="?colorSecondary"
     android:drawablePadding="@dimen/list_layout_drawable_padding"
     android:background="@color/transparent"
     android:textColor="?colorPrimary"
     android:textAllCaps="false"
-    android:textAlignment="textStart"
+    android:textAlignment="center"
+    android:paddingEnd="@dimen/rounded_layout_icon_size"
     android:ellipsize="end"
     android:maxLines="1"
     tools:drawableLeft="@drawable/action_edit"
-    tools:text="@string/placeholder_undo_redo" />
+    tools:text="@string/placeholder_undo_redo"
+    tools:ignore="RtlSymmetry" />
 
 </RelativeLayout>
