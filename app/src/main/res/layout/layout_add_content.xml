@@ -1,139 +1,154 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
   android:id="@+id/layout_root"
   android:layout_width="match_parent"
-  android:layout_height="wrap_content">
+  android:layout_height="wrap_content"
+  android:paddingBottom="?actionBarSize"
+  tools:context=".activities.EditorActivity">
 
-  <RelativeLayout
+  <TextView
+    android:id="@+id/info_add_content"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="?actionBarSize">
+    android:layout_alignParentTop="true"
+    android:padding="@dimen/bottom_sheet_dialog_title_padding"
+    android:text="@string/action_add_content"
+    android:textAlignment="center"
+    android:textColor="?attr/colorOnSecondary"
+    android:textSize="@dimen/bottom_sheet_dialog_title_text_size" />
 
-    <TextView
-      android:id="@+id/info_add_content"
+  <ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_below="@id/info_add_content">
+
+    <RelativeLayout
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_alignParentTop="true"
-      android:padding="@dimen/bottom_sheet_dialog_title_padding"
-      android:text="@string/action_add_content"
-      android:textAlignment="center"
-      android:textColor="?attr/colorOnSecondary"
-      android:textSize="@dimen/bottom_sheet_dialog_title_text_size" />
+      android:layout_height="wrap_content">
 
-    <LinearLayout
-      android:id="@+id/layout_first_row"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_below="@id/info_add_content"
-      android:orientation="horizontal"
-      android:baselineAligned="false">
-
-      <Button
-        android:id="@+id/action_add_camera"
-        android:layout_width="0dp"
+      <LinearLayout
+        android:id="@+id/layout_first_row"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight=".25"
-        android:drawableTop="@drawable/action_add_camera"
-        android:drawableTint="?colorSecondary"
-        android:background="@color/transparent"
-        android:text="@string/action_add_camera"
-        android:textColor="?colorPrimary"
-        android:textAllCaps="false"
-        android:textAlignment="center"
-        style="?android:attr/buttonBarButtonStyle" />
+        android:layout_alignParentTop="true"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
-      <Button
-        android:id="@+id/action_add_image"
-        android:layout_width="0dp"
+        <Button
+          android:id="@+id/action_add_camera"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".25"
+          android:drawableTop="@drawable/action_add_camera"
+          android:drawableTint="?colorSecondary"
+          android:background="@color/transparent"
+          android:foreground="?attr/selectableItemBackground"
+          android:text="@string/action_add_camera"
+          android:textColor="?colorPrimary"
+          android:textAllCaps="false"
+          android:textAlignment="center"
+          style="?android:attr/buttonBarButtonStyle" />
+
+        <Button
+          android:id="@+id/action_add_image"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".25"
+          android:drawableTop="@drawable/action_add_image"
+          android:drawableTint="?colorSecondary"
+          android:background="@color/transparent"
+          android:foreground="?attr/selectableItemBackground"
+          android:text="@string/action_add_image"
+          android:textColor="?colorPrimary"
+          android:textAllCaps="false"
+          android:textAlignment="center"
+          style="?android:attr/buttonBarButtonStyle" />
+
+        <Button
+          android:id="@+id/action_add_table"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".25"
+          android:drawableTop="@drawable/action_add_table"
+          android:drawableTint="?colorSecondary"
+          android:background="@color/transparent"
+          android:foreground="?attr/selectableItemBackground"
+          android:text="@string/action_add_table"
+          android:textColor="?colorPrimary"
+          android:textAllCaps="false"
+          android:textAlignment="center"
+          style="?android:attr/buttonBarButtonStyle" />
+
+        <Button
+          android:id="@+id/action_add_codeblock"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".25"
+          android:drawableTop="@drawable/action_add_codeblock"
+          android:drawableTint="?colorSecondary"
+          android:background="@color/transparent"
+          android:foreground="?attr/selectableItemBackground"
+          android:text="@string/action_add_codeblock"
+          android:textColor="?colorPrimary"
+          android:textAllCaps="false"
+          android:textAlignment="center"
+          style="?android:attr/buttonBarButtonStyle" />
+      </LinearLayout>
+
+      <LinearLayout
+        android:id="@+id/layout_second_row"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_weight=".25"
-        android:drawableTop="@drawable/action_add_image"
-        android:drawableTint="?colorSecondary"
-        android:background="@color/transparent"
-        android:text="@string/action_add_image"
-        android:textColor="?colorPrimary"
-        android:textAllCaps="false"
-        android:textAlignment="center"
-        style="?android:attr/buttonBarButtonStyle" />
+        android:layout_below="@id/layout_first_row"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
 
-      <Button
-        android:id="@+id/action_add_table"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight=".25"
-        android:drawableTop="@drawable/action_add_table"
-        android:drawableTint="?colorSecondary"
-        android:background="@color/transparent"
-        android:text="@string/action_add_table"
-        android:textColor="?colorPrimary"
-        android:textAllCaps="false"
-        android:textAlignment="center"
-        style="?android:attr/buttonBarButtonStyle" />
+        <Button
+          android:id="@+id/action_add_link"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".25"
+          android:drawableTop="@drawable/action_add_link"
+          android:drawableTint="?colorSecondary"
+          android:background="@color/transparent"
+          android:foreground="?attr/selectableItemBackground"
+          android:text="@string/action_add_link"
+          android:textColor="?colorPrimary"
+          android:textAllCaps="false"
+          android:textAlignment="center"
+          style="?android:attr/buttonBarButtonStyle" />
 
-      <Button
-        android:id="@+id/action_add_codeblock"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight=".25"
-        android:drawableTop="@drawable/action_add_codeblock"
-        android:drawableTint="?colorSecondary"
-        android:background="@color/transparent"
-        android:text="@string/action_add_codeblock"
-        android:textColor="?colorPrimary"
-        android:textAllCaps="false"
-        android:textAlignment="center"
-        style="?android:attr/buttonBarButtonStyle" />
-    </LinearLayout>
+        <Button
+          android:id="@+id/action_add_quote"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".25"
+          android:drawableTop="@drawable/action_add_quote"
+          android:drawableTint="?colorSecondary"
+          android:background="@color/transparent"
+          android:foreground="?attr/selectableItemBackground"
+          android:text="@string/action_add_quote"
+          android:textColor="?colorPrimary"
+          android:textAllCaps="false"
+          android:textAlignment="center"
+          style="?android:attr/buttonBarButtonStyle" />
 
-    <LinearLayout
-      android:id="@+id/layout_second_row"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_below="@id/layout_first_row"
-      android:orientation="horizontal"
-      android:baselineAligned="false">
-
-      <Button
-        android:id="@+id/action_add_link"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight=".25"
-        android:drawableTop="@drawable/action_add_link"
-        android:drawableTint="?colorSecondary"
-        android:background="@color/transparent"
-        android:text="@string/action_add_link"
-        android:textColor="?colorPrimary"
-        android:textAllCaps="false"
-        android:textAlignment="center"
-        style="?android:attr/buttonBarButtonStyle" />
-
-      <Button
-        android:id="@+id/action_add_quote"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight=".25"
-        android:drawableTop="@drawable/action_add_quote"
-        android:drawableTint="?colorSecondary"
-        android:background="@color/transparent"
-        android:text="@string/action_add_quote"
-        android:textColor="?colorPrimary"
-        android:textAllCaps="false"
-        android:textAlignment="center"
-        style="?android:attr/buttonBarButtonStyle" />
-
-      <Button
-        android:id="@+id/action_add_line"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_weight=".25"
-        android:drawableTop="@drawable/action_add_line"
-        android:drawableTint="?colorSecondary"
-        android:background="@color/transparent"
-        android:text="@string/action_add_line"
-        android:textColor="?colorPrimary"
-        android:textAllCaps="false"
-        android:textAlignment="center"
-        style="?android:attr/buttonBarButtonStyle" />
-    </LinearLayout>
-  </RelativeLayout>
-</ScrollView>
+        <Button
+          android:id="@+id/action_add_line"
+          android:layout_width="0dp"
+          android:layout_height="wrap_content"
+          android:layout_weight=".25"
+          android:drawableTop="@drawable/action_add_line"
+          android:drawableTint="?colorSecondary"
+          android:background="@color/transparent"
+          android:foreground="?attr/selectableItemBackground"
+          android:text="@string/action_add_line"
+          android:textColor="?colorPrimary"
+          android:textAllCaps="false"
+          android:textAlignment="center"
+          style="?android:attr/buttonBarButtonStyle" />
+      </LinearLayout>
+    </RelativeLayout>
+  </ScrollView>
+</RelativeLayout>

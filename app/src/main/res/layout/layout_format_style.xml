@@ -1,29 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
   android:id="@+id/layout_root"
   android:layout_width="match_parent"
-  android:layout_height="wrap_content">
+  android:layout_height="wrap_content"
+  android:paddingBottom="?actionBarSize"
+  tools:context=".activities.EditorActivity">
 
-  <RelativeLayout
+  <TextView
+    android:id="@+id/info_format_style"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingBottom="?actionBarSize">
+    android:layout_alignParentTop="true"
+    android:padding="@dimen/bottom_sheet_dialog_title_padding"
+    android:text="@string/action_format_style"
+    android:textAlignment="center"
+    android:textColor="?attr/colorOnSecondary"
+    android:textSize="@dimen/bottom_sheet_dialog_title_text_size" />
 
-    <TextView
-      android:id="@+id/info_format_style"
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_alignParentTop="true"
-      android:padding="@dimen/bottom_sheet_dialog_title_padding"
-      android:text="@string/action_format_style"
-      android:textAlignment="center"
-      android:textColor="?attr/colorOnSecondary"
-      android:textSize="@dimen/bottom_sheet_dialog_title_text_size" />
+  <ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_below="@id/info_format_style">
 
     <RelativeLayout
       android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      android:layout_below="@id/info_format_style">
+      android:layout_height="wrap_content">
 
       <RelativeLayout
         android:id="@+id/layout_first_row"
@@ -73,7 +75,7 @@
             android:layout_width="@dimen/rounded_layout_icon_size"
             android:layout_height="@dimen/rounded_layout_icon_size"
             android:layout_alignParentStart="true"
-            android:src="@drawable/action_table_align_left"
+            android:src="@drawable/action_align_start"
             android:background="@color/transparent"
             android:elevation="5dp"
             android:contentDescription="@string/action_align_start" />
@@ -83,7 +85,7 @@
             android:layout_width="@dimen/rounded_layout_icon_size"
             android:layout_height="@dimen/rounded_layout_icon_size"
             android:layout_toEndOf="@id/action_align_start"
-            android:src="@drawable/action_table_align_center"
+            android:src="@drawable/action_align_center"
             android:background="@color/transparent"
             android:elevation="5dp"
             android:contentDescription="@string/action_align_center" />
@@ -93,7 +95,7 @@
             android:layout_width="@dimen/rounded_layout_icon_size"
             android:layout_height="@dimen/rounded_layout_icon_size"
             android:layout_toEndOf="@id/action_align_center"
-            android:src="@drawable/action_table_align_right"
+            android:src="@drawable/action_align_end"
             android:background="@color/transparent"
             android:elevation="5dp"
             android:contentDescription="@string/action_align_end" />
@@ -252,5 +254,5 @@
         </LinearLayout>
       </RelativeLayout>
     </RelativeLayout>
-  </RelativeLayout>
-</ScrollView>
+  </ScrollView>
+</RelativeLayout>

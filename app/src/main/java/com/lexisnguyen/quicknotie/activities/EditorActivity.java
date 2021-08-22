@@ -5,9 +5,12 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.text.Editable;
 import android.text.InputType;
 import android.text.Spanned;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -26,16 +29,22 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.ColorRes;
+import androidx.annotation.DrawableRes;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.color.MaterialColors;
 import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.components.AlignTagHandler;
+import com.lexisnguyen.quicknotie.components.UndoAdapter;
+import com.lexisnguyen.quicknotie.components.UndoManager;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -67,9 +76,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             action_undo, action_redo;
 
     // Data
+    // - Root layout
     @ColorRes
     private int bgColor;
     private boolean preview = false;
+    // - EditText formatting
     private int textSelectionStart = 0, // Start of text selection
             textSelectionEnd = 0, // End of selection
             textSelectionPoint = 0; // Original cursor position
@@ -85,8 +96,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                     "Normal"
             )
     );
+    // - Markdown
     private Markwon markwon;
     private MarkwonEditor markwonEditor;
+    // - UndoManager
+    private UndoManager undoManager;
+    private CountDownTimer textChangedTimer = null;
+    private TextWatcher textWatcher;
 
     // Debugging
     private final String TAG = "EditorActivity";
@@ -96,7 +112,34 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
-        /* INIT DATA */
+        initData();
+        initMarkdown();
+        initGuiElements();
+        initRootLayout();
+        initTopToolbar();
+        initBottomAppbar();
+        initContentLayout();
+        initUndoRedo();
+    }
+
+    /**
+     * An event triggered when the top toolbar is shown
+     *
+     * @param menu The toolbar that is being created
+     * @return a boolean
+     */
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_editor_top, menu);
+        return super.onCreateOptionsMenu(menu);
+    }
+
+    // region Init events
+
+    /**
+     * Init passed/saved data from other activities/settings
+     */
+    private void initData() {
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
         if (bundle.containsKey("bgColor")) {
@@ -104,17 +147,25 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         } else {
             bgColor = R.color.white;
         }
+    }
 
-        /* INIT MARKDOWN FUNCTIONALITIES
-         * - SoftBreakAddsNewLinePlugin: Treat user newline as Markdown's newline (it is ignored by default)
-         * - LinkifyPlugin: Enable Markdown's link display
-         * - headingTheme: Custom theme for headers
-         * - Html: Enable HTML support
-         * - alignTags: Align text using HTML tags
-         * - tablePlugin: Enable Markdown's table display
-         * - inlineCodeNoBackground: Disable inline code background (for monospace font functionality)
-         * - Editor: Enable Markdown syntax highlighting
-         */
+    /**
+     * Init markdown functionalities by using <b>Markwon</b>
+     * Plugins used:
+     * <ul>
+     *   <li><b>SoftBreakAddsNewLinePlugin</b>: Treat user newline as Markdown's newline (it is ignored by default)</li>
+     *   <li><b>LinkifyPlugin</b>: Enable Markdown's link display</li>
+     *   <li><b>headingTheme</b>: Custom theme for headers</li>
+     *   <li><b>Html</b>: Enable HTML support</li>
+     *   <li><b>alignTags</b>: Align text using HTML tags</li>
+     *   <li><b>tablePlugin</b>: Enable Markdown's table display</li>
+     *   <li><b>inlineCodeNoBackground</b>: Disable inline code background (for monospace font functionality)</li>
+     *   <li><b>Editor</b>: Enable Markdown syntax highlighting</li>
+     * </ul>
+     *
+     * @see <a href="https://github.com/noties/Markwon">Markwon</a>
+     */
+    private void initMarkdown() {
         MarkwonPlugin headingTheme = new AbstractMarkwonPlugin() {
             @Override
             public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
@@ -149,37 +200,61 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 .usePlugin(inlineCodeNoBackground)
                 .build();
         markwonEditor = MarkwonEditor.create(markwon);
+    }
 
-        /* INIT GUI ELEMENTS */
-        // - Root layout
+    /**
+     * Init undo/redo functionalities
+     * <ul>
+     *   <li><b>history</b>: Name of this history item</li>
+     *   <li><b>historyItem</b>: An old version of the text in editText</li>
+     * </ul>
+     */
+    private void initUndoRedo() {
+        undoManager = new UndoManager(editText, action_undo, action_redo);
+        undoManager.setTextWatcher(textWatcher);
+    }
+
+    /**
+     * Init (get) all views on the layouts by saving them into a variable
+     */
+    private void initGuiElements() {
+        // Root layout
         window = getWindow();
         layout_root = findViewById(R.id.layout_root);
-        // - Top Toolbar
+        // Top Toolbar
         toolbar = findViewById(R.id.toolbar);
         editTextTitle = findViewById(R.id.editTextTitle);
-        // - Bottom Appbar
+        // Bottom Appbar
         action_add_content = findViewById(R.id.action_add_content);
         action_format_style = findViewById(R.id.action_format_style);
         action_format_color = findViewById(R.id.action_format_color);
         action_format_background = findViewById(R.id.action_format_background);
         action_undo = findViewById(R.id.action_undo);
         action_redo = findViewById(R.id.action_redo);
-        // - Content Layout
+        // Content Layout
         textView = findViewById(R.id.textView);
         editText = findViewById(R.id.editText);
+    }
 
-        /* INIT ROOT LAYOUT */
+    /**
+     * Init the layout containing everything in this activity
+     */
+    private void initRootLayout() {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+    }
 
-        /* INIT TOP TOOLBAR
-         * [BACK] [EDITTEXT] [PREVIEW] [REMIND] [SHARE] [OVERFLOW]
-         * - BACK:      Return to MainActivity
-         * - EDITTEXT:  Show & set note title
-         * - PREVIEW:   Toggle preview/edit mode
-         * - REMIND:    Set a reminder for this note
-         * - SHARE:     Share this note
-         * - OVERFLOW:  Show more options
-         */
+    /**
+     * Init the top Toolbar consisting the following buttons
+     * <ul>
+     *   <li><b>BACK</b>: Return to MainActivity</li>
+     *   <li><b>EDITTEXT</b>: Show & set note title</li>
+     *   <li><b>PREVIEW</b>: Toggle preview/edit mode</li>
+     *   <li><b>REMIND</b>: Set a reminder for this note</li>
+     *   <li><b>SHARE</b>: Share this note</li>
+     *   <li><b>OVERFLOW</b>: Show more options</li>
+     * </ul>
+     */
+    private void initTopToolbar() {
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -188,57 +263,92 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             actionBar.setDisplayShowTitleEnabled(false);
         }
         toolbar.setOnMenuItemClickListener(this::OnMenuItemClick);
+    }
 
-        /* INIT BOTTOM APPBAR
-         * [ADD] [STYLE] [COLOR] [BG] [UNDO] [REDO]
-         * - ADD:   Add an image/drawing
-         * - STYLE: Set line as a bullet/numbered list
-         *          Align left/center/right text
-         *          Set bold/underline/italic/strikethrough
-         *          Increase/decrease indent
-         *          Set text size (heading 1, heading 2, heading 3)
-         * - COLOR: Set text color
-         * - BG:    Set text background color
-         * - UNDO:  Undo last change (hold for history list)
-         * - REDO:  Redo last change (hold for history list)
-         */
+    /**
+     * Init the BottomAppbar consisting the following buttons
+     * <ul>
+     *   <li><b>ADD</b>: Add an image/drawing</li>
+     *   <li><b>STYLE</b>: Perform text formatting
+     *     <ul>
+     *       <li>Set text size (heading 1, heading 2, heading 3)</li>
+     *       <li>Align left/center/right text</li>
+     *       <li>Set line as a bullet/numbered list</li>
+     *       <li>Set bold/underline/italic/strikethrough</li>
+     *       <li>Set superscript/subscript</li>
+     *       <li>Increase/decrease indent</li>
+     *     </ul>
+     *   </li>
+     *   <li><b>COLOR</b>: Set text color</li>
+     *   <li><b>BG</b>: Set text background color</li>
+     *   <li><b>UNDO</b>: Undo last change (hold for history list)</li>
+     *   <li><b>REDO</b>: Redo last change (hold for history list)</li>
+     * </ul>
+     */
+    private void initBottomAppbar() {
         action_add_content.setOnClickListener(this::onClick);
         action_format_style.setOnClickListener(this::onClick);
         action_format_color.setOnClickListener(this::onClick);
         action_format_background.setOnClickListener(this::onClick);
         action_undo.setEnabled(false);
+        action_undo.setAlpha(.5f);
         action_undo.setOnClickListener(this::onClick);
+        action_undo.setOnLongClickListener(this::onLongClick);
         action_redo.setEnabled(false);
+        action_redo.setAlpha(.5f);
         action_redo.setOnClickListener(this::onClick);
+        action_redo.setOnLongClickListener(this::onLongClick);
+    }
 
-        /* INIT CONTENT LAYOUT */
-        editText.addTextChangedListener(
-                MarkwonEditorTextWatcher.withPreRender(
-                        markwonEditor,
-                        Executors.newCachedThreadPool(),
-                        editText
-                )
-        );
+    /**
+     * Init the layout consisting of the note body's EditText
+     */
+    private void initContentLayout() {
+        // Init a TextWatcher for Markdown + UndoManager
+        textWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                if (textChangedTimer != null) {
+                    textChangedTimer.cancel();
+                }
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+                textChangedTimer = new CountDownTimer(500, 500) {
+                    public void onTick(long millisUntilFinished) {}
+
+                    public void onFinish() {
+                        String textChanged = StringUtils.difference(
+                                undoManager.getUndoItems().get(undoManager.getPos()),
+                                editText.getText().toString());
+                        textChanged = textChanged.replace("\n", " ");
+                        if (!textChanged.isEmpty()) {
+                            onPostInput("Typed " + textChanged);
+                        }
+                    }
+                }.start();
+            }
+        };
+        editText.addTextChangedListener(MarkwonEditorTextWatcher.withPreRender(
+                markwonEditor,
+                Executors.newCachedThreadPool(),
+                editText
+        ));
+        editText.addTextChangedListener(textWatcher);
         setBackground(bgColor);
     }
 
-    /**
-     * An event triggered when the top toolbar is shown
-     *
-     * @param menu The toolbar that is being created
-     * @return a boolean
-     */
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_editor_top, menu);
-        return super.onCreateOptionsMenu(menu);
-    }
+    // endregion
 
-    // region User click events
+    // region User input events
 
     /**
-     * <p>Perform an action based on which toolbar menu item was clicked.
-     * <p>The menu items as specified in
+     * Perform an action based on which toolbar menu item was clicked.
+     * The menu items as specified in
      * {@link com.lexisnguyen.quicknotie.R.layout#layout_editor_top_toolbar layout_editor_top_toolbar}
      *
      * @param menuItem The selected menu item
@@ -267,8 +377,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 // TODO: https://github.com/Qkyrie/Markdown2Pdf
                 break;
             case R.id.action_lock:
+                // Lock the note with a password
                 break;
             case R.id.action_delete:
+                // Move the note into the trash
                 break;
             default:
                 Log.w(TAG, "OnMenuItemClick: Unknown menu item " + menuItem.getTitle());
@@ -284,7 +396,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     @SuppressLint("NonConstantResourceId")
     private void onClick(View view) {
+        String undo = "";
+        @DrawableRes int undoDrawable = 0;
         getTextSelection();
+        if (textChangedTimer != null) {
+            textChangedTimer.cancel();
+        }
+        textView.removeTextChangedListener(textWatcher);
+
         switch (view.getId()) {
             // Bottom bar
             case R.id.action_add_content:
@@ -300,8 +419,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 showBottomDialog(R.layout.layout_format_background);
                 break;
             case R.id.action_undo:
+                undoManager.undo();
                 break;
             case R.id.action_redo:
+                undoManager.redo();
                 break;
 
             // Add content dialog
@@ -313,30 +434,46 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 break;
             case R.id.action_add_table:
                 action_add_table();
+                undo = "Add table";
+                undoDrawable = R.drawable.action_add_table;
                 break;
             case R.id.action_add_codeblock:
                 action_add_codeblock();
+                undo = "Add codeblock";
+                undoDrawable = R.drawable.action_add_codeblock;
                 break;
             case R.id.action_add_link:
                 action_add_link();
+                undo = "Add link";
+                undoDrawable = R.drawable.action_add_link;
                 break;
             case R.id.action_add_quote:
                 action_add_quote();
+                undo = "Add quote";
+                undoDrawable = R.drawable.action_add_quote;
                 break;
             case R.id.action_add_line:
                 action_add_line();
+                undo = "Add line";
+                undoDrawable = R.drawable.action_add_line;
                 break;
 
             // Format style dialog
             // - Align group
             case R.id.action_align_start:
                 action_align("start");
+                undo = "Align start";
+                undoDrawable = R.drawable.action_align_start;
                 break;
             case R.id.action_align_center:
                 action_align("center");
+                undo = "Align center";
+                undoDrawable = R.drawable.action_align_center;
                 break;
             case R.id.action_align_end:
                 action_align("end");
+                undo = "Align end";
+                undoDrawable = R.drawable.action_align_end;
                 break;
             // - List style group
             case R.id.action_bullet:
@@ -348,32 +485,73 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             // - Text style group
             case R.id.action_format_bold:
                 action_format_style('b');
+                undo = "Format as Bold";
+                undoDrawable = R.drawable.action_format_bold;
                 break;
             case R.id.action_format_italic:
                 action_format_style('i');
+                undo = "Format as Italic";
+                undoDrawable = R.drawable.action_format_italic;
                 break;
             case R.id.action_format_underline:
                 action_format_style('u');
+                undo = "Format as Underline";
+                undoDrawable = R.drawable.action_format_underline;
                 break;
             case R.id.action_format_strikethrough:
                 action_format_style('s');
+                undo = "Format as Strikethrough";
+                undoDrawable = R.drawable.action_format_strikethrough;
                 break;
             // - Script group
             case R.id.action_format_superscript:
                 action_format_style('^');
+                undo = "Format as Superscript";
+                undoDrawable = R.drawable.action_format_superscript;
                 break;
             case R.id.action_format_subscript:
                 action_format_style('_');
+                undo = "Format as Subscript";
+                undoDrawable = R.drawable.action_format_subscript;
                 break;
             // - Indent group
             case R.id.action_format_indent_increase:
                 action_format_indent(true);
+                undo = "Increase indent";
+                undoDrawable = R.drawable.action_format_indent_increase;
                 break;
             case R.id.action_format_indent_decrease:
                 action_format_indent(false);
+                undo = "Decrease indent";
+                undoDrawable = R.drawable.action_format_indent_decrease;
                 break;
         }
+        if (undoDrawable == 0) {
+            onPostInput(undo);
+        } else {
+            onPostInput(undo, undoDrawable);
+        }
         getTextSelection();
+        textView.addTextChangedListener(textWatcher);
+    }
+
+
+    /**
+     * An event triggered when a view (in most times, a button) is held for a while
+     *
+     * @param view The view in question
+     */
+    @SuppressLint("NonConstantResourceId")
+    private boolean onLongClick(View view) {
+        switch (view.getId()) {
+            case R.id.action_undo:
+                showBottomDialog(R.layout.layout_undo_redo, "undo");
+                break;
+            case R.id.action_redo:
+                showBottomDialog(R.layout.layout_undo_redo, "redo");
+                break;
+        }
+        return true;
     }
 
     /**
@@ -390,13 +568,25 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     }
 
     /**
-     * <p>An event triggered when the user cancel the spinner popup</p>
-     * <p><i>This event is ignored</i></p>
+     * An event triggered when the user cancel the spinner popup
+     * <i>This event is ignored</i>
      *
      * @param adapterView The adapter of the spinner in question
      */
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {}
+
+    private void onPostInput(String undo) {
+        if (!TextUtils.isEmpty(undo)) {
+            undoManager.add(undo);
+        }
+    }
+
+    private void onPostInput(String undo, @DrawableRes int drawableId) {
+        if (!TextUtils.isEmpty(undo)) {
+            undoManager.add(undo, drawableId);
+        }
+    }
 
     // endregion
 
@@ -498,9 +688,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * Shows a BottomSheetDialog with the specified layout
      *
      * @param layoutId The ID of the layout
+     * @param data     Additional data if the layout is used by multiple functions
      */
     @SuppressLint("NonConstantResourceId")
-    private void showBottomDialog(@LayoutRes int layoutId) {
+    private void showBottomDialog(@LayoutRes int layoutId, String data) {
         // Put layout view into dialog
         BottomSheetDialog dialog = new BottomSheetDialog(this);
         dialog.setContentView(layoutId);
@@ -520,6 +711,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 case R.layout.layout_format_background:
                     layout_format_background(dialog);
                     break;
+                case R.layout.layout_undo_redo:
+                    layout_undo_redo(dialog, data);
+                    break;
             }
         } catch (Throwable e) {
             // Don't show the dialog if there is any error
@@ -530,6 +724,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         dialog.show();
     }
 
+    private void showBottomDialog(@LayoutRes int layoutId) {
+        showBottomDialog(layoutId, "");
+    }
+
     // region Init dialogs in Bottom Appbar
 
     /**
@@ -538,6 +736,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @param dialog The dialog in question
      * @throws Throwable Any error occurred
      */
+    @SuppressWarnings("DuplicatedCode")
     private void layout_add_content(BottomSheetDialog dialog) throws Throwable {
         Button action_add_camera = dialog.findViewById(R.id.action_add_camera),
                 action_add_image = dialog.findViewById(R.id.action_add_image),
@@ -713,6 +912,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @param dialog The dialog in question
      * @throws Throwable Any error occurred
      */
+    @SuppressWarnings("DuplicatedCode")
     private void layout_format_color(BottomSheetDialog dialog) throws Throwable {
         ImageButton action_color_red = dialog.findViewById(R.id.action_color_red),
                 action_color_orange = dialog.findViewById(R.id.action_color_orange),
@@ -759,6 +959,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @param dialog The dialog in question
      * @throws Throwable Any error occurred
      */
+    @SuppressWarnings("DuplicatedCode")
     private void layout_format_background(BottomSheetDialog dialog) throws Throwable {
         ImageButton action_color_lightred = dialog.findViewById(R.id.action_color_lightred),
                 action_color_lightorange = dialog.findViewById(R.id.action_color_lightorange),
@@ -797,6 +998,26 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         action_color_lightergray.setOnClickListener((view) -> setBackground(dialog, R.color.lightergray));
         action_color_light.setOnClickListener((view) -> setBackground(dialog, R.color.light));
         action_color_white.setOnClickListener((view) -> setBackground(dialog, R.color.white));
+    }
+
+    /**
+     * Init elements in the Undo/Redo dialog
+     *
+     * @param dialog The dialog in question
+     * @param type   The type of dialog (undo/redo)
+     * @throws Throwable Any error occurred
+     */
+    private void layout_undo_redo(BottomSheetDialog dialog, String type) throws Throwable {
+        if (!type.equals("undo") && !type.equals("redo")) {
+            throw new Throwable("Invalid dialog type: " + type);
+        }
+
+        RecyclerView recyclerView = dialog.findViewById(R.id.recyclerView);
+        UndoAdapter adapter = new UndoAdapter(this, dialog, undoManager, type);
+        if (recyclerView == null) {
+            throw new Throwable("Missing recyclerView in Undo/Redo dialog");
+        }
+        recyclerView.setAdapter(adapter);
     }
 
     // endregion
@@ -893,12 +1114,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     /**
      * Insert/remove a pair of alignment tags surrounding the line with the typing cursor
      *
-     * @param type Type of alignment
-     *             <ul> Allowed types:
-     *             <li><b>start</b>: Align left</li>
-     *             <li><b>center</b>: Align center</li>
-     *             <li><b>end</b>: Align end</li>
-     *             <li><b>anything else</b>: Treated as Align start</li>
+     * @param type Type of alignment:
+     *             <ul>
+     *               <li><b>start</b>: Align left</li>
+     *               <li><b>center</b>: Align center</li>
+     *               <li><b>end</b>: Align end</li>
+     *               <li><b>anything else</b>: Treated as Align start</li>
      *             </ul>
      */
     private void action_align(String type) {
@@ -982,14 +1203,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     /**
      * Insert/remove a pair of format symbols at the cursor position, or put/remove them between a selection
      *
-     * @param type Type of format
-     *             <ul> Allowed types:
-     *             <li><b>b</b>: Bold <b>Text</b></li>
-     *             <li><b>i</b>: Italic <i>Text</i></li>
-     *             <li><b>u</b>: Underline <u>Text</u></li>
-     *             <li><b>s</b>: Strikethrough <s>Text</s></li>
-     *             <li><b>^</b>: Superscript <sup>Text</sup></li>
-     *             <li><b>_</b>: Subscript <sub>Text</sub></li>
+     * @param type Type of format:
+     *             <ul>
+     *               <li><b>b</b>: Bold <b>Text</b></li>
+     *               <li><b>i</b>: Italic <i>Text</i></li>
+     *               <li><b>u</b>: Underline <u>Text</u></li>
+     *               <li><b>s</b>: Strikethrough <s>Text</s></li>
+     *               <li><b>^</b>: Superscript <sup>Text</sup></li>
+     *               <li><b>_</b>: Subscript <sub>Text</sub></li>
      *             </ul>
      */
     private void action_format_style(char type) {
@@ -1066,11 +1287,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @param format Format tag type
      * @param start  Start of range
      * @param end    End of range
-     * @return The length of the open tag
-     * <ul> Lengths this function could return:
-     * <li><b>0</b>: No tags found</li>
-     * <li><b>< 3</b>: A Markdown tag</li>
-     * <li><b>>= 3</b>: A HTML tag</li>
+     * @return The length of the open tag:
+     * <ul>
+     *   <li><b>0</b>: No tags found</li>
+     *   <li><b>< 3</b>: A Markdown tag</li>
+     *   <li><b>>= 3</b>: A HTML tag</li>
      * </ul>
      */
     private int action_format_style_tag_exists(String format, int start, int end) {
@@ -1271,12 +1492,19 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     // endregion
 
+    // region Button actions in Undo Redo dialog
+
+
+    // endregion
+
     // region Button actions in Top Toolbar
 
     /**
-     * <p>Toggle between Preview mode and Edit mode</p>
-     * <p>- Preview mode: View result of the markdown text</p>
-     * <p>- Edit mode: Make edits to the markdown text</p>
+     * Toggle between Preview mode and Edit mode
+     * <ul>
+     *   <li><b>Preview mode</b>: View result of the markdown text</li>
+     *   <li><b>Edit mode</b>: Make edits to the markdown text</li>
+     * </ul>
      *
      * @param menuItem The
      *                 {@link com.lexisnguyen.quicknotie.R.id#action_preview action_preview}

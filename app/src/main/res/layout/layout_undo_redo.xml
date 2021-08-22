@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:id="@+id/layout_root"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content"
+  android:paddingBottom="?actionBarSize"
+  tools:context=".activities.EditorActivity">
+
+  <TextView
+    android:id="@+id/info_undo_redo"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentTop="true"
+    android:padding="@dimen/bottom_sheet_dialog_title_padding"
+    android:text="@string/info_undo_history"
+    android:textAlignment="center"
+    android:textColor="?attr/colorOnSecondary"
+    android:textSize="@dimen/bottom_sheet_dialog_title_text_size" />
+
+  <ScrollView
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_below="@id/info_undo_redo">
+
+    <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/recyclerView"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:divider="@color/transparent"
+      android:overScrollMode="never"
+      android:layoutAnimation="@anim/list_anim"
+      app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+      tools:listitem="@layout/layout_undo_redo_item"
+      tools:itemCount="4" />
+  </ScrollView>
+</RelativeLayout>
