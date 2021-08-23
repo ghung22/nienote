@@ -307,7 +307,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * Init the layout consisting of the note body's EditText
      */
     private void initContentLayout() {
-        // Init a TextWatcher for Markdown + UndoManager
+        // Init a TextWatcher for UndoManager
         textWatcher = new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {}
@@ -1604,11 +1604,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         setBackground(colorId);
         dialog.onBackPressed();
     }
-
-    // endregion
-
-    // region Button actions in Undo Redo dialog
-
 
     // endregion
 

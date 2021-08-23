@@ -19,33 +19,50 @@ public class UndoManager {
     private EditText editText;
     private ImageButton undoBtn, redoBtn;
     private final ArrayList<String>
-            undos = new ArrayList<>(),
-            undoItems = new ArrayList<>();
+            undos = new ArrayList<>(), // Undo step names
+            undoItems = new ArrayList<>(); // Versions of EditText
     private final ArrayList<Integer>
-            undoDrawables = new ArrayList<>(),
-            undoSelectionStart = new ArrayList<>(),
-            undoSelectionEnd = new ArrayList<>();
+            undoDrawables = new ArrayList<>(), // Icons of each step
+            undoSelectionStart = new ArrayList<>(), // textSelectionStart in each step
+            undoSelectionEnd = new ArrayList<>(); // textSelectionEnd in each step
 
     // Internal data
     private int size;
-    private int pos = 0;
+    private int pos = 0; // Current active step
     private TextWatcher textWatcher = null;
     private static final int DEFAULT_HISTORY_SIZE = 50;
 
-    public UndoManager(EditText editText, ImageButton undoBtn, ImageButton redoBtn) {
-        this(DEFAULT_HISTORY_SIZE, editText, undoBtn, redoBtn);
-    }
-
+    /**
+     * Init an UndoManager object
+     *
+     * @param size     Max size of undo history
+     * @param editText The EditText associated with this UndoManager
+     * @param undoBtn  The Undo button associated with this UndoManager
+     * @param redoBtn  The Redo button associated with this UndoManager
+     */
     public UndoManager(int size, EditText editText, ImageButton undoBtn, ImageButton redoBtn) {
         this.editText = editText;
         this.size = size;
         this.undoBtn = undoBtn;
         this.redoBtn = redoBtn;
+
+        // Add an "Original text" step which saves the note state before any editing
         undos.add("Original text");
         undoItems.add(editText.getText().toString());
         undoDrawables.add(R.drawable.action_edit);
         undoSelectionStart.add(editText.getSelectionStart());
         undoSelectionEnd.add(editText.getSelectionEnd());
+    }
+
+    /**
+     * Init an UndoManager object, with the default size as {@link UndoManager#DEFAULT_HISTORY_SIZE}
+     *
+     * @param editText The EditText associated with this UndoManager
+     * @param undoBtn  The Undo button associated with this UndoManager
+     * @param redoBtn  The Redo button associated with this UndoManager
+     */
+    public UndoManager(EditText editText, ImageButton undoBtn, ImageButton redoBtn) {
+        this(DEFAULT_HISTORY_SIZE, editText, undoBtn, redoBtn);
     }
 
     // region Getters & Setters
@@ -116,6 +133,19 @@ public class UndoManager {
 
     // endregion
 
+    /**
+     * Add a step to undo history
+     * <ul>
+     *   <li>Cut off any steps behind this current step</li>
+     *   <li>Save data of the new step</li>
+     *   <li>Set current step to the new one</li>
+     *   <li>Cut off a part of the head so that the list will not exceed the max size</li>
+     *   <li>Update Undo and Redo button</li>
+     * </ul>
+     *
+     * @param name       Name of the new undo step
+     * @param drawableId Icon of the new undo step
+     */
     public void add(String name, @DrawableRes int drawableId) {
         capPos();
         undos.add(name);
@@ -128,10 +158,19 @@ public class UndoManager {
         updateBtn();
     }
 
+    /**
+     * Add a step to undo history, with the default icon as
+     * {@link com.lexisnguyen.quicknotie.R.drawable#action_edit action_edit}
+     *
+     * @param name Name of the new undo step
+     */
     public void add(String name) {
         add(name, R.drawable.action_edit);
     }
 
+    /**
+     * Clear undo history, leaving only the <i>Original text</i> step
+     */
     public void clear() {
         undos.removeAll(
                 undos.subList(1, undos.size()));
@@ -147,6 +186,11 @@ public class UndoManager {
         updateBtn();
     }
 
+    /**
+     * Jump to a step in undo history
+     *
+     * @param pos The jump position
+     */
     public void jump(int pos) {
         if (pos < 0 || pos >= undos.size()) {
             return;
@@ -164,14 +208,23 @@ public class UndoManager {
         updateBtn();
     }
 
+    /**
+     * Jump to the previous step in undo history
+     */
     public void undo() {
         jump(pos - 1);
     }
 
+    /**
+     * Jump to the next step in undo history
+     */
     public void redo() {
         jump(pos + 1);
     }
 
+    /**
+     * Cut off any steps behind this current step
+     */
     public void capPos() {
         if (pos + 1 < undos.size()) {
             undos.removeAll(
@@ -187,6 +240,10 @@ public class UndoManager {
         }
     }
 
+    /**
+     * Cut off a part of the head so that the list will not exceed the max size,
+     * with the <i>Original text</i> step at the start
+     */
     public void capSize() {
         if (undos.size() > size) {
             undos.removeAll(
@@ -202,6 +259,13 @@ public class UndoManager {
         }
     }
 
+    /**
+     * Update the Undo and Redo button
+     * <ul>
+     *   <li>If there is any step before the current step, enable the Undo button</li>
+     *   <li>If there is any step after the current step, enable the Redo button</li>
+     * </ul>
+     */
     public void updateBtn() {
         if (pos > 0) {
             undoBtn.setEnabled(true);
