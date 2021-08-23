@@ -173,7 +173,6 @@ public class UndoManager {
     }
 
     public void capPos() {
-        // FIXME: java.lang.IllegalArgumentException: fromIndex(6) > toIndex(4) ????
         if (pos + 1 < undos.size()) {
             undos.removeAll(
                     undos.subList(pos + 1, undos.size()));

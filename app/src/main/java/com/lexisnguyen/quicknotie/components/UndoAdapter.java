@@ -34,12 +34,14 @@ public class UndoAdapter extends RecyclerView.Adapter<UndoAdapter.ViewHolder> {
         this.type = type;
 
         undoPos = undoManager.getPos();
+        List<String> _undos = undoManager.getUndos();
+        List<Integer> _undoDrawables = undoManager.getUndoDrawables();
         if (type.equals("undo")) {
-            undos = undoManager.getUndos().subList(0, undoPos);
-            undoDrawables = undoManager.getUndoDrawables().subList(0, undoPos);
+            undos = _undos.subList(0, undoPos);
+            undoDrawables = _undoDrawables.subList(0, undoPos);
         } else {
-            undos = undoManager.getUndos().subList(undoPos + 1, undoManager.getSize());
-            undoDrawables = undoManager.getUndoDrawables().subList(undoPos + 1, undoManager.getSize());
+            undos = _undos.subList(undoPos + 1, _undos.size());
+            undoDrawables = _undoDrawables.subList(undoPos + 1, _undoDrawables.size());
         }
     }
 
@@ -58,8 +60,8 @@ public class UndoAdapter extends RecyclerView.Adapter<UndoAdapter.ViewHolder> {
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
         final int pos = position + ((type.equals("redo")) ? undoPos + 1 : 0);
         Button action_undo_redo = holder.getButton();
-        int drawable = undoDrawables.get(pos);
-        String undo = StringUtils.capitalize(type) + " " + undos.get(pos);
+        int drawable = undoDrawables.get(position);
+        String undo = StringUtils.capitalize(type) + " " + undos.get(position);
 
         action_undo_redo.setCompoundDrawablesWithIntrinsicBounds(
                 AppCompatResources.getDrawable(context, drawable), null, null, null);
