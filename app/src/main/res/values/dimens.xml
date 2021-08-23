@@ -2,6 +2,9 @@
 <resources>
   <!-- MainActivity bottom appbar -->
   <dimen name="xlarge_icon_padding">16dp</dimen>
+  <!-- EditorActivity content layout -->
+  <dimen name="content_layout_text_size">15sp</dimen>
+  <dimen name="content_layout_padding">12dp</dimen>
   <!-- EditorActivity bottom sheet dialog -->
   <dimen name="bottom_sheet_dialog_title_text_size">20sp</dimen>
   <dimen name="bottom_sheet_dialog_title_padding">16dp</dimen>

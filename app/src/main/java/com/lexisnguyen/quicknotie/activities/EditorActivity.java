@@ -77,8 +77,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     // Data
     // - Animation
-    float bounceAmount = 20;
-    long quickAni = 150, normalAni = 300;
+    private final float bounceAmount = 20;
+    private final long quickAni = 150;
+    private final long normalAni = 300;
     // - Root layout
     @ColorRes
     private int bgColor;
@@ -95,7 +96,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                     "### Heading 3",
                     "## Heading 2",
                     "# Heading 1",
-                    "`Monospace`",
+                    "` Monospace `",
                     "Normal"
             )
     );
@@ -169,6 +170,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @see <a href="https://github.com/noties/Markwon">Markwon</a>
      */
     private void initMarkdown() {
+        // Custom plugins
         MarkwonPlugin headingTheme = new AbstractMarkwonPlugin() {
             @Override
             public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
@@ -190,7 +192,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         ), inlineCodeNoBackground = new AbstractMarkwonPlugin() {
             @Override
             public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
-                builder.codeBackgroundColor(getColor(R.color.transparent));
+                builder.codeTextSize((int) getResources().getDimension(R.dimen.content_layout_text_size))
+                        .codeBackgroundColor(getColor(R.color.transparent));
             }
         };
         markwon = Markwon.builder(this)
@@ -680,6 +683,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     @Override
     public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
         // TODO: Insert heading item or remove it
+        if (adapterView.getId() == R.id.action_text_font) {
+            action_text_font(i);
+        }
     }
 
     /**
@@ -799,6 +805,15 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     // endregion
 
+    // region Utility functions
+
+    private boolean lineNotSelected(int startOfLine, int endOfLine) {
+        return textSelectionStart == startOfLine && textSelectionEnd == endOfLine &&
+                (textSelectionStart != textSelectionPoint || textSelectionEnd != textSelectionPoint);
+    }
+
+    // endregion
+
     /**
      * Shows a BottomSheetDialog with the specified layout
      *
@@ -913,8 +928,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             throw new Throwable("Missing font spinner in Format Style dialog");
         }
         action_text_font.setAdapter(textFontAdapter);
+        action_text_font.setSelection(action_text_font_get(), false);
         action_text_font.setOnItemSelectedListener(this);
-        action_text_font.setSelection(textFonts.size() - 1);
 
         // Align group
         ImageView action_align_active = dialog.findViewById(R.id.action_align_active);
@@ -1018,7 +1033,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
         action_format_indent_increase.setOnClickListener(this::onClick);
         action_format_indent_decrease.setOnClickListener(this::onClick);
-
     }
 
     /**
@@ -1187,8 +1201,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint),
                 newSelectionStart = textSelectionStart, newSelectionEnd = textSelectionEnd;
         Editable newString = editText.getText();
-        if (textSelectionStart == startOfLine && textSelectionEnd == endOfLine &&
-                (textSelectionStart != textSelectionPoint || textSelectionEnd != textSelectionPoint)) {
+        if (lineNotSelected(startOfLine, endOfLine)) {
             // If nothing is selected, insert a link preset
             newString.insert(textSelectionPoint, "[Link name](link)");
             newSelectionStart = textSelectionPoint + 1;
@@ -1225,6 +1238,159 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     // endregion
 
     // region Button actions in Format Style dialog
+
+    /**
+     * Insert/Remove font symbols at the start (and at the end depending on the font)
+     *
+     * @param fontId The id of the font as specified in
+     *               {@link EditorActivity#textFonts}
+     */
+    private void action_text_font(int fontId) {
+        // Skip if the user selected the same font
+        int oldFontId = action_text_font_get();
+        if (fontId == oldFontId) {
+            return;
+        }
+
+        String newString = editText.getText().toString();
+        int startOfLine = getStartOfLine(newString, textSelectionPoint),
+                endOfLine = getEndOfLine(newString, textSelectionPoint);
+        String font = textFonts.get(fontId).split(" ")[0];
+        boolean noReset = font.equals("`") ||
+                (textFonts.get(oldFontId).contains("`") && font.equals("Normal"));
+
+        // Add font symbols
+        CharSequence line;
+        Editable lineEditable;
+        if (!noReset) {
+            lineEditable = action_text_font_reset();
+            line = lineEditable;
+        } else {
+            line = newString.subSequence(startOfLine, endOfLine);
+            lineEditable = Editable.Factory.getInstance().newEditable(line);
+        }
+        switch (font) {
+            case "#":
+                // Heading 1
+            case "##":
+                //Heading 2
+            case "###":
+                //Heading 3
+            case "####":
+                //Heading 4
+            case "#####":
+                //Heading 5
+            case "######":
+                //Heading 6
+                lineEditable.insert(0, font + " ");
+                textSelectionStart = textSelectionPoint + font.length() + 1;
+                textSelectionEnd = textSelectionPoint + font.length() + 1;
+                break;
+            case "`":
+                // Monospace
+                if (lineNotSelected(startOfLine, endOfLine)) {
+                    // If nothing is selected
+                    lineEditable.insert(textSelectionPoint, "``");
+                    textSelectionStart = textSelectionPoint + 1;
+                    textSelectionEnd = textSelectionPoint + 1;
+                } else {
+                    // Put selection between a pair of symbols
+                    lineEditable.insert(textSelectionStart, "`");
+                    lineEditable.insert(textSelectionEnd + 1, "`");
+                    textSelectionStart++;
+                    textSelectionEnd++;
+                }
+                break;
+            default:
+                // Normal
+                // - Remove font symbols if oldFontId is not belong to a line-wide font
+                if (noReset) {
+                    String oldFont = textFonts.get(oldFontId).split(" ")[0],
+                            lineString = line.toString();
+                    int oldFontStart = lineString.substring(0, textSelectionPoint).lastIndexOf(oldFont),
+                            oldFontEnd = lineString.indexOf(oldFont, textSelectionPoint);
+                    lineEditable.replace(oldFontEnd, oldFontEnd + 1, "");
+                    lineEditable.replace(oldFontStart, oldFontStart + 1, "");
+                    textSelectionStart--;
+                    textSelectionEnd--;
+                }
+                break;
+        }
+        newString = newString.substring(0, startOfLine) +
+                lineEditable +
+                newString.substring(endOfLine);
+        editText.setText(newString);
+
+        // Update new cursor position
+        editText.setSelection(textSelectionStart, textSelectionEnd);
+    }
+
+    /**
+     * Remove the line-wide font symbol if it does not match the given symbol
+     *
+     * @return The new line as an Editable object
+     */
+    @SuppressWarnings("DuplicatedCode")
+    private Editable action_text_font_reset() {
+        String newString = editText.getText().toString();
+        int startOfLine = getStartOfLine(newString, textSelectionPoint),
+                endOfLine = getEndOfLine(newString, textSelectionPoint);
+        ArrayList<String> symbols = new ArrayList<>();
+        for (String s : textFonts) {
+            symbols.add(s.split(" ")[0]);
+        }
+
+        // Get current line (filtering out the leading spaces)
+        String line = newString.substring(startOfLine, endOfLine).trim(),
+                lineSym = line.split(" ")[0];
+        Editable lineEditable = Editable.Factory.getInstance().newEditable(line);
+
+        // Return the new line without the symbol
+        if (!symbols.contains(lineSym)) {
+            return lineEditable;
+        }
+        textSelectionStart -= lineSym.length() + 1;
+        textSelectionEnd -= lineSym.length() + 1;
+        textSelectionPoint -= lineSym.length() + 1;
+        return lineEditable.replace(0, lineSym.length() + 1, "");
+    }
+
+    /**
+     * Detect the current text font
+     *
+     * @return The id of the font as specified in
+     * {@link EditorActivity#textFonts}
+     */
+    @SuppressWarnings("DuplicatedCode")
+    private int action_text_font_get() {
+        String newString = editText.getText().toString();
+        int startOfLine = getStartOfLine(newString, textSelectionPoint),
+                endOfLine = getEndOfLine(newString, textSelectionPoint);
+        ArrayList<String> symbols = new ArrayList<>();
+        for (String s : textFonts) {
+            symbols.add(s.split(" ")[0]);
+        }
+
+        // Check for line-wide symbols
+        String line = newString.substring(startOfLine, endOfLine).trim(),
+                lineSym = line.split(" ")[0];
+        if (symbols.contains(lineSym)) {
+            return symbols.indexOf(lineSym);
+        }
+
+        // Check for selection-wide symbols
+        if (lineNotSelected(startOfLine, endOfLine)) {
+            if (action_format_style_tag_exists("`", textSelectionPoint, textSelectionPoint) > 0) {
+                return symbols.indexOf("`");
+            }
+        } else {
+            if (action_format_style_tag_exists("`", textSelectionStart, textSelectionEnd) > 0) {
+                return symbols.indexOf("`");
+            }
+        }
+
+        return textFonts.indexOf("Normal");
+    }
 
     /**
      * Insert/remove a pair of alignment tags surrounding the line with the typing cursor
@@ -1354,8 +1520,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // Start formatting
         Editable newString = editText.getText();
         int existingTag;
-        if (textSelectionStart == startOfLine && textSelectionEnd == endOfLine &&
-                (textSelectionStart != textSelectionPoint || textSelectionEnd != textSelectionPoint)) {
+        if (lineNotSelected(startOfLine, endOfLine)) {
             // If nothing is selected
             // - If the cursor is not surrounded by similar format tags, insert them
             // - If it is surrounded, remove them
@@ -1417,9 +1582,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (start > end) {
             return 0;
         }
-        if (str.startsWith(openTag, start - openTag.length()) &&
-                str.startsWith(endTag, end)) {
-            return openTag.length();
+        if (format.chars().allMatch(Character::isLetter)) {
+            if (str.startsWith(openTag, start - openTag.length()) &&
+                    str.startsWith(endTag, end)) {
+                return openTag.length();
+            }
         }
         switch (format) {
             case "b":
@@ -1433,6 +1600,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             case "s":
                 mdSymbol = "~~";
                 mdSymbolAlt = "~~";
+                break;
+            case "`":
+                mdSymbol = "`";
+                mdSymbolAlt = "`";
                 break;
         }
         if (!mdSymbol.equals("")) {
