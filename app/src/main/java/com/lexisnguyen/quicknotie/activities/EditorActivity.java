@@ -632,13 +632,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private boolean onLongClick(View view) {
         switch (view.getId()) {
             case R.id.action_undo:
-                action_format_background.animate().translationYBy(-bounceAmount).setDuration(quickAni)
+                action_undo.animate().translationYBy(-bounceAmount).setDuration(quickAni)
                         .setListener(new AnimatorListenerAdapter() {
                             @Override
                             public void onAnimationEnd(Animator animation) {
                                 super.onAnimationEnd(animation);
                                 showBottomDialog(R.layout.layout_undo_redo, "undo");
-                                action_format_background.animate().translationYBy(bounceAmount).setDuration(quickAni)
+                                action_undo.animate().translationYBy(bounceAmount).setDuration(quickAni)
                                         .setListener(new AnimatorListenerAdapter() {
                                             @Override
                                             public void onAnimationEnd(Animator animation) {
@@ -649,13 +649,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                         });
                 break;
             case R.id.action_redo:
-                action_format_background.animate().translationYBy(-bounceAmount).setDuration(quickAni)
+                action_redo.animate().translationYBy(-bounceAmount).setDuration(quickAni)
                         .setListener(new AnimatorListenerAdapter() {
                             @Override
                             public void onAnimationEnd(Animator animation) {
                                 super.onAnimationEnd(animation);
                                 showBottomDialog(R.layout.layout_undo_redo, "redo");
-                                action_format_background.animate().translationYBy(bounceAmount).setDuration(quickAni)
+                                action_redo.animate().translationYBy(bounceAmount).setDuration(quickAni)
                                         .setListener(new AnimatorListenerAdapter() {
                                             @Override
                                             public void onAnimationEnd(Animator animation) {
