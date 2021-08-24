@@ -48,7 +48,7 @@
           android:textColor="?colorPrimary"
           android:textAllCaps="false"
           android:textAlignment="center"
-          style="?android:attr/buttonBarButtonStyle" />
+          style="@style/Widget.AppCompat.Button.Borderless" />
 
         <Button
           android:id="@+id/action_add_image"
@@ -63,7 +63,7 @@
           android:textColor="?colorPrimary"
           android:textAllCaps="false"
           android:textAlignment="center"
-          style="?android:attr/buttonBarButtonStyle" />
+          style="@style/Widget.AppCompat.Button.Borderless" />
 
         <Button
           android:id="@+id/action_add_table"
@@ -78,7 +78,7 @@
           android:textColor="?colorPrimary"
           android:textAllCaps="false"
           android:textAlignment="center"
-          style="?android:attr/buttonBarButtonStyle" />
+          style="@style/Widget.AppCompat.Button.Borderless" />
 
         <Button
           android:id="@+id/action_add_codeblock"
@@ -93,7 +93,7 @@
           android:textColor="?colorPrimary"
           android:textAllCaps="false"
           android:textAlignment="center"
-          style="?android:attr/buttonBarButtonStyle" />
+          style="@style/Widget.AppCompat.Button.Borderless" />
       </LinearLayout>
 
       <LinearLayout
@@ -117,7 +117,7 @@
           android:textColor="?colorPrimary"
           android:textAllCaps="false"
           android:textAlignment="center"
-          style="?android:attr/buttonBarButtonStyle" />
+          style="@style/Widget.AppCompat.Button.Borderless" />
 
         <Button
           android:id="@+id/action_add_quote"
@@ -132,7 +132,7 @@
           android:textColor="?colorPrimary"
           android:textAllCaps="false"
           android:textAlignment="center"
-          style="?android:attr/buttonBarButtonStyle" />
+          style="@style/Widget.AppCompat.Button.Borderless" />
 
         <Button
           android:id="@+id/action_add_line"
@@ -147,7 +147,7 @@
           android:textColor="?colorPrimary"
           android:textAllCaps="false"
           android:textAlignment="center"
-          style="?android:attr/buttonBarButtonStyle" />
+          style="@style/Widget.AppCompat.Button.Borderless" />
       </LinearLayout>
     </RelativeLayout>
   </ScrollView>

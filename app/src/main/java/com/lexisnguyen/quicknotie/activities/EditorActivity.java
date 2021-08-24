@@ -412,6 +412,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     @SuppressLint("NonConstantResourceId")
     private void onClick(View view) {
+        int viewId = view.getId();
         String undo = "";
         @DrawableRes int undoDrawable = 0;
         getTextSelection();
@@ -420,67 +421,32 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
         textView.removeTextChangedListener(textWatcher);
 
-        switch (view.getId()) {
+        switch (viewId) {
             // Bottom bar
             case R.id.action_add_content:
-                action_add_content.animate().translationYBy(-bounceAmount).setDuration(quickAni)
-                        .setListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                super.onAnimationEnd(animation);
-                                showBottomDialog(R.layout.layout_add_content);
-                                action_add_content.animate().translationYBy(bounceAmount).setDuration(quickAni)
-                                        .setListener(new AnimatorListenerAdapter() {
-                                            @Override
-                                            public void onAnimationEnd(Animator animation) {
-                                                super.onAnimationEnd(animation);
-                                            }
-                                        });
-                            }
-                        });
-                break;
             case R.id.action_format_style:
-                action_format_style.animate().translationYBy(-bounceAmount).setDuration(quickAni)
-                        .setListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                super.onAnimationEnd(animation);
-                                showBottomDialog(R.layout.layout_format_style);
-                                action_format_style.animate().translationYBy(bounceAmount).setDuration(quickAni)
-                                        .setListener(new AnimatorListenerAdapter() {
-                                            @Override
-                                            public void onAnimationEnd(Animator animation) {
-                                                super.onAnimationEnd(animation);
-                                            }
-                                        });
-                            }
-                        });
-                break;
             case R.id.action_format_color:
-                action_format_color.animate().translationYBy(-bounceAmount).setDuration(quickAni)
-                        .setListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                super.onAnimationEnd(animation);
-                                showBottomDialog(R.layout.layout_format_color);
-                                action_format_color.animate().translationYBy(bounceAmount).setDuration(quickAni)
-                                        .setListener(new AnimatorListenerAdapter() {
-                                            @Override
-                                            public void onAnimationEnd(Animator animation) {
-                                                super.onAnimationEnd(animation);
-                                            }
-                                        });
-                            }
-                        });
-                break;
             case R.id.action_format_background:
-                action_format_background.animate().translationYBy(-bounceAmount).setDuration(quickAni)
+                view.animate().translationYBy(-bounceAmount).setDuration(quickAni)
                         .setListener(new AnimatorListenerAdapter() {
                             @Override
                             public void onAnimationEnd(Animator animation) {
                                 super.onAnimationEnd(animation);
-                                showBottomDialog(R.layout.layout_format_background);
-                                action_format_background.animate().translationYBy(bounceAmount).setDuration(quickAni)
+                                switch (viewId) {
+                                    case R.id.action_add_content:
+                                        showBottomDialog(R.layout.layout_add_content);
+                                        break;
+                                    case R.id.action_format_style:
+                                        showBottomDialog(R.layout.layout_format_style);
+                                        break;
+                                    case R.id.action_format_color:
+                                        showBottomDialog(R.layout.layout_format_color);
+                                        break;
+                                    case R.id.action_format_background:
+                                        showBottomDialog(R.layout.layout_format_background);
+                                        break;
+                                }
+                                view.animate().translationYBy(bounceAmount).setDuration(quickAni)
                                         .setListener(new AnimatorListenerAdapter() {
                                             @Override
                                             public void onAnimationEnd(Animator animation) {
@@ -491,30 +457,20 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                         });
                 break;
             case R.id.action_undo:
-                action_undo.animate().translationXBy(-bounceAmount).setDuration(quickAni)
-                        .setListener(new AnimatorListenerAdapter() {
-                            @Override
-                            public void onAnimationEnd(Animator animation) {
-                                super.onAnimationEnd(animation);
-                                undoManager.undo();
-                                action_undo.animate().translationXBy(bounceAmount).setDuration(quickAni)
-                                        .setListener(new AnimatorListenerAdapter() {
-                                            @Override
-                                            public void onAnimationEnd(Animator animation) {
-                                                super.onAnimationEnd(animation);
-                                            }
-                                        });
-                            }
-                        });
-                break;
             case R.id.action_redo:
-                action_redo.animate().translationXBy(bounceAmount).setDuration(quickAni)
+                float _bounceAmount = (viewId == R.id.action_undo) ?
+                        -bounceAmount : bounceAmount;
+                view.animate().translationXBy(_bounceAmount).setDuration(quickAni)
                         .setListener(new AnimatorListenerAdapter() {
                             @Override
                             public void onAnimationEnd(Animator animation) {
                                 super.onAnimationEnd(animation);
-                                undoManager.redo();
-                                action_redo.animate().translationXBy(-bounceAmount).setDuration(quickAni)
+                                if (viewId == R.id.action_undo) {
+                                    undoManager.undo();
+                                } else {
+                                    undoManager.redo();
+                                }
+                                view.animate().translationXBy(-_bounceAmount).setDuration(quickAni)
                                         .setListener(new AnimatorListenerAdapter() {
                                             @Override
                                             public void onAnimationEnd(Animator animation) {
@@ -527,35 +483,45 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
             // Add content dialog
             case R.id.action_add_camera:
-                // TODO: Take camera and add to note
-                break;
             case R.id.action_add_image:
-                // TODO: Upload image to note
-                break;
             case R.id.action_add_table:
-                action_add_table();
-                undo = "Add table";
-                undoDrawable = R.drawable.action_add_table;
-                break;
             case R.id.action_add_codeblock:
-                action_add_codeblock();
-                undo = "Add codeblock";
-                undoDrawable = R.drawable.action_add_codeblock;
-                break;
             case R.id.action_add_link:
-                action_add_link();
-                undo = "Add link";
-                undoDrawable = R.drawable.action_add_link;
-                break;
             case R.id.action_add_quote:
-                action_add_quote();
-                undo = "Add quote";
-                undoDrawable = R.drawable.action_add_quote;
-                break;
             case R.id.action_add_line:
-                action_add_line();
-                undo = "Add line";
-                undoDrawable = R.drawable.action_add_line;
+                switch (viewId) {
+                    case R.id.action_add_camera:
+                        // TODO: Take camera and add to note
+                        break;
+                    case R.id.action_add_image:
+                        // TODO: Upload image to note
+                        break;
+                    case R.id.action_add_table:
+                        action_add_table();
+                        undo = "Add table";
+                        undoDrawable = R.drawable.action_add_table;
+                        break;
+                    case R.id.action_add_codeblock:
+                        action_add_codeblock();
+                        undo = "Add codeblock";
+                        undoDrawable = R.drawable.action_add_codeblock;
+                        break;
+                    case R.id.action_add_link:
+                        action_add_link();
+                        undo = "Add link";
+                        undoDrawable = R.drawable.action_add_link;
+                        break;
+                    case R.id.action_add_quote:
+                        action_add_quote();
+                        undo = "Add quote";
+                        undoDrawable = R.drawable.action_add_quote;
+                        break;
+                    case R.id.action_add_line:
+                        action_add_line();
+                        undo = "Add line";
+                        undoDrawable = R.drawable.action_add_line;
+                        break;
+                }
                 break;
 
             // Format style dialog
@@ -680,6 +646,42 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 break;
         }
         return true;
+    }
+
+    /**
+     * Run an animation and close the BottomSheetDialog when a button is clicked
+     *
+     * @param dialog The dialog in question
+     * @param view   The button view
+     */
+    private void onClickAnimation(BottomSheetDialog dialog, View view) {
+        view.animate().alpha(.5f).setDuration(quickAni)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        view.animate().alpha(1).setDuration(quickAni)
+                                .setListener(new AnimatorListenerAdapter() {
+                                    @Override
+                                    public void onAnimationEnd(Animator animation) {
+                                        super.onAnimationEnd(animation);
+                                        onClick(view);
+                                        if (dialog != null) {
+                                            dialog.onBackPressed();
+                                        }
+                                    }
+                                });
+                    }
+                });
+    }
+
+    /**
+     * Run an animation only when a button in the BottomSheetDialog is clicked
+     *
+     * @param view The button view
+     */
+    private void onClickAnimation(View view) {
+        onClickAnimation(null, view);
     }
 
     /**
@@ -870,34 +872,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 || action_add_link == null || action_add_quote == null || action_add_line == null) {
             throw new Throwable("Missing button in Add Content dialog");
         }
-        action_add_camera.setOnClickListener(view -> {
-            onClick(view);
-            dialog.onBackPressed();
-        });
-        action_add_image.setOnClickListener(view -> {
-            onClick(view);
-            dialog.onBackPressed();
-        });
-        action_add_table.setOnClickListener(view -> {
-            onClick(view);
-            dialog.onBackPressed();
-        });
-        action_add_codeblock.setOnClickListener(view -> {
-            onClick(view);
-            dialog.onBackPressed();
-        });
-        action_add_link.setOnClickListener(view -> {
-            onClick(view);
-            dialog.onBackPressed();
-        });
-        action_add_quote.setOnClickListener(view -> {
-            onClick(view);
-            dialog.onBackPressed();
-        });
-        action_add_line.setOnClickListener(view -> {
-            onClick(view);
-            dialog.onBackPressed();
-        });
+        action_add_camera.setOnClickListener(view -> onClickAnimation(dialog, view));
+        action_add_image.setOnClickListener(view -> onClickAnimation(dialog, view));
+        action_add_table.setOnClickListener(view -> onClickAnimation(dialog, view));
+        action_add_codeblock.setOnClickListener(view -> onClickAnimation(dialog, view));
+        action_add_link.setOnClickListener(view -> onClickAnimation(dialog, view));
+        action_add_quote.setOnClickListener(view -> onClickAnimation(dialog, view));
+        action_add_line.setOnClickListener(view -> onClickAnimation(dialog, view));
     }
 
     /**
@@ -991,8 +972,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (action_bullet == null || action_number == null) {
             throw new Throwable("Missing button in List Style group of the Format Style dialog");
         }
-        action_bullet.setOnClickListener(this::onClick);
-        action_number.setOnClickListener(this::onClick);
+        action_bullet.setOnClickListener(this::onClickAnimation);
+        action_number.setOnClickListener(this::onClickAnimation);
 
         // Text Style group
         ImageButton action_format_bold = dialog.findViewById(R.id.action_format_bold),
@@ -1002,10 +983,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (action_format_bold == null || action_format_italic == null || action_format_underline == null || action_format_strikethrough == null) {
             throw new Throwable("Missing button in Text Style group of the Format Style dialog");
         }
-        action_format_bold.setOnClickListener(this::onClick);
-        action_format_italic.setOnClickListener(this::onClick);
-        action_format_underline.setOnClickListener(this::onClick);
-        action_format_strikethrough.setOnClickListener(this::onClick);
+        action_format_bold.setOnClickListener(this::onClickAnimation);
+        action_format_italic.setOnClickListener(this::onClickAnimation);
+        action_format_underline.setOnClickListener(this::onClickAnimation);
+        action_format_strikethrough.setOnClickListener(this::onClickAnimation);
 
         // Script group
         ImageButton action_format_superscript = dialog.findViewById(R.id.action_format_superscript),
@@ -1013,8 +994,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (action_format_superscript == null || action_format_subscript == null) {
             throw new Throwable("Missing button in Script group of the Format Style dialog");
         }
-        action_format_superscript.setOnClickListener(this::onClick);
-        action_format_subscript.setOnClickListener(this::onClick);
+        action_format_superscript.setOnClickListener(this::onClickAnimation);
+        action_format_subscript.setOnClickListener(this::onClickAnimation);
 
         // Indent group
         ImageButton action_format_indent_increase = dialog.findViewById(R.id.action_format_indent_increase),
@@ -1022,8 +1003,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (action_format_indent_increase == null || action_format_indent_decrease == null) {
             throw new Throwable("Missing button in Indent group of the Format Style dialog");
         }
-        action_format_indent_increase.setOnClickListener(this::onClick);
-        action_format_indent_decrease.setOnClickListener(this::onClick);
+        action_format_indent_increase.setOnClickListener(this::onClickAnimation);
+        action_format_indent_decrease.setOnClickListener(this::onClickAnimation);
     }
 
     /**
