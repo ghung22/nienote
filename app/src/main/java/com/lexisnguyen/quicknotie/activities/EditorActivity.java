@@ -89,8 +89,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private boolean preview = false;
     // - EditText formatting
     private int textSelectionStart = 0, // Start of text selection
-            textSelectionEnd = 0, // End of selection
-            textSelectionPoint = 0; // Original cursor position
+            textSelectionEnd = 0; // End of selection
     private final ArrayList<String> textFonts = new ArrayList<>(
             Arrays.asList(
                     "###### Heading 6",
@@ -197,13 +196,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                         .tableCellPadding(16)
                         .tableBorderColor(getColor(R.color.faded_black))
                         .tableHeaderRowBackgroundColor(getColor(R.color.faded_black))
-                        .tableEvenRowBackgroundColor(getColor(R.color.transparent))
-                        .tableOddRowBackgroundColor(getColor(R.color.transparent))
+                        .tableEvenRowBackgroundColor(getColor(bgColor))
+                        .tableOddRowBackgroundColor(getColor(bgColor))
         ), inlineCodeNoBackground = new AbstractMarkwonPlugin() {
             @Override
             public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
                 builder.codeTextSize((int) getResources().getDimension(R.dimen.content_layout_text_size))
-                        .codeBackgroundColor(getColor(R.color.transparent));
+                        .codeBackgroundColor(getColor(bgColor));
             }
         };
         markwon = Markwon.builder(this)
@@ -731,26 +730,16 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (!editText.isFocused()) {
             textSelectionStart = editText.length();
             textSelectionEnd = editText.length();
-            textSelectionPoint = editText.length();
             return;
         } else if (editText.length() == 0) {
             textSelectionStart = 0;
             textSelectionEnd = 0;
-            textSelectionPoint = 0;
             return;
         }
 
         // Get selection
         textSelectionStart = editText.getSelectionStart();
         textSelectionEnd = editText.getSelectionEnd();
-        textSelectionPoint = textSelectionStart;
-
-        // Select whole line or everything if nothing is selected
-        if (textSelectionStart == textSelectionEnd) {
-            String str = editText.getText().toString();
-            textSelectionStart = getStartOfLine(str, textSelectionPoint);
-            textSelectionEnd = getEndOfLine(str, textSelectionPoint);
-        }
     }
 
     /**
@@ -812,15 +801,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             v = new View(this);
         }
         imm.showSoftInput(v, 0);
-    }
-
-    // endregion
-
-    // region Utility functions
-
-    private boolean lineNotSelected(int startOfLine, int endOfLine) {
-        return textSelectionStart == startOfLine && textSelectionEnd == endOfLine &&
-                textSelectionStart != textSelectionPoint && textSelectionEnd != textSelectionPoint;
     }
 
     // endregion
@@ -1150,7 +1130,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         @ColorRes final int oldBgColor = bundle.containsKey("bgColor") ?
                 bundle.getInt("bgColor") :
                 R.color.white;
-        action_reset.setOnClickListener((view) -> setBackground(dialog, oldBgColor));
+        if (bgColor == oldBgColor) {
+            action_reset.setVisibility(View.GONE);
+        } else {
+            action_reset.setOnClickListener((view) -> setBackground(dialog, oldBgColor));
+        }
     }
 
     /**
@@ -1181,14 +1165,15 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * Put a table after the current line
      */
     private void action_add_table() {
-        int endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+        int endOfLine = getEndOfLine(editText.getText().toString(), textSelectionStart);
         Editable newString = editText.getText();
         String tablePreset =
-                "Column 1 | Column 2 | Column 3\n" +
+                "\n\nColumn 1 | Column 2 | Column 3\n" +
                         "--- | --- | ---\n" +
                         "Line 1 |  | \n";
         newString.insert(endOfLine, tablePreset);
-        editText.setSelection(textSelectionPoint, textSelectionPoint + "Column 1".length());
+        textSelectionStart += 2;
+        editText.setSelection(textSelectionStart, textSelectionStart + "Column 1".length());
         showKeyboard();
     }
 
@@ -1196,56 +1181,78 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * Put lines in between a new codeblock
      */
     private void action_add_codeblock() {
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionStart),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionStart);
+
         // Put ``` before and after content
+        // 1. If at the start of line: Insert codeblock above
+        // 2. If at the end of line: Append code block below
+        // 3. If cursor in somewhere in the line: Surround the line with a codeblock
         Editable newString = editText.getText();
-        if (textSelectionStart != textSelectionEnd) {
-            textSelectionStart = getStartOfLine(editText.getText().toString(), textSelectionStart);
-            textSelectionEnd = getEndOfLine(editText.getText().toString(), textSelectionEnd);
-            newString.insert(textSelectionStart, "\n```\n");
-            newString.insert(textSelectionEnd + 5, "\n```\n");
+        int contentCase;
+        if (textSelectionStart == textSelectionEnd) {
+            if (textSelectionStart == startOfLine) {
+                contentCase = 1;
+            } else if (textSelectionStart == endOfLine) {
+                contentCase = 2;
+            } else {
+                contentCase = 3;
+            }
         } else {
-            newString.insert(textSelectionPoint, "```\n\n```\n");
-            textSelectionEnd--;
+            contentCase = 3;
+        }
+        switch (contentCase) {
+            case 1:
+                newString.insert(startOfLine, "```\n\n```\n");
+                textSelectionStart = textSelectionStart + 4;
+                textSelectionEnd = textSelectionStart;
+                break;
+            case 2:
+                newString.insert(endOfLine, "\n```\n\n```");
+                textSelectionStart = textSelectionStart + 5;
+                textSelectionEnd = textSelectionStart;
+                break;
+            case 3:
+                newString.insert(endOfLine, "\n```");
+                newString.insert(startOfLine, "```\n");
+                textSelectionStart = startOfLine + 4;
+                textSelectionEnd = textSelectionStart + (endOfLine - startOfLine);
+                break;
         }
 
         // Update new cursor position
         // - Retain original cursor position (or Put cursor at the end of selection)
         // - The string "\n```\n" has 5 characters -> offset by 5 chars
-        editText.postDelayed(() ->
-                editText.setSelection(textSelectionPoint
-                        + ((textSelectionPoint != textSelectionStart) ? 0 : textSelectionEnd - textSelectionStart)
-                        + 5), 50);
+        editText.setSelection(textSelectionStart, textSelectionEnd);
+//        editText.postDelayed(() -> editText.setSelection(textSelectionStart, textSelectionEnd), 50);
     }
 
     /**
      * Insert a new link or make a selection as a link
      */
     private void action_add_link() {
-        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
-                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint),
-                newSelectionStart = textSelectionStart, newSelectionEnd = textSelectionEnd;
         Editable newString = editText.getText();
-        if (lineNotSelected(startOfLine, endOfLine)) {
+        if (textSelectionStart == textSelectionEnd) {
             // If nothing is selected, insert a link preset
-            newString.insert(textSelectionPoint, "[Link name](link)");
-            newSelectionStart = textSelectionPoint + 1;
-            newSelectionEnd = textSelectionPoint + 1 + "Link name".length();
+            newString.insert(textSelectionStart, "[Link name](link)");
+            textSelectionStart++;
+            textSelectionEnd = textSelectionStart + "Link name".length();
         } else {
             // Use selected text as Link name
+            newString.insert(textSelectionEnd, "](link)");
             newString.insert(textSelectionStart, "[");
-            newString.insert(textSelectionEnd + 1, "](link)");
-            newSelectionStart++;
-            newSelectionEnd++;
+            textSelectionStart++;
+            textSelectionEnd++;
         }
         showKeyboard();
-        editText.setSelection(newSelectionStart, newSelectionEnd);
+        editText.setSelection(textSelectionStart, textSelectionEnd);
     }
 
     /**
      * Put a quote symbol at the start of line
      */
     private void action_add_quote() {
-        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint);
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionStart);
         Editable newString = editText.getText();
         newString.insert(startOfLine, " > ");
     }
@@ -1254,7 +1261,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * Put a horizontal line after the current line
      */
     private void action_add_line() {
-        int endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+        int endOfLine = getEndOfLine(editText.getText().toString(), textSelectionStart);
         Editable newString = editText.getText();
         newString.insert(endOfLine, "\n***\n");
     }
@@ -1277,8 +1284,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
 
         String newString = editText.getText().toString();
-        int startOfLine = getStartOfLine(newString, textSelectionPoint),
-                endOfLine = getEndOfLine(newString, textSelectionPoint);
+        int startOfLine = getStartOfLine(newString, textSelectionStart),
+                endOfLine = getEndOfLine(newString, textSelectionStart);
         String font = textFonts.get(fontId).split(" ")[0];
         boolean noReset = font.equals("`") ||
                 (textFonts.get(oldFontId).contains("`") && font.equals("Normal"));
@@ -1307,20 +1314,20 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             case "######":
                 //Heading 6
                 lineEditable.insert(0, font + " ");
-                textSelectionStart = textSelectionPoint + font.length() + 1;
-                textSelectionEnd = textSelectionPoint + font.length() + 1;
+                textSelectionStart += font.length() + 1;
+                textSelectionEnd += font.length() + 1;
                 break;
             case "`":
                 // Monospace
-                if (lineNotSelected(startOfLine, endOfLine)) {
+                if (textSelectionStart == textSelectionEnd) {
                     // If nothing is selected
-                    lineEditable.insert(textSelectionPoint, "``");
-                    textSelectionStart = textSelectionPoint + 1;
-                    textSelectionEnd = textSelectionPoint + 1;
+                    lineEditable.insert(textSelectionStart, "``");
+                    textSelectionStart++;
+                    textSelectionEnd = textSelectionStart;
                 } else {
                     // Put selection between a pair of symbols
+                    lineEditable.insert(textSelectionEnd, "`");
                     lineEditable.insert(textSelectionStart, "`");
-                    lineEditable.insert(textSelectionEnd + 1, "`");
                     textSelectionStart++;
                     textSelectionEnd++;
                 }
@@ -1331,8 +1338,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 if (noReset) {
                     String oldFont = textFonts.get(oldFontId).split(" ")[0],
                             lineString = line.toString();
-                    int oldFontStart = lineString.substring(0, textSelectionPoint).lastIndexOf(oldFont),
-                            oldFontEnd = lineString.indexOf(oldFont, textSelectionPoint);
+                    int oldFontStart = lineString.substring(0, textSelectionStart).lastIndexOf(oldFont),
+                            oldFontEnd = lineString.indexOf(oldFont, textSelectionStart);
                     lineEditable.replace(oldFontEnd, oldFontEnd + 1, "");
                     lineEditable.replace(oldFontStart, oldFontStart + 1, "");
                     textSelectionStart--;
@@ -1357,8 +1364,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     @SuppressWarnings("DuplicatedCode")
     private Editable action_text_font_reset() {
         String newString = editText.getText().toString();
-        int startOfLine = getStartOfLine(newString, textSelectionPoint),
-                endOfLine = getEndOfLine(newString, textSelectionPoint);
+        int startOfLine = getStartOfLine(newString, textSelectionStart),
+                endOfLine = getEndOfLine(newString, textSelectionStart);
         ArrayList<String> symbols = new ArrayList<>();
         for (String s : textFonts) {
             symbols.add(s.split(" ")[0]);
@@ -1375,7 +1382,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
         textSelectionStart -= lineSym.length() + 1;
         textSelectionEnd -= lineSym.length() + 1;
-        textSelectionPoint -= lineSym.length() + 1;
         return lineEditable.replace(0, lineSym.length() + 1, "");
     }
 
@@ -1388,8 +1394,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     @SuppressWarnings("DuplicatedCode")
     private int action_text_font_get() {
         String newString = editText.getText().toString();
-        int startOfLine = getStartOfLine(newString, textSelectionPoint),
-                endOfLine = getEndOfLine(newString, textSelectionPoint);
+        int startOfLine = getStartOfLine(newString, textSelectionStart),
+                endOfLine = getEndOfLine(newString, textSelectionStart);
         ArrayList<String> symbols = new ArrayList<>();
         for (String s : textFonts) {
             symbols.add(s.split(" ")[0]);
@@ -1403,8 +1409,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
 
         // Check for selection-wide symbols
-        if (lineNotSelected(startOfLine, endOfLine)) {
-            if (action_format_style_tag_exists("`", textSelectionPoint, textSelectionPoint) > 0) {
+        if (textSelectionStart == textSelectionEnd) {
+            if (action_format_style_tag_exists("`", textSelectionStart, textSelectionStart) > 0) {
                 return symbols.indexOf("`");
             }
         } else {
@@ -1428,8 +1434,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *             </ul>
      */
     private void action_align(String type) {
-        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
-                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionStart),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionStart);
         if (type.equals("")) {
             type = "start";
         }
@@ -1468,8 +1474,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         editText.setText(newString);
 
         // Update new cursor position and show keyboard
+        textSelectionStart = textSelectionStart - (openTagEnd - openTagStart) + openTag.length();
+        textSelectionEnd = textSelectionEnd - (openTagEnd - openTagStart) + openTag.length();
         showKeyboard();
-        editText.setSelection(textSelectionPoint - (openTagEnd - openTagStart) + openTag.length());
+        editText.setSelection(textSelectionStart, textSelectionEnd);
     }
 
     /**
@@ -1490,8 +1498,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @return The typeId of alignment tags (start: 0, center: 1, end: 2)
      */
     private int action_align_tag_exists() {
-        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
-                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionStart),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionStart);
         CharSequence line = editText.getText().subSequence(startOfLine, endOfLine);
         if (action_align_tag_exists(line)) {
             int openTagStart = 0, openTagEnd = line.toString().indexOf(">") + 1;
@@ -1518,11 +1526,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *               <li><b>_</b>: Subscript <sub>Text</sub></li>
      *             </ul>
      */
-    private void action_format_style(char type) {
-        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
-                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
-
-        // Get the format tags based on type
+    private void action_format_style(char type) {// Get the format tags based on type
         String format = "";
         switch (type) {
             case 'b':
@@ -1544,21 +1548,20 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // Start formatting
         Editable newString = editText.getText();
         int existingTag;
-        if (lineNotSelected(startOfLine, endOfLine)) {
+        if (textSelectionStart == textSelectionEnd) {
             // If nothing is selected
             // - If the cursor is not surrounded by similar format tags, insert them
             // - If it is surrounded, remove them
-            existingTag = action_format_style_tag_exists(format, textSelectionPoint, textSelectionPoint);
+            existingTag = action_format_style_tag_exists(format, textSelectionStart, textSelectionStart);
             if (existingTag <= 0) {
-                newString.insert(textSelectionPoint, openTag + endTag);
+                newString.insert(textSelectionStart, openTag + endTag);
             } else {
                 openTag = "";
-                newString.replace(textSelectionPoint, textSelectionPoint + existingTag + ((existingTag < 3) ? 0 : 1), "");
-                newString.replace(textSelectionPoint - existingTag, textSelectionPoint, "");
-                textSelectionPoint -= existingTag;
+                newString.replace(textSelectionStart, textSelectionStart + existingTag + ((existingTag < 3) ? 0 : 1), "");
+                newString.replace(textSelectionStart - existingTag, textSelectionStart, "");
+                textSelectionStart -= existingTag;
             }
-            textSelectionStart = textSelectionPoint;
-            textSelectionEnd = textSelectionPoint;
+            textSelectionEnd = textSelectionStart;
         } else {
             // Apply format to selection
             // - If the selection is not surrounded by a similar format, insert them
@@ -1571,18 +1574,19 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 openTag = "";
                 newString.replace(textSelectionEnd, textSelectionEnd + existingTag + ((existingTag < 3) ? 0 : 1), "");
                 newString.replace(textSelectionStart - existingTag, textSelectionStart, "");
-                textSelectionPoint -= existingTag;
+                textSelectionStart -= existingTag;
+                textSelectionEnd -= existingTag;
             }
         }
+        int selection = textSelectionEnd - textSelectionStart;
+        textSelectionStart += openTag.length();
+        textSelectionEnd = textSelectionStart + selection;
 
         // Update new cursor position and show keyboard
         // - Retain original cursor position (or Put cursor at the end of selection)
         // - Offset by the length of opening format tag
         showKeyboard();
-        editText.setSelection(
-                textSelectionPoint + openTag.length(),
-                textSelectionPoint + openTag.length() +
-                        (textSelectionEnd - textSelectionStart));
+        editText.setSelection(textSelectionStart, textSelectionEnd);
     }
 
     /**
@@ -1644,8 +1648,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @param increasing Will this function increase the indent? (decrease if not)
      */
     private void action_format_indent(boolean increasing) {
-        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
-                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint),
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionStart),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionStart),
                 cursorMoveAmount = 0;
         String newString = editText.getText().toString();
 
@@ -1727,7 +1731,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 lineEditable.toString() +
                 newString.substring(endOfLine);
         editText.setText(newString);
-        editText.setSelection(textSelectionPoint + cursorMoveAmount);
+        editText.setSelection(textSelectionStart + cursorMoveAmount);
     }
 
     // endregion
@@ -1741,8 +1745,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *                {@link R.color#red colors.xml}
      */
     private void setTextColor(@ColorRes int colorId) {
-        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
-                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionStart),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionStart);
         String color;
         try {
             color = getResources().getResourceName(colorId).split("/")[1];
@@ -1762,9 +1766,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // - If already colored, change the color
         // - If color is the same, return
         int start, end;
-        if (lineNotSelected(startOfLine, endOfLine)) {
-            start = textSelectionPoint - startOfLine;
-            end = textSelectionPoint - startOfLine;
+        if (textSelectionStart == textSelectionEnd) {
+            start = textSelectionStart - startOfLine;
+            end = textSelectionStart - startOfLine;
         } else {
             start = textSelectionStart - startOfLine;
             end = textSelectionEnd - startOfLine;
@@ -1849,6 +1853,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     @SuppressWarnings({"ConstantConditions", "deprecation"})
     private void setBackground(@ColorRes int colorId) {
         // Set background color
+        bgColor = colorId;
         window.setStatusBarColor(getColor(colorId));
         toolbar.setBackgroundColor(getColor(colorId));
         layout_root.setBackgroundColor(getColor(colorId));
@@ -1884,6 +1889,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         editText.setHintTextColor(hintTextColor);
         textView.setTextColor(iconColor);
         textView.setHintTextColor(hintTextColor);
+        // - Rebuild Markdown theme
+        initMarkdown();
     }
 
     /**
