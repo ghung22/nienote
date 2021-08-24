@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.content.Intent;
+import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.Editable;
@@ -38,9 +39,11 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
 import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.components.AlignTagHandler;
+import com.lexisnguyen.quicknotie.components.ColorTagHandler;
 import com.lexisnguyen.quicknotie.components.UndoAdapter;
 import com.lexisnguyen.quicknotie.components.UndoManager;
 
@@ -162,6 +165,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *   <li><b>headingTheme</b>: Custom theme for headers</li>
      *   <li><b>Html</b>: Enable HTML support</li>
      *   <li><b>alignTags</b>: Align text using HTML tags</li>
+     *   <li><b>colorTags</b>: Change text color using HTML tags</li>
      *   <li><b>tablePlugin</b>: Enable Markdown's table display</li>
      *   <li><b>inlineCodeNoBackground</b>: Disable inline code background (for monospace font functionality)</li>
      *   <li><b>Editor</b>: Enable Markdown syntax highlighting</li>
@@ -181,6 +185,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             public void configure(@NonNull Registry registry) {
                 registry.require(HtmlPlugin.class, htmlPlugin ->
                         htmlPlugin.addHandler(new AlignTagHandler()));
+            }
+        }, colorTags = new AbstractMarkwonPlugin() {
+            @Override
+            public void configure(@NonNull Registry registry) {
+                registry.require(HtmlPlugin.class, htmlPlugin ->
+                        htmlPlugin.addHandler(new ColorTagHandler(EditorActivity.this)));
             }
         }, tablePlugin = TablePlugin.create(builder ->
                 builder.tableBorderWidth(2)
@@ -202,6 +212,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 .usePlugin(headingTheme)
                 .usePlugin(HtmlPlugin.create())
                 .usePlugin(alignTags)
+                .usePlugin(colorTags)
                 .usePlugin(tablePlugin)
                 .usePlugin(inlineCodeNoBackground)
                 .build();
@@ -809,7 +820,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     private boolean lineNotSelected(int startOfLine, int endOfLine) {
         return textSelectionStart == startOfLine && textSelectionEnd == endOfLine &&
-                (textSelectionStart != textSelectionPoint || textSelectionEnd != textSelectionPoint);
+                textSelectionStart != textSelectionPoint && textSelectionEnd != textSelectionPoint;
     }
 
     // endregion
@@ -1058,11 +1069,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 action_color_lightgray = dialog.findViewById(R.id.action_color_lightgray),
                 action_color_light = dialog.findViewById(R.id.action_color_light),
                 action_color_white = dialog.findViewById(R.id.action_color_white);
+        MaterialButton action_reset = dialog.findViewById(R.id.action_reset);
         if (action_color_red == null || action_color_orange == null || action_color_yellow == null ||
                 action_color_green == null || action_color_tortoise == null || action_color_cyan == null ||
                 action_color_blue == null || action_color_violet == null || action_color_purple == null ||
                 action_color_magenta == null || action_color_pink == null || action_color_black == null ||
-                action_color_lightgray == null || action_color_light == null || action_color_white == null) {
+                action_color_lightgray == null || action_color_light == null || action_color_white == null ||
+                action_reset == null) {
             throw new Throwable("Missing button in Format Color dialog");
         }
         action_color_red.setOnClickListener((view) -> setTextColor(R.color.red));
@@ -1080,6 +1093,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         action_color_lightgray.setOnClickListener((view) -> setTextColor(R.color.lightgray));
         action_color_light.setOnClickListener((view) -> setTextColor(R.color.light));
         action_color_white.setOnClickListener((view) -> setTextColor(R.color.white));
+        action_reset.setOnClickListener((view) -> setTextColor(R.color.transparent));
     }
 
     /**
@@ -1105,11 +1119,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 action_color_lightergray = dialog.findViewById(R.id.action_color_lightergray),
                 action_color_light = dialog.findViewById(R.id.action_color_light),
                 action_color_white = dialog.findViewById(R.id.action_color_white);
+        MaterialButton action_reset = dialog.findViewById(R.id.action_reset);
         if (action_color_lightred == null || action_color_lightorange == null || action_color_lightyellow == null ||
                 action_color_lightgreen == null || action_color_lighttortoise == null || action_color_lightcyan == null ||
                 action_color_lightblue == null || action_color_lightviolet == null || action_color_lightpurple == null ||
                 action_color_lightmagenta == null || action_color_lightpink == null || action_color_lightgray == null ||
-                action_color_lightergray == null || action_color_light == null || action_color_white == null) {
+                action_color_lightergray == null || action_color_light == null || action_color_white == null ||
+                action_reset == null) {
             throw new Throwable("Missing button in Format Background dialog");
         }
         action_color_lightred.setOnClickListener((view) -> setBackground(dialog, R.color.lightred));
@@ -1127,6 +1143,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         action_color_lightergray.setOnClickListener((view) -> setBackground(dialog, R.color.lightergray));
         action_color_light.setOnClickListener((view) -> setBackground(dialog, R.color.light));
         action_color_white.setOnClickListener((view) -> setBackground(dialog, R.color.white));
+
+        // Get default bgColor
+        Intent intent = getIntent();
+        Bundle bundle = intent.getExtras();
+        @ColorRes final int oldBgColor = bundle.containsKey("bgColor") ?
+                bundle.getInt("bgColor") :
+                R.color.white;
+        action_reset.setOnClickListener((view) -> setBackground(dialog, oldBgColor));
     }
 
     /**
@@ -1710,8 +1734,106 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     // region Button actions in Format Color dialog
 
+    /**
+     * Insert/change a pair of color tags surrounding the selection or cursor
+     *
+     * @param colorId The id of the color as specified in
+     *                {@link R.color#red colors.xml}
+     */
     private void setTextColor(@ColorRes int colorId) {
-        // TODO: Add color tag to cursor position or surrounding selection
+        int startOfLine = getStartOfLine(editText.getText().toString(), textSelectionPoint),
+                endOfLine = getEndOfLine(editText.getText().toString(), textSelectionPoint);
+        String color;
+        try {
+            color = getResources().getResourceName(colorId).split("/")[1];
+        } catch (Resources.NotFoundException e) {
+            color = "transparent";
+        }
+        String openTag = "<color " + color + ">",
+                endTag = "</color>";
+
+        // Get current line
+        String newString = editText.getText().toString();
+        CharSequence line = newString.substring(startOfLine, endOfLine);
+        Editable lineEditable = Editable.Factory.getInstance().newEditable(line);
+
+        // Apply color to selection, or add a pair of tags at cursor position
+        // - If color is transparent, remove tags
+        // - If already colored, change the color
+        // - If color is the same, return
+        int start, end;
+        if (lineNotSelected(startOfLine, endOfLine)) {
+            start = textSelectionPoint - startOfLine;
+            end = textSelectionPoint - startOfLine;
+        } else {
+            start = textSelectionStart - startOfLine;
+            end = textSelectionEnd - startOfLine;
+        }
+        CharSequence selection = line.subSequence(start, end);
+        String oldColor = textColorTagExists(line.toString(), start, end);
+        if (oldColor.isEmpty()) {
+            if (color.equals("transparent")) {
+                return;
+            }
+            lineEditable.insert(end, endTag);
+            lineEditable.insert(start, openTag);
+            textSelectionStart = start + openTag.length();
+            textSelectionEnd = textSelectionStart + selection.length();
+        } else if (!oldColor.equals(color)) {
+            String lineString = line.toString();
+            int openTagStart = lineString.substring(0, start).lastIndexOf("<"),
+                    endTagEnd = lineString.substring(end).indexOf(">") + 1 + end;
+            if (color.equals("transparent")) {
+                openTag = "";
+                endTag = "";
+            }
+            lineEditable.replace(end, endTagEnd, endTag);
+            lineEditable.replace(openTagStart, start, openTag);
+            textSelectionStart = start - (start - openTagStart) + openTag.length();
+            textSelectionEnd = textSelectionStart + selection.length();
+        }
+        newString = newString.substring(0, startOfLine) +
+                lineEditable +
+                newString.substring(endOfLine);
+        editText.setText(newString);
+        textSelectionStart += startOfLine;
+        textSelectionEnd += startOfLine;
+
+        // Update new cursor position and show keyboard
+        showKeyboard();
+        editText.setSelection(textSelectionStart, textSelectionEnd);
+    }
+
+    /**
+     * Check if the given range of a given string is surrounded by a pair of color tags
+     *
+     * @param string The string in question
+     * @param start  Start of range
+     * @param end    End of range
+     * @return The color of these tags (return an empty string if not surrounded)
+     */
+    private String textColorTagExists(String string, int start, int end) {
+        int openTagStart = string.substring(0, start).lastIndexOf("<"),
+                endTagEnd = string.substring(end).indexOf(">") + 1 + end;
+        if (openTagStart < 0 || start < 0 || end < 0) {
+            return "";
+        }
+
+        // Check if open and end tag valid
+        String openTag = string.substring(openTagStart, start),
+                endTag = string.substring(end, endTagEnd);
+        Pattern openTagPattern = Pattern.compile(getString(R.string.regex_color_open_tag)),
+                endTagPattern = Pattern.compile(getString(R.string.regex_color_end_tag));
+        Matcher openTagMatcher = openTagPattern.matcher(openTag),
+                endTagMatcher = endTagPattern.matcher(endTag);
+
+        if (openTagMatcher.matches() && endTagMatcher.matches()) {
+            return openTag.replace("<", "")
+                    .replace(">", "")
+                    .replace("color", "")
+                    .trim().split(" ")[0];
+        }
+        return "";
     }
 
     // endregion
