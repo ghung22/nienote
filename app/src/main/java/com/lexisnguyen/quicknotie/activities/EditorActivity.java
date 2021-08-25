@@ -44,6 +44,7 @@ import com.google.android.material.color.MaterialColors;
 import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.components.AlignTagHandler;
 import com.lexisnguyen.quicknotie.components.ColorTagHandler;
+import com.lexisnguyen.quicknotie.components.NotieGrammarLocator;
 import com.lexisnguyen.quicknotie.components.UndoAdapter;
 import com.lexisnguyen.quicknotie.components.UndoManager;
 
@@ -65,6 +66,11 @@ import io.noties.markwon.editor.MarkwonEditorTextWatcher;
 import io.noties.markwon.ext.tables.TablePlugin;
 import io.noties.markwon.html.HtmlPlugin;
 import io.noties.markwon.linkify.LinkifyPlugin;
+import io.noties.markwon.syntax.Prism4jTheme;
+import io.noties.markwon.syntax.Prism4jThemeDarkula;
+import io.noties.markwon.syntax.Prism4jThemeDefault;
+import io.noties.markwon.syntax.SyntaxHighlightPlugin;
+import io.noties.prism4j.Prism4j;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class EditorActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
@@ -167,6 +173,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *   <li><b>colorTags</b>: Change text color using HTML tags</li>
      *   <li><b>tablePlugin</b>: Enable Markdown's table display</li>
      *   <li><b>inlineCodeNoBackground</b>: Disable inline code background (for monospace font functionality)</li>
+     *   <li>
+     *     <b>SyntaxHighlightPlugin</b>: Syntax highlight support with using Prism4j <br/>
+     *     *{@link NotieGrammarLocator#languages() Supported Languages}
+     *   </li>
      *   <li><b>Editor</b>: Enable Markdown syntax highlighting</li>
      * </ul>
      *
@@ -174,6 +184,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     private void initMarkdown() {
         // Custom plugins
+        // - Create abstract plugins
         MarkwonPlugin headingTheme = new AbstractMarkwonPlugin() {
             @Override
             public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
@@ -205,6 +216,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                         .codeBackgroundColor(getColor(bgColor));
             }
         };
+        // - Syntax highlighting settings
+        Prism4j prism4j = new Prism4j(new NotieGrammarLocator());
+        Prism4jTheme prism4jTheme = isDarkMode() ?
+                Prism4jThemeDefault.create() :
+                Prism4jThemeDarkula.create();
+
+        // Build Markwon
         markwon = Markwon.builder(this)
                 .usePlugin(SoftBreakAddsNewLinePlugin.create())
                 .usePlugin(LinkifyPlugin.create())
@@ -214,6 +232,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 .usePlugin(colorTags)
                 .usePlugin(tablePlugin)
                 .usePlugin(inlineCodeNoBackground)
+                .usePlugin(SyntaxHighlightPlugin.create(prism4j, prism4jTheme))
                 .build();
         markwonEditor = MarkwonEditor.create(markwon);
     }
@@ -1842,7 +1861,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // Update icon color based on background color
         // - Get color and filter (?colorOnSecondary is the default color for icons)
         int iconColor, statusBarIconColor, hintTextColor;
-        if (colorId == R.color.lightgray || colorId == R.color.lightergray) {
+        if (!isDarkMode()) {
             iconColor = getColor(R.color.white);
             statusBarIconColor = 0;
             hintTextColor = getColor(R.color.faded_white);
@@ -1884,6 +1903,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private void setBackground(BottomSheetDialog dialog, @ColorRes int colorId) {
         setBackground(colorId);
         dialog.onBackPressed();
+    }
+
+    private boolean isDarkMode() {
+        return bgColor != R.color.lightgray && bgColor != R.color.lightergray;
     }
 
     // endregion
@@ -1934,6 +1957,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             editTextTitle.setHint("");
 
             menuItem.setIcon(R.drawable.action_edit);
+            if (!isDarkMode()) {
+                menuItem.getIcon().setTint(getColor(R.color.white));
+            } else {
+                menuItem.getIcon().setTint(MaterialColors.getColor(layout_root, R.attr.colorOnSecondary));
+            }
             menuItem.setTooltipText(getString(R.string.action_edit));
         } else {
             editTextTitle.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -1945,6 +1973,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             editTextTitle.setHint(R.string.info_text_hint);
 
             menuItem.setIcon(R.drawable.action_preview);
+            if (!isDarkMode()) {
+                menuItem.getIcon().setTint(getColor(R.color.white));
+            } else {
+                menuItem.getIcon().setTint(MaterialColors.getColor(layout_root, R.attr.colorOnSecondary));
+            }
             menuItem.setTooltipText(getString(R.string.action_preview));
         }
     }
