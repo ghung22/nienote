@@ -42,16 +42,21 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.color.MaterialColors;
 import com.lexisnguyen.quicknotie.R;
-import com.lexisnguyen.quicknotie.components.AlignTagHandler;
-import com.lexisnguyen.quicknotie.components.ColorTagHandler;
-import com.lexisnguyen.quicknotie.components.NotieGrammarLocator;
-import com.lexisnguyen.quicknotie.components.UndoAdapter;
-import com.lexisnguyen.quicknotie.components.UndoManager;
+import com.lexisnguyen.quicknotie.components.markdown.AlignTagHandler;
+import com.lexisnguyen.quicknotie.components.markdown.ColorTagHandler;
+import com.lexisnguyen.quicknotie.components.markdown.NotieGrammarLocator;
+import com.lexisnguyen.quicknotie.components.sql.Note;
+import com.lexisnguyen.quicknotie.components.undo.UndoAdapter;
+import com.lexisnguyen.quicknotie.components.undo.UndoManager;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -72,6 +77,10 @@ import io.noties.markwon.syntax.Prism4jThemeDefault;
 import io.noties.markwon.syntax.SyntaxHighlightPlugin;
 import io.noties.prism4j.Prism4j;
 
+import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_ADD_CODEBLOCK;
+import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_ADD_EMPTY;
+import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_ADD_IMAGE;
+
 @SuppressWarnings("FieldCanBeLocal")
 public class EditorActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
     //GUI Elements
@@ -85,6 +94,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             action_undo, action_redo;
 
     // Data
+    // - SQLite
+    private Note note;
+    private int noteId;
+    private final int randomMin = 1000000;
+    private final int randomMax = 9999999;
     // - Animation
     private final float bounceAmount = 20;
     private final long quickAni = 150;
@@ -92,6 +106,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     // - Root layout
     @ColorRes
     private int bgColor;
+    @ColorRes
+    private int oldBgColor;
     private boolean preview = false;
     // - EditText formatting
     private int textSelectionStart = 0, // Start of text selection
@@ -154,10 +170,56 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private void initData() {
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
-        if (bundle.containsKey("bgColor")) {
-            bgColor = bundle.getInt("bgColor");
-        } else {
-            bgColor = R.color.white;
+
+        // From intent
+        int action = bundle.getInt("action");
+        String folder = bundle.getString("folder");
+        switch (action) {
+            case ACTION_ADD_EMPTY:
+                // Create an empty list
+                break;
+            case ACTION_ADD_CODEBLOCK:
+                // Create a checklist template
+                break;
+            case ACTION_ADD_IMAGE:
+                // Put image into note
+                break;
+        }
+
+        // From Settings
+        bgColor = R.color.white;
+        oldBgColor = R.color.white;
+
+        // From SQLite
+        boolean queryFailed = true;
+        if (bundle.containsKey("noteId")) {
+            noteId = bundle.getInt("noteId");
+            List<Note> queryResult = Note.find(Note.class, "id = ?", String.valueOf(noteId));
+            if (!queryResult.isEmpty()) {
+                note = queryResult.get(0);
+                editTextTitle.setText(note.title);
+                editText.setText(note.text);
+                bgColor = note.bgColor;
+                oldBgColor = bgColor;
+                queryFailed = false;
+            }
+        }
+        if (queryFailed) {
+            // Generate a unique note id
+            while (true) {
+                noteId = new Random().nextInt((randomMax - randomMin) + 1) + randomMin;
+                List<Note> queryResult = Note.find(Note.class, "id = ?", String.valueOf(noteId));
+                if (queryResult.isEmpty()) {
+                    break;
+                }
+            }
+            // Create a new note
+            note = new Note(
+                    noteId,
+                    folder,
+                    "",
+                    "",
+                    bgColor);
         }
     }
 
@@ -728,16 +790,34 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     @Override
     public void onNothingSelected(AdapterView<?> adapterView) {}
 
-    private void onPostInput(String undo) {
-        if (!TextUtils.isEmpty(undo)) {
-            undoManager.add(undo);
-        }
-    }
-
+    /**
+     * Perform a series of actions after any input event:
+     * <ul>
+     *   <li>Add a step to the undo history</li>
+     *   <li>Save/Update the note to SQLite</li>
+     * </ul>
+     *
+     * @param undo       Name of the undo step
+     * @param drawableId The id for the icon of the undo step (-1 for default icon)
+     */
     private void onPostInput(String undo, @DrawableRes int drawableId) {
         if (!TextUtils.isEmpty(undo)) {
-            undoManager.add(undo, drawableId);
+            if (drawableId != -1) {
+                undoManager.add(undo, drawableId);
+            } else {
+                undoManager.add(undo);
+            }
         }
+        saveNote();
+    }
+
+    /**
+     * Run {@link EditorActivity#onPostInput(String, int)} with the default drawableId
+     *
+     * @param undo Name of the undo step
+     */
+    private void onPostInput(String undo) {
+        onPostInput(undo, -1);
     }
 
     // endregion
@@ -1125,11 +1205,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         action_color_white.setOnClickListener((view) -> setBackground(dialog, R.color.white));
 
         // Get default bgColor
-        Intent intent = getIntent();
-        Bundle bundle = intent.getExtras();
-        @ColorRes final int oldBgColor = bundle.containsKey("bgColor") ?
-                bundle.getInt("bgColor") :
-                R.color.white;
         if (bgColor == oldBgColor) {
             action_reset.setVisibility(View.GONE);
         } else {
@@ -1984,11 +2059,20 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     // endregion
 
+    private void saveNote() {
+        note.title = editTextTitle.getText().toString();
+        note.text = editText.getText().toString();
+        note.bgColor = bgColor;
+        note.savedDate = Date.from(Instant.now());
+        note.save();
+    }
+
     /**
      * Start an action when user presses Back depending on the states of the app.
      */
     @Override
     public void onBackPressed() {
+        saveNote();
         super.onBackPressed();
         overridePendingTransition(
                 R.anim.anim_null,

@@ -42,7 +42,7 @@
         android:paddingVertical="@dimen/xlarge_icon_padding"
         android:background="@color/transparent"
         android:contentDescription="@string/action_add_codeblock"
-        android:src="@drawable/action_add_checklist"
+        android:src="@drawable/action_add_codeblock"
         android:scaleType="fitCenter"
         app:tint="?attr/colorOnPrimary" />
 

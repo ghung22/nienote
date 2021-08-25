@@ -1,73 +1,87 @@
 package com.lexisnguyen.quicknotie.activities;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
-import android.widget.FrameLayout;
 import android.widget.ImageButton;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 import androidx.customview.widget.ViewDragHelper;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lexisnguyen.quicknotie.R;
+import com.lexisnguyen.quicknotie.components.notes.NoteAdapter;
+import com.lexisnguyen.quicknotie.components.sql.Note;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class MainActivity extends AppCompatActivity {
     // GUI Elements
     private DrawerLayout drawerLayout;
+    // - BottomAppBar
+    private BottomAppBar bottomAppBar;
+    private ImageButton action_show_menu, action_add_codeblock, action_add_image, action_settings;
+    private FloatingActionButton fab;
+    // - Content view
+    private SearchView searchView;
+    private RecyclerView recyclerView;
 
     // Data
+    // - SQLite
     private String currentFolder;
-
-    // Fragment data
-    private final ArrayList<String> fragNames = new ArrayList<>(Arrays.asList("notes", "settings"));
-    private final ArrayList<Integer> fragId = new ArrayList<>();
-    private String currentFrag;
+    private ArrayList<Note> notes;
+    // - Animation
+    private final float bounceAmount = 20;
+    private final long quickAni = 150;
+    private final long normalAni = 300;
 
     // Constants
-    private final int ACTION_ADD_EMPTY = 0;
-    private final int ACTION_ADD_CHECKLIST = 1;
-    private final int ACTION_ADD_IMAGE = 2;
+    public static final int ACTION_ADD_EMPTY = 0;
+    public static final int ACTION_ADD_CODEBLOCK = 1;
+    public static final int ACTION_ADD_IMAGE = 2;
 
-    private final int SWIPE_TRIGGER_MULTIPLIER = 2;
+    // Debugging
+    private final String TAG = "MainActivity";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // INIT GUI ELEMENTS
-        // - Bottom Appbar
-        ImageButton action_show_menu = findViewById(R.id.action_show_menu),
-                action_add_checklist = findViewById(R.id.action_add_codeblock),
-                action_add_image = findViewById(R.id.action_add_image),
-                action_settings = findViewById(R.id.action_settings);
-        FloatingActionButton fab = findViewById(R.id.fab);
+        /* INIT GUI ELEMENTS */
         // - Drawer
         drawerLayout = findViewById(R.id.drawerLayout);
         ExpandableListView expandableListView = findViewById(R.id.expandableListView);
         ExpandableListAdapter expandableListAdapter;
-        expandDrawerTrigger(SWIPE_TRIGGER_MULTIPLIER);
-        // - Content Layout
-        FrameLayout frameLayout = findViewById(R.id.frameLayout);
+        expandDrawerTrigger();
+        // - Bottom Appbar
+        bottomAppBar = findViewById(R.id.bottomAppBar);
+        action_show_menu = findViewById(R.id.action_show_menu);
+        action_add_codeblock = findViewById(R.id.action_add_codeblock);
+        action_add_image = findViewById(R.id.action_add_image);
+        action_settings = findViewById(R.id.action_settings);
+        fab = findViewById(R.id.fab);
+        // - Content view
+        searchView = findViewById(R.id.searchView);
+        recyclerView = findViewById(R.id.recyclerView);
 
-        // INIT DATA
-        currentFolder = "all";
+        /* INIT DATA */
+        currentFolder = "/";
 
-        // INIT FRAGMENT DATA
-        fragId.add(R.id.action_show_menu);
-        fragId.add(R.id.action_settings);
-        currentFrag = fragNames.get(0);
-
-        /* BOTTOM APPBAR BUTTONS:
+        /* INIT BOTTOM APPBAR BUTTONS:
          * [MENU] [CHECKLIST] (ADD) [IMAGE] [SETTINGS]
          * - MENU:      Show drawer menu on the left/Go back to Notes
          * - CHECKLIST: Add a note with an empty checklist
@@ -75,21 +89,26 @@ public class MainActivity extends AppCompatActivity {
          * - IMAGE:     Add a note with an image
          * - SETTINGS:  Show Settings screen
          */
-        action_show_menu.setOnClickListener(view -> action_show_menu());
-        action_add_checklist.setOnClickListener(view -> action_add(ACTION_ADD_CHECKLIST));
-        fab.setOnClickListener(view -> action_add(ACTION_ADD_EMPTY));
-        action_add_image.setOnClickListener(view -> action_add(ACTION_ADD_IMAGE));
+        action_show_menu.setOnClickListener(this::onClick);
+        action_add_codeblock.setOnClickListener(this::onClick);
+        fab.setOnClickListener(this::onClick);
+        action_add_image.setOnClickListener(this::onClick);
+        action_settings.setOnClickListener(this::onClick);
+
+        /* INIT CONTENT VIEW */
+        notes = (ArrayList<Note>) Note.listAll(Note.class);
+        NoteAdapter adapter = new NoteAdapter(this, notes);
+        recyclerView.setAdapter(adapter);
     }
 
     /**
      * Expand the area that the user can swipe to open the drawer.
      *
-     * @param multiplier How much the trigger zone is expanded.
      * @see <a href="https://stackoverflow.com/a/19764654">
      * Touch anywhere to slide open menu for navigation drawer - StackOverflow
      * </a>
      */
-    private void expandDrawerTrigger(int multiplier) {
+    private void expandDrawerTrigger() {
         try {
             Field dragField = drawerLayout.getClass().getDeclaredField("mLeftDragger");
             dragField.setAccessible(true);
@@ -97,20 +116,77 @@ public class MainActivity extends AppCompatActivity {
             Field edgeSizeField = Objects.requireNonNull(dragHelper).getClass().getDeclaredField("mEdgeSize");
             edgeSizeField.setAccessible(true);
             int edge = edgeSizeField.getInt(dragHelper);
-            edgeSizeField.setInt(dragHelper, edge * multiplier);
+            edgeSizeField.setInt(dragHelper, edge * 2);
         } catch (Exception ignored) {
         }
     }
 
-    /**
-     * Show/hide drawer, or go back to note list fragment if current fragment is settings
-     */
-    private void action_show_menu() {
-        if (currentFrag.equals(fragNames.get(0))) {
-            drawerLayout.openDrawer(Gravity.START);
-        } else if (currentFrag.equals(fragNames.get(1))) {
-            // Back to notes
+    @SuppressLint("NonConstantResourceId")
+    private void onClick(View view) {
+        int viewId = view.getId();
+        view.setClickable(false);
+        switch (viewId) {
+            case R.id.action_show_menu:
+                view.animate().translationXBy(bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                view.animate().translationXBy(-bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                                drawerLayout.openDrawer(Gravity.START);
+                                            }
+                                        });
+                            }
+                        });
+                break;
+            case R.id.action_add_codeblock:
+            case R.id.fab:
+            case R.id.action_add_image:
+                view.animate().translationYBy(-bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                if (viewId == R.id.action_add_codeblock) {
+                                    action_add(ACTION_ADD_CODEBLOCK);
+                                } else if (viewId == R.id.fab) {
+                                    action_add(ACTION_ADD_EMPTY);
+                                } else {
+                                    action_add(ACTION_ADD_IMAGE);
+                                }
+                                view.animate().translationYBy(bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                            }
+                                        });
+                            }
+                        });
+                break;
+            case R.id.action_settings:
+                view.animate().translationXBy(-bounceAmount).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                view.animate().translationXBy(bounceAmount).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                                // Show settings
+                                            }
+                                        });
+                            }
+                        });
+                break;
         }
+        view.setClickable(true);
     }
 
     /**
@@ -118,7 +194,7 @@ public class MainActivity extends AppCompatActivity {
      * codes:
      * <ul>
      * <li>{@link MainActivity#ACTION_ADD_EMPTY}: An empty note.
-     * <li>{@link MainActivity#ACTION_ADD_CHECKLIST}: A note with an empty checklist.
+     * <li>{@link MainActivity#ACTION_ADD_CODEBLOCK}: A note with an empty checklist.
      * <li>{@link MainActivity#ACTION_ADD_IMAGE}: A note with an image/drawing.
      * <li><b>Unknown</b>: Fallback to {@link MainActivity#ACTION_ADD_EMPTY}.
      * </ul>
@@ -130,9 +206,6 @@ public class MainActivity extends AppCompatActivity {
             action = ACTION_ADD_EMPTY;
         }
 
-        if (currentFrag.equals(fragNames.get(1))) {
-            // Back to notes
-        }
         Intent intent = new Intent(this, EditorActivity.class);
         Bundle bundle = new Bundle();
         bundle.putInt("action", action);
