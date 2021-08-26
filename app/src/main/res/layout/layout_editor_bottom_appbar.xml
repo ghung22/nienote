@@ -8,7 +8,6 @@
 
   <com.google.android.material.bottomappbar.BottomAppBar
     android:id="@+id/bottomAppBar"
-    style="@style/Theme.QuickNotie.BottomAppBar"
     android:layout_width="match_parent"
     android:layout_height="?actionBarSize"
     android:layout_gravity="bottom"

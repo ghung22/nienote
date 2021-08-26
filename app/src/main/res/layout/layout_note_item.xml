@@ -34,6 +34,10 @@
       android:layout_height="wrap_content"
       android:layout_below="@id/textViewTitle"
       android:layout_alignParentBottom="true"
+      android:autoSizeTextType="uniform"
+      android:autoSizeMinTextSize="8sp"
+      android:autoSizeMaxTextSize="@dimen/content_layout_text_size"
+      android:autoSizeStepGranularity="3sp"
       tools:text="@tools:sample/lorem/random" />
   </RelativeLayout>
 </com.google.android.material.card.MaterialCardView>

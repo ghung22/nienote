@@ -45,8 +45,8 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<Note> notes;
     // - Animation
     private final float bounceAmount = 20;
-    private final long quickAni = 150;
-    private final long normalAni = 300;
+    private final int quickAni = 150;
+    private final int normalAni = 300;
 
     // Constants
     public static final int ACTION_ADD_EMPTY = 0;

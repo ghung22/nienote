@@ -19,6 +19,7 @@
     <item name="homeAsUpIndicator">@drawable/action_back</item>
 
     <!-- Customize your theme here. -->
+    <item name="bottomAppBarStyle">@style/Theme.QuickNotie.BottomAppBar</item>
     <item name="bottomSheetDialogTheme">@style/Theme.QuickNotie.BottomSheetDialog</item>
     <item name="imageButtonStyle">@style/Theme.QuickNotie.Button</item>
   </style>

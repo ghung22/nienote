@@ -10,13 +10,13 @@ import java.util.Date;
 
 public class Note extends SugarRecord {
     // Basic info
-    public @Unique
-    int id;
+    @Unique
+    public int id;
     public String folder;
     public String title;
     public String text;
-    public @ColorRes
-    int bgColor;
+    @ColorRes
+    public int bgColor;
     public Date savedDate;
 
     // Private info

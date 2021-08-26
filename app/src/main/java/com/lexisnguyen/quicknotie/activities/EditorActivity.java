@@ -3,6 +3,7 @@ package com.lexisnguyen.quicknotie.activities;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -101,8 +102,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private final int randomMax = 9999999;
     // - Animation
     private final float bounceAmount = 20;
-    private final long quickAni = 150;
-    private final long normalAni = 300;
+    private final int quickAni = 150;
+    private final int normalAni = 300;
     // - Root layout
     @ColorRes
     private int bgColor;
@@ -125,8 +126,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             )
     );
     // - Markdown
-    private Markwon markwon;
-    private MarkwonEditor markwonEditor;
+    public static Markwon markwon;
+    public static MarkwonEditor markwonEditor;
     // - UndoManager
     private UndoManager undoManager;
     private CountDownTimer textChangedTimer = null;
@@ -141,7 +142,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         setContentView(R.layout.activity_editor);
 
         initData();
-        initMarkdown();
+        initMarkdown(this, bgColor);
         initGuiElements();
         initRootLayout();
         initTopToolbar();
@@ -218,7 +219,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                     noteId,
                     folder,
                     "",
-                    "",
+                    null,
                     bgColor);
         }
     }
@@ -244,7 +245,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *
      * @see <a href="https://github.com/noties/Markwon">Markwon</a>
      */
-    private void initMarkdown() {
+    public static void initMarkdown(Context context, int bgColor) {
         // Custom plugins
         // - Create abstract plugins
         MarkwonPlugin headingTheme = new AbstractMarkwonPlugin() {
@@ -262,30 +263,30 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             @Override
             public void configure(@NonNull Registry registry) {
                 registry.require(HtmlPlugin.class, htmlPlugin ->
-                        htmlPlugin.addHandler(new ColorTagHandler(EditorActivity.this)));
+                        htmlPlugin.addHandler(new ColorTagHandler(context)));
             }
         }, tablePlugin = TablePlugin.create(builder ->
                 builder.tableBorderWidth(2)
                         .tableCellPadding(16)
-                        .tableBorderColor(getColor(R.color.faded_black))
-                        .tableHeaderRowBackgroundColor(getColor(R.color.faded_black))
-                        .tableEvenRowBackgroundColor(getColor(bgColor))
-                        .tableOddRowBackgroundColor(getColor(bgColor))
+                        .tableBorderColor(context.getColor(R.color.faded_black))
+                        .tableHeaderRowBackgroundColor(context.getColor(R.color.faded_black))
+                        .tableEvenRowBackgroundColor(context.getColor(bgColor))
+                        .tableOddRowBackgroundColor(context.getColor(bgColor))
         ), inlineCodeNoBackground = new AbstractMarkwonPlugin() {
             @Override
             public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
-                builder.codeTextSize((int) getResources().getDimension(R.dimen.content_layout_text_size))
-                        .codeBackgroundColor(getColor(bgColor));
+                builder.codeTextSize((int) context.getResources().getDimension(R.dimen.content_layout_text_size))
+                        .codeBackgroundColor(context.getColor(bgColor));
             }
         };
         // - Syntax highlighting settings
         Prism4j prism4j = new Prism4j(new NotieGrammarLocator());
-        Prism4jTheme prism4jTheme = isDarkMode() ?
-                Prism4jThemeDefault.create() :
-                Prism4jThemeDarkula.create();
+        Prism4jTheme prism4jTheme = isDarkMode(bgColor) ?
+                new Prism4jThemeDefault(context.getColor(R.color.faded_white)) :
+                new Prism4jThemeDarkula(context.getColor(R.color.faded_black));
 
         // Build Markwon
-        markwon = Markwon.builder(this)
+        markwon = Markwon.builder(context)
                 .usePlugin(SoftBreakAddsNewLinePlugin.create())
                 .usePlugin(LinkifyPlugin.create())
                 .usePlugin(headingTheme)
@@ -1936,7 +1937,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // Update icon color based on background color
         // - Get color and filter (?colorOnSecondary is the default color for icons)
         int iconColor, statusBarIconColor, hintTextColor;
-        if (!isDarkMode()) {
+        if (!isDarkMode(bgColor)) {
             iconColor = getColor(R.color.white);
             statusBarIconColor = 0;
             hintTextColor = getColor(R.color.faded_white);
@@ -1965,7 +1966,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         textView.setTextColor(iconColor);
         textView.setHintTextColor(hintTextColor);
         // - Rebuild Markdown theme
-        initMarkdown();
+        initMarkdown(this, bgColor);
     }
 
     /**
@@ -1978,9 +1979,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private void setBackground(BottomSheetDialog dialog, @ColorRes int colorId) {
         setBackground(colorId);
         dialog.onBackPressed();
+        saveNote();
     }
 
-    private boolean isDarkMode() {
+    private static boolean isDarkMode(int bgColor) {
         return bgColor != R.color.lightgray && bgColor != R.color.lightergray;
     }
 
@@ -2032,7 +2034,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             editTextTitle.setHint("");
 
             menuItem.setIcon(R.drawable.action_edit);
-            if (!isDarkMode()) {
+            if (!isDarkMode(bgColor)) {
                 menuItem.getIcon().setTint(getColor(R.color.white));
             } else {
                 menuItem.getIcon().setTint(MaterialColors.getColor(layout_root, R.attr.colorOnSecondary));
@@ -2048,7 +2050,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             editTextTitle.setHint(R.string.info_text_hint);
 
             menuItem.setIcon(R.drawable.action_preview);
-            if (!isDarkMode()) {
+            if (!isDarkMode(bgColor)) {
                 menuItem.getIcon().setTint(getColor(R.color.white));
             } else {
                 menuItem.getIcon().setTint(MaterialColors.getColor(layout_root, R.attr.colorOnSecondary));
@@ -2060,8 +2062,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     // endregion
 
     private void saveNote() {
-        note.title = editTextTitle.getText().toString();
-        note.text = editText.getText().toString();
+        String title = editTextTitle.getText().toString(),
+                text = editText.getText().toString();
+        if (title.isEmpty() && text.isEmpty()) {
+            return;
+        }
+        note.title = title;
+        note.text = text;
         note.bgColor = bgColor;
         note.savedDate = Date.from(Instant.now());
         note.save();

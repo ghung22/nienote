@@ -15,6 +15,9 @@ import com.lexisnguyen.quicknotie.components.sql.Note;
 
 import java.util.ArrayList;
 
+import static com.lexisnguyen.quicknotie.activities.EditorActivity.initMarkdown;
+import static com.lexisnguyen.quicknotie.activities.EditorActivity.markwon;
+
 public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
     private final Context context;
     private final ArrayList<Note> notes;
@@ -40,9 +43,9 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         TextView textViewTitle = holder.getTextViewTitle(),
                 textView = holder.getTextView();
         textViewTitle.setText(note.title);
-        textView.setText(note.text);
-        // TODO: Implement Markwon
-        itemView.getBackground().setTint(context.getColor(note.bgColor));
+        initMarkdown(context, note.bgColor);
+        markwon.setMarkdown(textView, note.text);
+        itemView.setCardBackgroundColor(context.getColor(note.bgColor));
     }
 
     @Override
