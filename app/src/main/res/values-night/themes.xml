@@ -20,8 +20,9 @@
 
     <!-- Customize your theme here. -->
     <item name="bottomAppBarStyle">@style/Theme.QuickNotie.BottomAppBar</item>
-    <item name="bottomSheetDialogTheme">@style/Theme.QuickNotie.BottomSheetDialog</item>
     <item name="imageButtonStyle">@style/Theme.QuickNotie.Button</item>
+    <item name="bottomSheetDialogTheme">@style/Theme.QuickNotie.BottomSheetDialog</item>
+    <item name="materialCardViewStyle">@style/Theme.QuickNotie.MaterialCardView</item>
   </style>
 
   <!-- EditorActivity bottom appbar -->
@@ -49,5 +50,10 @@
     <item name="cornerSizeTopLeft">16dp</item>
     <item name="cornerSizeBottomRight">0dp</item>
     <item name="cornerSizeBottomLeft">0dp</item>
+  </style>
+
+  <!-- Add elevation for CardViews -->
+  <style name="Theme.QuickNotie.MaterialCardView" parent="Widget.MaterialComponents.CardView">
+    <item name="cardElevation">5dp</item>
   </style>
 </resources>

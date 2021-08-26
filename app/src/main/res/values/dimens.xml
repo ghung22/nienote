@@ -6,8 +6,8 @@
   <dimen name="card_margin">16dp</dimen>
   <dimen name="card_radius">24dp</dimen>
   <!-- MainActivity note CardView -->
-  <dimen name="note_card_width">180dp</dimen>
-  <dimen name="node_card_height">240dp</dimen>
+  <dimen name="note_card_width">160dp</dimen>
+  <dimen name="node_card_height">200dp</dimen>
   <dimen name="note_card_margin">12dp</dimen>
   <dimen name="note_card_title_text_size">18sp</dimen>
   <!-- EditorActivity content layout -->
