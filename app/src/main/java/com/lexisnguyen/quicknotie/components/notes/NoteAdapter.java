@@ -21,6 +21,7 @@ import com.lexisnguyen.quicknotie.components.sql.Note;
 import java.util.List;
 
 import static com.lexisnguyen.quicknotie.activities.EditorActivity.initMarkdown;
+import static com.lexisnguyen.quicknotie.activities.EditorActivity.isDarkMode;
 import static com.lexisnguyen.quicknotie.activities.EditorActivity.markwon;
 import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_OPEN_NOTE;
 
@@ -56,6 +57,12 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         textView.setMovementMethod(null);
         itemView.setCardBackgroundColor(context.getColor(note.bgColor));
         itemView.setOnClickListener((view) -> openNote(view, note, position));
+
+        // Check for note dark background
+        if (isDarkMode(note.bgColor)) {
+            textViewTitle.setTextColor(context.getColor(R.color.white));
+            textView.setTextColor(context.getColor(R.color.white));
+        }
     }
 
     @Override

@@ -267,10 +267,10 @@ public class MainActivity extends AppCompatActivity {
      * Create a new note, starting {@link EditorActivity} with a note preset, specified by the following action
      * codes:
      * <ul>
-     * <li>{@link MainActivity#ACTION_ADD_EMPTY}: An empty note.
-     * <li>{@link MainActivity#ACTION_ADD_CODEBLOCK}: A note with an empty checklist.
-     * <li>{@link MainActivity#ACTION_ADD_IMAGE}: A note with an image/drawing.
-     * <li><b>Unknown</b>: Fallback to {@link MainActivity#ACTION_ADD_EMPTY}.
+     * <li>{@link #ACTION_ADD_EMPTY}: An empty note.
+     * <li>{@link #ACTION_ADD_CODEBLOCK}: A note with an empty checklist.
+     * <li>{@link #ACTION_ADD_IMAGE}: A note with an image/drawing.
+     * <li><b>Unknown</b>: Fallback to {@link #ACTION_ADD_EMPTY}.
      * </ul>
      *
      * @param action Which type of note the user wants to add.
@@ -292,6 +292,16 @@ public class MainActivity extends AppCompatActivity {
         );
     }
 
+    /**
+     * Change directory to a folder. Some built-in folders:
+     * <ul>
+     *   <li><b>/{@value #FOLDER_FAVORITES}</b>: A folder containing liked notes</li>
+     *   <li><b>/{@value #FOLDER_LOCKED}</b>: A folder contains all notes with password</li>
+     *   <li><b>/{@value #FOLDER_TRASH}</b>: A list of notes in trash</li>
+     * </ul>
+     *
+     * @param folder The folder to change to
+     */
     private void cd(String folder) {
         if (currentFolder.equals(folder)) {
             return;

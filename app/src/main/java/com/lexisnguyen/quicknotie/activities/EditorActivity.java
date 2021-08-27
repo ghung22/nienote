@@ -268,8 +268,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // - Syntax highlighting settings
         Prism4j prism4j = new Prism4j(new NotieGrammarLocator());
         Prism4jTheme prism4jTheme = isDarkMode(bgColor) ?
-                new Prism4jThemeDefault(context.getColor(R.color.faded_white)) :
-                new Prism4jThemeDarkula(context.getColor(R.color.faded_black));
+                new Prism4jThemeDarkula(context.getColor(R.color.faded_black)) :
+                new Prism4jThemeDefault(context.getColor(R.color.faded_white));
 
         // Build Markwon
         markwon = Markwon.builder(context)
@@ -808,7 +808,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     }
 
     /**
-     * Run {@link EditorActivity#onPostInput(String, int)} with the default drawableId
+     * Run {@link #onPostInput(String, int)} with the default drawableId
      *
      * @param undo Name of the undo step
      */
@@ -1345,7 +1345,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * Insert/Remove font symbols at the start (and at the end depending on the font)
      *
      * @param fontId The id of the font as specified in
-     *               {@link EditorActivity#textFonts}
+     *               {@link #textFonts}
      */
     private void action_text_font(int fontId) {
         // Skip if the user selected the same font
@@ -1460,7 +1460,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * Detect the current text font
      *
      * @return The id of the font as specified in
-     * {@link EditorActivity#textFonts}
+     * {@link #textFonts}
      */
     @SuppressWarnings("DuplicatedCode")
     private int action_text_font_get() {
@@ -1931,15 +1931,15 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         // Update icon color based on background color
         // - Get color and filter (?colorOnSecondary is the default color for icons)
-        int iconColor, statusBarIconColor, hintTextColor;
-        if (!isDarkMode(bgColor)) {
-            iconColor = getColor(R.color.white);
+        int fgColor, statusBarIconColor, hintColor;
+        if (isDarkMode(bgColor)) {
+            fgColor = getColor(R.color.white);
             statusBarIconColor = 0;
-            hintTextColor = getColor(R.color.faded_white);
+            hintColor = getColor(R.color.faded_white);
         } else {
-            iconColor = MaterialColors.getColor(layout_root, R.attr.colorOnSecondary);
+            fgColor = MaterialColors.getColor(layout_root, R.attr.colorOnSecondary);
             statusBarIconColor = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            hintTextColor = getColor(R.color.faded_black);
+            hintColor = getColor(R.color.faded_black);
         }
         // - Root layout
         getWindow().getDecorView().setSystemUiVisibility(statusBarIconColor);
@@ -1948,18 +1948,18 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         MenuItem action_preview = menu.findItem(R.id.action_preview),
                 action_remind = menu.findItem(R.id.action_remind),
                 action_share = menu.findItem(R.id.action_share);
-        toolbar.getNavigationIcon().setTint(iconColor);
-        action_preview.getIcon().setTint(iconColor);
-        action_remind.getIcon().setTint(iconColor);
-        action_share.getIcon().setTint(iconColor);
-        toolbar.getOverflowIcon().setTint(iconColor);
+        toolbar.getNavigationIcon().setTint(fgColor);
+        action_preview.getIcon().setTint(fgColor);
+        action_remind.getIcon().setTint(fgColor);
+        action_share.getIcon().setTint(fgColor);
+        toolbar.getOverflowIcon().setTint(fgColor);
         // - Content Layout
-        editTextTitle.setTextColor(iconColor);
-        editTextTitle.setHintTextColor(hintTextColor);
-        editText.setTextColor(iconColor);
-        editText.setHintTextColor(hintTextColor);
-        textView.setTextColor(iconColor);
-        textView.setHintTextColor(hintTextColor);
+        editTextTitle.setTextColor(fgColor);
+        editTextTitle.setHintTextColor(hintColor);
+        editText.setTextColor(fgColor);
+        editText.setHintTextColor(hintColor);
+        textView.setTextColor(fgColor);
+        textView.setHintTextColor(hintColor);
         // - Rebuild Markdown theme
         initMarkdown(this, bgColor);
     }
@@ -1977,8 +1977,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         saveNote();
     }
 
-    private static boolean isDarkMode(int bgColor) {
-        return bgColor != R.color.lightgray && bgColor != R.color.lightergray;
+    public static boolean isDarkMode(int bgColor) {
+        return bgColor == R.color.lightgray || bgColor == R.color.lightergray;
     }
 
     // endregion
@@ -2029,7 +2029,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             editTextTitle.setHint("");
 
             menuItem.setIcon(R.drawable.action_edit);
-            if (!isDarkMode(bgColor)) {
+            if (isDarkMode(bgColor)) {
                 menuItem.getIcon().setTint(getColor(R.color.white));
             } else {
                 menuItem.getIcon().setTint(MaterialColors.getColor(layout_root, R.attr.colorOnSecondary));
@@ -2045,7 +2045,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             editTextTitle.setHint(R.string.info_text_hint);
 
             menuItem.setIcon(R.drawable.action_preview);
-            if (!isDarkMode(bgColor)) {
+            if (isDarkMode(bgColor)) {
                 menuItem.getIcon().setTint(getColor(R.color.white));
             } else {
                 menuItem.getIcon().setTint(MaterialColors.getColor(layout_root, R.attr.colorOnSecondary));
@@ -2057,6 +2057,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private void action_delete() {
         Trash trash = new Trash(note);
         trash.save();
+        setResult(1);
         onBackPressed();
     }
 
