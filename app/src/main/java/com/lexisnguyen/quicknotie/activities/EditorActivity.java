@@ -14,6 +14,7 @@ import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.transition.Transition;
+import android.transition.TransitionListenerAdapter;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -153,45 +154,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         initBottomAppbar();
         initContentLayout();
         initUndoRedo();
-
-        getWindow().getSharedElementEnterTransition().addListener(new Transition.TransitionListener() {
-            @Override
-            public void onTransitionStart(Transition transition) {
-                // Hide everything except the MaterialCardView
-                MaterialCardView materialCardView = findViewById(R.id.materialCardView);
-                materialCardView.setCardBackgroundColor(getColor(bgColor));
-                layout_root.setAlpha(0);
-
-                // If the note is loaded, hide the textView first
-                if (action == ACTION_OPEN_NOTE) {
-                    editText.setAlpha(0);
-                }
-            }
-
-            @Override
-            public void onTransitionEnd(Transition transition) {
-                // Hide the MaterialCardView
-                MaterialCardView materialCardView = findViewById(R.id.materialCardView);
-                materialCardView.setVisibility(View.GONE);
-                layout_root.setAlpha(1);
-                setBackground(bgColor);
-
-                // If the note is loaded, enter preview mode
-                if (action == ACTION_OPEN_NOTE) {
-                    OnMenuItemClick(action_preview);
-                    editText.setAlpha(1);
-                }
-            }
-
-            @Override
-            public void onTransitionCancel(Transition transition) {}
-
-            @Override
-            public void onTransitionPause(Transition transition) {}
-
-            @Override
-            public void onTransitionResume(Transition transition) {}
-        });
+        initAnimation();
     }
 
     /**
@@ -342,6 +305,47 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private void initUndoRedo() {
         undoManager = new UndoManager(editText, action_undo, action_redo);
         undoManager.setTextWatcher(textWatcher);
+    }
+
+    /**
+     * Init entering/exiting animation fot the activity
+     */
+    private void initAnimation() {
+        getWindow().getSharedElementEnterTransition().addListener(new TransitionListenerAdapter() {
+            @Override
+            public void onTransitionStart(Transition transition) {
+                super.onTransitionStart(transition);
+
+                // Hide everything except the MaterialCardView
+                MaterialCardView materialCardView = findViewById(R.id.materialCardView);
+                materialCardView.setCardBackgroundColor(getColor(bgColor));
+                layout_root.setAlpha(0);
+
+                // If the note is loaded, hide the textView first
+                if (action == ACTION_OPEN_NOTE) {
+                    editText.setAlpha(0);
+                }
+            }
+        });
+
+        getWindow().getSharedElementEnterTransition().addListener(new TransitionListenerAdapter() {
+            @Override
+            public void onTransitionEnd(Transition transition) {
+                super.onTransitionEnd(transition);
+
+                // Hide the MaterialCardView
+                MaterialCardView materialCardView = findViewById(R.id.materialCardView);
+                materialCardView.setVisibility(View.GONE);
+                layout_root.setAlpha(1);
+                setBackground(bgColor);
+
+                // If the note is loaded, enter preview mode
+                if (action == ACTION_OPEN_NOTE) {
+                    OnMenuItemClick(action_preview);
+                    editText.setAlpha(1);
+                }
+            }
+        });
     }
 
     /**
