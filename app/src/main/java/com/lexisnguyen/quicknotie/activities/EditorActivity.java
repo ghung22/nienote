@@ -13,6 +13,7 @@ import android.text.InputType;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.transition.Transition;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -41,6 +42,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
 import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.components.markdown.AlignTagHandler;
@@ -81,6 +83,7 @@ import io.noties.prism4j.Prism4j;
 import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_ADD_CODEBLOCK;
 import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_ADD_EMPTY;
 import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_ADD_IMAGE;
+import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_OPEN_NOTE;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class EditorActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
@@ -88,6 +91,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private Window window;
     private RelativeLayout layout_root;
     private Toolbar toolbar;
+    private MenuItem action_preview, action_remind;
     private TextView textView;
     private EditText editTextTitle, editText;
     private ImageButton action_add_content, action_format_style,
@@ -95,6 +99,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             action_undo, action_redo;
 
     // Data
+    // - Intent
+    private int action;
+    private String folder;
     // - SQLite
     private Note note;
     // - Animation
@@ -146,6 +153,45 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         initBottomAppbar();
         initContentLayout();
         initUndoRedo();
+
+        getWindow().getSharedElementEnterTransition().addListener(new Transition.TransitionListener() {
+            @Override
+            public void onTransitionStart(Transition transition) {
+                // Hide everything except the MaterialCardView
+                MaterialCardView materialCardView = findViewById(R.id.materialCardView);
+                materialCardView.setCardBackgroundColor(getColor(bgColor));
+                layout_root.setAlpha(0);
+
+                // If the note is loaded, hide the textView first
+                if (action == ACTION_OPEN_NOTE) {
+                    editText.setAlpha(0);
+                }
+            }
+
+            @Override
+            public void onTransitionEnd(Transition transition) {
+                // Hide the MaterialCardView
+                MaterialCardView materialCardView = findViewById(R.id.materialCardView);
+                materialCardView.setVisibility(View.GONE);
+                layout_root.setAlpha(1);
+                setBackground(bgColor);
+
+                // If the note is loaded, enter preview mode
+                if (action == ACTION_OPEN_NOTE) {
+                    OnMenuItemClick(action_preview);
+                    editText.setAlpha(1);
+                }
+            }
+
+            @Override
+            public void onTransitionCancel(Transition transition) {}
+
+            @Override
+            public void onTransitionPause(Transition transition) {}
+
+            @Override
+            public void onTransitionResume(Transition transition) {}
+        });
     }
 
     /**
@@ -170,8 +216,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         Bundle bundle = intent.getExtras();
 
         // From intent
-        int action = bundle.getInt("action");
-        String folder = bundle.getString("folder");
+        action = bundle.getInt("action");
+        folder = bundle.getString("folder");
         switch (action) {
             case ACTION_ADD_EMPTY:
                 // Create an empty list
@@ -339,6 +385,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * </ul>
      */
     private void initTopToolbar() {
+        Menu menu = toolbar.getMenu();
+        action_preview = menu.findItem(R.id.action_preview);
+        action_remind = menu.findItem(R.id.action_remind);
+
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -423,12 +473,28 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 editText
         ));
         editText.addTextChangedListener(textWatcher);
-        setBackground(bgColor);
     }
 
     // endregion
 
     // region User input events
+
+
+    /**
+     * Perform an action based on which toolbar button was clicked.
+     *
+     * @param item The menu item defined in Android
+     * @return Result of performed action (should be true)
+     */
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        if (item.getItemId() == android.R.id.home) {
+            // Trigger back key press
+            onBackPressed();
+            return true;
+        }
+        return super.onOptionsItemSelected(item);
+    }
 
     /**
      * Perform an action based on which toolbar menu item was clicked.
@@ -442,10 +508,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private boolean OnMenuItemClick(MenuItem menuItem) {
         int id = menuItem.getItemId();
         switch (id) {
-            case R.id.home:
-                // Trigger back key press
-                onBackPressed();
-                break;
             case R.id.action_preview:
                 action_preview(menuItem);
                 break;
@@ -1944,14 +2006,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // - Root layout
         getWindow().getDecorView().setSystemUiVisibility(statusBarIconColor);
         // - Top Toolbar
-        Menu menu = toolbar.getMenu();
-        MenuItem action_preview = menu.findItem(R.id.action_preview),
-                action_remind = menu.findItem(R.id.action_remind),
-                action_share = menu.findItem(R.id.action_share);
         toolbar.getNavigationIcon().setTint(fgColor);
         action_preview.getIcon().setTint(fgColor);
         action_remind.getIcon().setTint(fgColor);
-        action_share.getIcon().setTint(fgColor);
+        // action_share.getIcon().setTint(fgColor);
         toolbar.getOverflowIcon().setTint(fgColor);
         // - Content Layout
         editTextTitle.setTextColor(fgColor);
