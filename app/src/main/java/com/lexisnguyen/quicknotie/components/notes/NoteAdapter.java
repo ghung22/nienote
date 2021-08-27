@@ -18,7 +18,7 @@ import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.activities.EditorActivity;
 import com.lexisnguyen.quicknotie.components.sql.Note;
 
-import java.util.ArrayList;
+import java.util.List;
 
 import static com.lexisnguyen.quicknotie.activities.EditorActivity.initMarkdown;
 import static com.lexisnguyen.quicknotie.activities.EditorActivity.markwon;
@@ -26,9 +26,9 @@ import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_OPEN_NOT
 
 public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
     private final Context context;
-    private final ArrayList<Note> notes;
+    private final List<Note> notes;
 
-    public NoteAdapter(Context context, ArrayList<Note> notes) {
+    public NoteAdapter(Context context, List<Note> notes) {
         this.context = context;
         this.notes = notes;
     }
@@ -61,6 +61,12 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
     @Override
     public int getItemCount() {
         return notes.size();
+    }
+
+    public void notifyDataSetChanged(List<Note> notes) {
+        this.notes.clear();
+        this.notes.addAll(notes);
+        notifyDataSetChanged();
     }
 
     private void openNote(View view, Note note, long id) {

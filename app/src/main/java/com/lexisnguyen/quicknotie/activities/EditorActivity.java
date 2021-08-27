@@ -47,6 +47,7 @@ import com.lexisnguyen.quicknotie.components.markdown.AlignTagHandler;
 import com.lexisnguyen.quicknotie.components.markdown.ColorTagHandler;
 import com.lexisnguyen.quicknotie.components.markdown.NotieGrammarLocator;
 import com.lexisnguyen.quicknotie.components.sql.Note;
+import com.lexisnguyen.quicknotie.components.sql.Trash;
 import com.lexisnguyen.quicknotie.components.undo.UndoAdapter;
 import com.lexisnguyen.quicknotie.components.undo.UndoManager;
 
@@ -191,7 +192,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         boolean queryFailed = true;
         if (bundle.containsKey("noteId")) {
             long id = bundle.getLong("noteId");
-            List<Note> queryResult = Note.listAll(Note.class);
+            List<Note> queryResult = Note.find(Note.class, "folder = ?", folder);
             note = queryResult.get((int) id);
             editTextTitle.setText(note.title);
             editText.setText(note.text);
@@ -204,7 +205,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             note = new Note(
                     folder,
                     "",
-                    null,
+                    "",
                     bgColor);
         }
     }
@@ -464,6 +465,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 break;
             case R.id.action_delete:
                 // Move the note into the trash
+                action_delete();
                 break;
             default:
                 Log.w(TAG, "OnMenuItemClick: Unknown menu item " + menuItem.getTitle());
@@ -657,6 +659,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 action_format_indent(false);
                 undo = "Decrease indent";
                 undoDrawable = R.drawable.action_format_indent_decrease;
+                break;
+
+            default:
+                Log.w(TAG, "OnClick: Unknown item " + view.getId());
                 break;
         }
         if (undoDrawable == 0) {
@@ -2048,6 +2054,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
     }
 
+    private void action_delete() {
+        Trash trash = new Trash(note);
+        trash.save();
+        onBackPressed();
+    }
+
     // endregion
 
     private void saveNote() {
@@ -2068,7 +2080,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     @Override
     public void onBackPressed() {
-        textChangedTimer.onFinish();
+        if (textChangedTimer != null) {
+            textChangedTimer.onFinish();
+        }
         saveNote();
         super.onBackPressed();
         overridePendingTransition(

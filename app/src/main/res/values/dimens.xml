@@ -32,4 +32,7 @@
   <!-- EditorActivity layout_undo_redo bottom dialog -->
   <dimen name="list_layout_text_size">16sp</dimen>
   <dimen name="list_layout_drawable_padding">12dp</dimen>
+  <dimen name="drawer_menu_item_padding">12dp</dimen>
+  <dimen name="drawer_menu_item_text_size">16sp</dimen>
+  <dimen name="drawer_menu_item_drawable_padding">16dp</dimen>
 </resources>

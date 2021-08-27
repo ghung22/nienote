@@ -22,7 +22,20 @@
     <item name="bottomAppBarStyle">@style/Theme.QuickNotie.BottomAppBar</item>
     <item name="imageButtonStyle">@style/Theme.QuickNotie.Button</item>
     <item name="bottomSheetDialogTheme">@style/Theme.QuickNotie.BottomSheetDialog</item>
+    <item name="cardViewStyle">@style/Theme.QuickNotie.MaterialCardView</item>
     <item name="materialCardViewStyle">@style/Theme.QuickNotie.MaterialCardView</item>
+  </style>
+
+  <!-- Drawer buttons -->
+  <style name="Theme.QuickNotie.DrawerMenuItem" parent="Widget.MaterialComponents.Button.UnelevatedButton">
+    <item name="android:padding">@dimen/drawer_menu_item_padding</item>
+    <item name="android:foreground">?selectableItemBackground</item>
+    <item name="android:background">@color/transparent</item>
+    <item name="android:textColor">?attr/colorOnSecondary</item>
+    <item name="android:textSize">@dimen/drawer_menu_item_text_size</item>
+    <item name="android:textAllCaps">false</item>
+    <item name="android:textAlignment">textStart</item>
+    <item name="android:drawablePadding">@dimen/drawer_menu_item_drawable_padding</item>
   </style>
 
   <!-- EditorActivity bottom appbar -->

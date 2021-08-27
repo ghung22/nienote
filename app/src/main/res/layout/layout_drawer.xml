@@ -2,6 +2,7 @@
 <com.google.android.material.navigation.NavigationView xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:app="http://schemas.android.com/apk/res-auto"
   xmlns:tools="http://schemas.android.com/tools"
+  android:id="@+id/navigationView"
   android:layout_width="wrap_content"
   android:layout_height="match_parent"
   android:layout_gravity="start"
@@ -54,54 +55,37 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
+        <Button
           android:id="@+id/action_drawer_all"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:paddingVertical="16dp"
-          android:paddingHorizontal="16dp"
           android:text="@string/action_drawer_all"
-          android:textColor="?attr/colorOnSecondary"
-          android:textSize="16sp"
           app:drawableLeftCompat="@drawable/action_drawer_all"
-          android:drawablePadding="16dp"
-          android:background="?attr/colorPrimary" />
+          style="@style/Theme.QuickNotie.DrawerMenuItem" />
 
-        <TextView
+        <Button
           android:id="@+id/action_drawer_favorites"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:paddingVertical="16dp"
-          android:paddingHorizontal="16dp"
           android:text="@string/action_drawer_favorites"
-          android:textColor="?attr/colorOnSecondary"
-          android:textSize="16sp"
           app:drawableLeftCompat="@drawable/action_drawer_favorites"
-          android:drawablePadding="16dp" />
+          style="@style/Theme.QuickNotie.DrawerMenuItem" />
 
-        <TextView
+        <Button
           android:id="@+id/action_drawer_locked"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:paddingVertical="16dp"
-          android:paddingHorizontal="16dp"
           android:text="@string/action_drawer_locked"
-          android:textColor="?attr/colorOnSecondary"
-          android:textSize="16sp"
           app:drawableLeftCompat="@drawable/action_drawer_locked"
-          android:drawablePadding="16dp" />
+          style="@style/Theme.QuickNotie.DrawerMenuItem" />
 
-        <TextView
+        <Button
           android:id="@+id/action_drawer_trash"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
-          android:paddingVertical="16dp"
-          android:paddingHorizontal="16dp"
           android:text="@string/action_drawer_trash"
-          android:textColor="?attr/colorOnSecondary"
-          android:textSize="16sp"
           app:drawableLeftCompat="@drawable/action_drawer_trash"
-          android:drawablePadding="16dp" />
+          style="@style/Theme.QuickNotie.DrawerMenuItem" />
 
         <View
           android:layout_width="match_parent"
