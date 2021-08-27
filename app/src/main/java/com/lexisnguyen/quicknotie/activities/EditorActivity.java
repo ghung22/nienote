@@ -57,7 +57,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -97,9 +96,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     // Data
     // - SQLite
     private Note note;
-    private int noteId;
-    private final int randomMin = 1000000;
-    private final int randomMax = 9999999;
     // - Animation
     private final float bounceAmount = 20;
     private final int quickAni = 150;
@@ -141,9 +137,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_editor);
 
+        initGuiElements();
         initData();
         initMarkdown(this, bgColor);
-        initGuiElements();
         initRootLayout();
         initTopToolbar();
         initBottomAppbar();
@@ -194,29 +190,18 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // From SQLite
         boolean queryFailed = true;
         if (bundle.containsKey("noteId")) {
-            noteId = bundle.getInt("noteId");
-            List<Note> queryResult = Note.find(Note.class, "id = ?", String.valueOf(noteId));
-            if (!queryResult.isEmpty()) {
-                note = queryResult.get(0);
-                editTextTitle.setText(note.title);
-                editText.setText(note.text);
-                bgColor = note.bgColor;
-                oldBgColor = bgColor;
-                queryFailed = false;
-            }
+            long id = bundle.getLong("noteId");
+            List<Note> queryResult = Note.listAll(Note.class);
+            note = queryResult.get((int) id);
+            editTextTitle.setText(note.title);
+            editText.setText(note.text);
+            bgColor = note.bgColor;
+            oldBgColor = bgColor;
+            queryFailed = false;
         }
         if (queryFailed) {
-            // Generate a unique note id
-            while (true) {
-                noteId = new Random().nextInt((randomMax - randomMin) + 1) + randomMin;
-                List<Note> queryResult = Note.find(Note.class, "id = ?", String.valueOf(noteId));
-                if (queryResult.isEmpty()) {
-                    break;
-                }
-            }
             // Create a new note
             note = new Note(
-                    noteId,
                     folder,
                     "",
                     null,
@@ -499,7 +484,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         @DrawableRes int undoDrawable = 0;
         getTextSelection();
         if (textChangedTimer != null) {
-            textChangedTimer.cancel();
+            textChangedTimer.onFinish();
         }
         textView.removeTextChangedListener(textWatcher);
 
@@ -803,10 +788,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     private void onPostInput(String undo, @DrawableRes int drawableId) {
         if (!TextUtils.isEmpty(undo)) {
-            if (drawableId != -1) {
-                undoManager.add(undo, drawableId);
-            } else {
-                undoManager.add(undo);
+            if (!editTextTitle.getText().toString().equals(note.title) &&
+                    !editText.getText().toString().equals(note.text) &&
+                    bgColor != note.bgColor) {
+                if (drawableId != -1) {
+                    undoManager.add(undo, drawableId);
+                } else {
+                    undoManager.add(undo);
+                }
             }
         }
         saveNote();
@@ -2079,6 +2068,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     @Override
     public void onBackPressed() {
+        textChangedTimer.onFinish();
         saveNote();
         super.onBackPressed();
         overridePendingTransition(

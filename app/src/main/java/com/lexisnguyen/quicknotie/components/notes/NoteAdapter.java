@@ -1,22 +1,28 @@
 package com.lexisnguyen.quicknotie.components.notes;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
 import com.lexisnguyen.quicknotie.R;
+import com.lexisnguyen.quicknotie.activities.EditorActivity;
 import com.lexisnguyen.quicknotie.components.sql.Note;
 
 import java.util.ArrayList;
 
 import static com.lexisnguyen.quicknotie.activities.EditorActivity.initMarkdown;
 import static com.lexisnguyen.quicknotie.activities.EditorActivity.markwon;
+import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_OPEN_NOTE;
 
 public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
     private final Context context;
@@ -39,13 +45,17 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull NoteAdapter.ViewHolder holder, int position) {
         Note note = notes.get(position);
-        MaterialCardView itemView = holder.getItemView();
-        TextView textViewTitle = holder.getTextViewTitle(),
-                textView = holder.getTextView();
+        MaterialCardView itemView = holder.itemView;
+        TextView textViewTitle = holder.textViewTitle,
+                textView = holder.textView;
+
+        // Set content
         textViewTitle.setText(note.title);
         initMarkdown(context, note.bgColor);
         markwon.setMarkdown(textView, note.text);
+        textView.setMovementMethod(null);
         itemView.setCardBackgroundColor(context.getColor(note.bgColor));
+        itemView.setOnClickListener((view) -> openNote(view, note, position));
     }
 
     @Override
@@ -53,28 +63,28 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         return notes.size();
     }
 
+    private void openNote(View view, Note note, long id) {
+        ActivityOptionsCompat options = ActivityOptionsCompat
+                .makeSceneTransitionAnimation((Activity) context, view, context.getString(R.string.transition_open_note));
+        Intent intent = new Intent(context, EditorActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putInt("action", ACTION_OPEN_NOTE);
+        bundle.putString("folder", note.folder);
+        bundle.putLong("noteId", id);
+        intent.putExtras(bundle);
+        context.startActivity(intent, options.toBundle());
+    }
+
     public static class ViewHolder extends RecyclerView.ViewHolder {
-        private final MaterialCardView itemView;
-        private final TextView textViewTitle, textView;
+        public final MaterialCardView itemView;
+        public final TextView textViewTitle, textView;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             // Define ViewHolder's View
-            this.itemView = (MaterialCardView) itemView;
+            this.itemView = itemView.findViewById(R.id.materialCardView);
             textViewTitle = itemView.findViewById(R.id.textViewTitle);
             textView = itemView.findViewById(R.id.textView);
-        }
-
-        public MaterialCardView getItemView() {
-            return itemView;
-        }
-
-        public TextView getTextViewTitle() {
-            return textViewTitle;
-        }
-
-        public TextView getTextView() {
-            return textView;
         }
     }
 }

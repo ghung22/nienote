@@ -22,11 +22,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_margin="@dimen/card_margin"
-        android:clickable="true"
-        android:focusable="true"
-        android:checkable="true"
-        app:cardCornerRadius="@dimen/card_radius">
+        android:layout_margin="@dimen/card_margin">
 
         <androidx.appcompat.widget.SearchView
           android:id="@+id/searchView"

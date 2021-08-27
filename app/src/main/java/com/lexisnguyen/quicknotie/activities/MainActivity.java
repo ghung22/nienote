@@ -49,9 +49,12 @@ public class MainActivity extends AppCompatActivity {
     private final int normalAni = 300;
 
     // Constants
+    // - New note
     public static final int ACTION_ADD_EMPTY = 0;
     public static final int ACTION_ADD_CODEBLOCK = 1;
     public static final int ACTION_ADD_IMAGE = 2;
+    // - Open note
+    public static final int ACTION_OPEN_NOTE = 10;
 
     // Debugging
     private final String TAG = "MainActivity";
