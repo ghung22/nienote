@@ -15,6 +15,8 @@ import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.customview.widget.ViewDragHelper;
@@ -30,9 +32,11 @@ import com.lexisnguyen.quicknotie.components.notes.NoteAdapter;
 import com.lexisnguyen.quicknotie.components.sql.Note;
 import com.lexisnguyen.quicknotie.components.sql.Trash;
 import com.orm.SugarDb;
+import com.orm.SugarRecord;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -53,6 +57,9 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
 
     // Data
+    // - Activity results
+    private ActivityResultLauncher<Intent> editorLauncher;
+    private ActivityResultLauncher<Intent> settingsLauncher;
     // - SQLite
     public static SugarDb db;
     private List<Note> notes = new ArrayList<>();
@@ -70,6 +77,13 @@ public class MainActivity extends AppCompatActivity {
     public static final String FOLDER_FAVORITES = "favorites";
     public static final String FOLDER_LOCKED = "locked";
     public static final String FOLDER_TRASH = "trash";
+    // - Sort order
+    public static final int SORT_ID = 0;
+    public static final int SORT_NAME = 1;
+    public static final int SORT_COLOR = 2;
+    public static final int SORT_SAVED_DATE = 3;
+    public static final boolean ASCENDING = true;
+    public static final boolean DESCENDING = false;
     // - New note action
     public static final int ACTION_ADD_EMPTY = 0;
     public static final int ACTION_ADD_CODEBLOCK = 1;
@@ -85,14 +99,32 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        /* INIT DATA */
-        // - SQLite
+        initData();
+        initActivityResults();
+        initGuiElements();
+        initDrawer();
+        initBottomAppbar();
+        initContentView();
+
+        cd("/");
+        sort(SORT_SAVED_DATE, DESCENDING);
+    }
+
+    // region Init events
+
+    /**
+     * Init data from many sources
+     */
+    private void initData() {
+        // From SQLite
         db = new SugarDb(this);
         db.onCreate(db.getDB());
-        adapter = new NoteAdapter(this, notes);
-        cd("/");
+    }
 
-        /* INIT GUI ELEMENTS */
+    /**
+     * Init (get) all views on the layouts by saving them into a variable
+     */
+    private void initGuiElements() {
         // - DrawerLayout
         drawerLayout = findViewById(R.id.drawerLayout);
         ExpandableListView expandableListView = findViewById(R.id.expandableListView);
@@ -111,14 +143,21 @@ public class MainActivity extends AppCompatActivity {
         // - Content view
         searchView = findViewById(R.id.searchView);
         recyclerView = findViewById(R.id.recyclerView);
+    }
 
-        /* INIT DRAWER:
-         * [ALL] [FAVORITES] [LOCKED] [TRASH]
-         * - ALL:       Show all notes that are not in trash
-         * - FAVORITES:  Show liked notes
-         * - LOCKED:      Show locked notes
-         * - TRASH:     Show trashed notes
-         */
+    /**
+     * Init the side Drawer consisting the following menus
+     * <ul>
+     *   <li><b>ALL</b>: Show all notes according to a directory tree (excluding deleted notes)</li>
+     *   <li><b>FAVORITES</b>: Show all liked notes</li>
+     *   <li><b>LOCKED</b>: Show all notes that has a protective password</li>
+     *   <li><b>TRASH</b>: Show all deleted notes</li>
+     *   <br/>
+     *   <li><b>FOLDERS</b>: List of folders in the root directory</li>
+     *   <li><b>MANAGE FOLDERS</b>: Change the said folder list</li>
+     * </ul>
+     */
+    private void initDrawer() {
         ExpandableListAdapter expandableListAdapter;
         expandDrawerTrigger();
         action_drawer_all.setBackgroundColor(MaterialColors.getColor(drawerLayout, R.attr.colorPrimary));
@@ -126,23 +165,6 @@ public class MainActivity extends AppCompatActivity {
         action_drawer_favorites.setOnClickListener(this::onClick);
         action_drawer_locked.setOnClickListener(this::onClick);
         action_drawer_trash.setOnClickListener(this::onClick);
-
-        /* INIT BOTTOM APPBAR BUTTONS:
-         * [MENU] [CHECKLIST] (ADD) [IMAGE] [SETTINGS]
-         * - MENU:      Show drawer menu on the left/Go back to Notes
-         * - CHECKLIST: Add a note with an empty checklist
-         * - ADD:       Add an empty note
-         * - IMAGE:     Add a note with an image
-         * - SETTINGS:  Show Settings screen
-         */
-        action_show_menu.setOnClickListener(this::onClick);
-        action_add_codeblock.setOnClickListener(this::onClick);
-        fab.setOnClickListener(this::onClick);
-        action_add_image.setOnClickListener(this::onClick);
-        action_settings.setOnClickListener(this::onClick);
-
-        /* INIT CONTENT VIEW */
-        recyclerView.setAdapter(adapter);
     }
 
     /**
@@ -164,6 +186,75 @@ public class MainActivity extends AppCompatActivity {
         } catch (Exception ignored) {
         }
     }
+
+    /**
+     * Init the BottomAppbar consisting the following buttons
+     * <ul>
+     *   <li><b>MENU</b>: Show drawer menu on the left/Go back to Notes</li>
+     *   <li><b>CHECKLIST</b>: Add a note with an empty checklist</li>
+     *   <li><b>ADD</b>: Add an empty note</li>
+     *   <li><b>IMAGE</b>: Add a note with an image</li>
+     *   <li><b>SETTINGS</b>: Show Settings screen</li>
+     * </ul>
+     */
+    private void initBottomAppbar() {
+        action_show_menu.setOnClickListener(this::onClick);
+        action_add_codeblock.setOnClickListener(this::onClick);
+        fab.setOnClickListener(this::onClick);
+        action_add_image.setOnClickListener(this::onClick);
+        action_settings.setOnClickListener(this::onClick);
+    }
+
+    /**
+     * Init the layout consisting the Search bar and the Note list
+     */
+    private void initContentView() {
+        adapter = new NoteAdapter(this, notes, editorLauncher);
+        recyclerView.setAdapter(adapter);
+    }
+
+    private void initActivityResults() {
+        editorLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() != RESULT_OK) {
+                        return;
+                    }
+                    Intent data = result.getData();
+                    Bundle extras;
+                    if (data == null) {
+                        return;
+                    }
+                    extras = data.getExtras();
+                    long noteId = extras.getLong("noteId");
+                    String title = extras.getString("title"),
+                            text = extras.getString("text");
+                    int bgColor = extras.getInt("bgColor");
+                    for (Note note : notes) {
+                        if (note.getId() != noteId) {
+                            continue;
+                        }
+
+                        // Delete or change this note
+                        if (extras.containsKey("trashed")) {
+                            if (extras.getBoolean("trashed")) {
+                                // Delete from view
+                                adapter.notifyItemRemove(notes.indexOf(note));
+                                return;
+                            }
+                        }
+                        adapter.notifyItemChange(notes.indexOf(note), title, text, bgColor);
+                        return;
+                    }
+                    // Add a new note (if not exist)
+                    Note note = Note.findById(Note.class, noteId);
+                    notes.add(0, note);
+                    adapter.notifyItemInsert(noteId);
+                }
+        );
+    }
+
+    // endregion
 
     @SuppressLint("NonConstantResourceId")
     private void onClick(View view) {
@@ -285,7 +376,7 @@ public class MainActivity extends AppCompatActivity {
         bundle.putInt("action", action);
         bundle.putString("folder", currentFolder);
         intent.putExtras(bundle);
-        startActivity(intent);
+        editorLauncher.launch(intent);
         overridePendingTransition(
                 R.anim.anim_slide_up_ease_in,
                 R.anim.anim_null
@@ -330,6 +421,42 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
         new Handler(Looper.getMainLooper()).post(() -> adapter.notifyDataSetChanged(notes));
+    }
+
+    /**
+     * Sort the note list according to a given order and attribute. Some supported attributes:
+     * <ul>
+     *   <li>{@link #SORT_ID}: By the default order in the database</li>
+     *   <li>{@link #SORT_NAME}: Sort by name (alphabetical order)</li>
+     *   <li>{@link #SORT_COLOR}: By color codes</li>
+     *   <li>{@link #SORT_SAVED_DATE} (default): By how recent the note has been edited</li>
+     * </ul>
+     *
+     * @param mode The type of attribute to sort
+     * @param asc  The order ({@link #ASCENDING} or {@link #DESCENDING})
+     */
+    private void sort(int mode, boolean asc) {
+        Comparator<Note> comparator;
+        switch (mode) {
+            case SORT_ID:
+                comparator = Comparator.comparing(SugarRecord::getId);
+                break;
+            case SORT_NAME:
+                comparator = Comparator.comparing(n -> n.title);
+                break;
+            case SORT_COLOR:
+                comparator = Comparator.comparing(n -> n.bgColor);
+                break;
+            case SORT_SAVED_DATE:
+                comparator = Comparator.comparing(n -> n.savedDate);
+                break;
+            default:
+                return;
+        }
+        if (!asc) {
+            comparator = comparator.reversed();
+        }
+        notes.sort(comparator);
     }
 
     /**

@@ -60,7 +60,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,9 +99,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             action_undo, action_redo;
 
     // Data
-    // - Intent
+    // - Activity result
     private int action;
     private String folder;
+    private Bundle result;
     // - SQLite
     private Note note;
     // - Animation
@@ -172,13 +172,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     // region Init events
 
     /**
-     * Init passed/saved data from other activities/settings
+     * Init passed/saved data from many sources
      */
     private void initData() {
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
 
-        // From intent
+        // From Activity result
         action = bundle.getInt("action");
         folder = bundle.getString("folder");
         switch (action) {
@@ -192,6 +192,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 // Put image into note
                 break;
         }
+        result = new Bundle();
+
 
         // From Settings
         bgColor = R.color.white;
@@ -201,8 +203,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         boolean queryFailed = true;
         if (bundle.containsKey("noteId")) {
             long id = bundle.getLong("noteId");
-            List<Note> queryResult = Note.find(Note.class, "folder = ?", folder);
-            note = queryResult.get((int) id);
+            note = Note.findById(Note.class, id);
             editTextTitle.setText(note.title);
             editText.setText(note.text);
             bgColor = note.bgColor;
@@ -2013,13 +2014,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         toolbar.getNavigationIcon().setTint(fgColor);
         action_preview.getIcon().setTint(fgColor);
         action_remind.getIcon().setTint(fgColor);
-        // action_share.getIcon().setTint(fgColor);
         toolbar.getOverflowIcon().setTint(fgColor);
         // - Content Layout
         editTextTitle.setTextColor(fgColor);
         editTextTitle.setHintTextColor(hintColor);
+        editTextTitle.setBackgroundColor(getColor(bgColor));
         editText.setTextColor(fgColor);
         editText.setHintTextColor(hintColor);
+        editText.setBackgroundColor(getColor(bgColor));
         textView.setTextColor(fgColor);
         textView.setHintTextColor(hintColor);
         // - Rebuild Markdown theme
@@ -2119,7 +2121,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private void action_delete() {
         Trash trash = new Trash(note);
         trash.save();
-        setResult(1);
+        result.putBoolean("trashed", true);
         onBackPressed();
     }
 
@@ -2136,6 +2138,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         note.bgColor = bgColor;
         note.savedDate = Date.from(Instant.now());
         note.save();
+
+        result.putLong("noteId", note.getId());
+        result.putString("title", note.title);
+        result.putString("text", note.text);
+        result.putInt("bgColor", note.bgColor);
     }
 
     /**
@@ -2147,6 +2154,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             textChangedTimer.onFinish();
         }
         saveNote();
+        Intent intent = new Intent();
+        intent.putExtras(result);
+        setResult(RESULT_OK, intent);
+
         super.onBackPressed();
         overridePendingTransition(
                 R.anim.anim_null,

@@ -32,7 +32,6 @@
     android:padding="@dimen/content_layout_padding"
     android:visibility="invisible"
     android:textSize="@dimen/content_layout_text_size"
-    android:background="@color/transparent"
     android:gravity="start"
     android:scrollHorizontally="false"
     android:textIsSelectable="true" />
@@ -46,7 +45,6 @@
     android:layout_above="@id/layout_editor_bottom_appbar"
     android:padding="@dimen/content_layout_padding"
     android:textSize="@dimen/content_layout_text_size"
-    android:background="@color/transparent"
     android:inputType="textMultiLine"
     android:hint="@string/info_text_hint"
     android:gravity="start"
