@@ -25,19 +25,27 @@
     layout="@layout/layout_editor_top_toolbar" />
 
   <!-- For previewing markdown -->
-  <TextView
-    android:id="@+id/textView"
+  <ScrollView
+    android:id="@+id/scrollView"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_below="@id/layout_editor_top_toolbar"
     android:layout_above="@id/layout_editor_bottom_appbar"
-    android:padding="@dimen/content_layout_padding"
-    android:visibility="invisible"
-    android:textSize="@dimen/content_layout_text_size"
-    android:background="@color/transparent"
-    android:gravity="start"
-    android:scrollHorizontally="false"
-    android:textIsSelectable="true" />
+    android:scrollbars="vertical"
+    android:fillViewport="true">
+
+    <TextView
+      android:id="@+id/textView"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:padding="@dimen/content_layout_padding"
+      android:visibility="invisible"
+      android:textSize="@dimen/content_layout_text_size"
+      android:background="@color/transparent"
+      android:gravity="start"
+      android:scrollHorizontally="false"
+      android:textIsSelectable="true" />
+  </ScrollView>
 
   <!-- For editing markdown -->
   <EditText

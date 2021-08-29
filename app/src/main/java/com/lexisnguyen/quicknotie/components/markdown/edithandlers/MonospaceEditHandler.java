@@ -1,4 +1,4 @@
-package com.lexisnguyen.quicknotie.components.markdown;
+package com.lexisnguyen.quicknotie.components.markdown.edithandlers;
 
 import android.text.Editable;
 import android.text.Spanned;

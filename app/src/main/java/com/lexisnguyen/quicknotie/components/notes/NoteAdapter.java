@@ -58,6 +58,9 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
                 textView = holder.textView;
 
         // Set content
+        if (note.title.isEmpty()) {
+            textViewTitle.setVisibility(View.GONE);
+        }
         textViewTitle.setText(note.title);
         initMarkdown(context, note.bgColor);
         markwon.setMarkdown(textView, note.text);

@@ -3,16 +3,17 @@ package com.lexisnguyen.quicknotie.activities;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.Editable;
-import android.text.InputType;
 import android.text.Spanned;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.text.method.LinkMovementMethod;
 import android.transition.Transition;
 import android.transition.TransitionListenerAdapter;
 import android.util.Log;
@@ -29,6 +30,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
@@ -48,20 +50,19 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
 import com.lexisnguyen.quicknotie.R;
-import com.lexisnguyen.quicknotie.components.markdown.AlignTagHandler;
-import com.lexisnguyen.quicknotie.components.markdown.ColorTagHandler;
-import com.lexisnguyen.quicknotie.components.markdown.MonospaceEditHandler;
 import com.lexisnguyen.quicknotie.components.markdown.NotieGrammarLocator;
 import com.lexisnguyen.quicknotie.components.markdown.ThemePunctuationSpan;
+import com.lexisnguyen.quicknotie.components.markdown.edithandlers.MonospaceEditHandler;
+import com.lexisnguyen.quicknotie.components.markdown.plugins.AnchorHeadingPlugin;
+import com.lexisnguyen.quicknotie.components.markdown.plugins.TableOfContentsPlugin;
+import com.lexisnguyen.quicknotie.components.markdown.tags.AlignTagHandler;
+import com.lexisnguyen.quicknotie.components.markdown.tags.ColorTagHandler;
 import com.lexisnguyen.quicknotie.components.sql.Note;
 import com.lexisnguyen.quicknotie.components.sql.Trash;
 import com.lexisnguyen.quicknotie.components.undo.UndoAdapter;
 import com.lexisnguyen.quicknotie.components.undo.UndoManager;
 
 import org.apache.commons.lang3.StringUtils;
-import org.commonmark.parser.InlineParserFactory;
-import org.commonmark.parser.Parser;
-import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -81,10 +82,6 @@ import io.noties.markwon.editor.MarkwonEditorTextWatcher;
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin;
 import io.noties.markwon.ext.tables.TablePlugin;
 import io.noties.markwon.html.HtmlPlugin;
-import io.noties.markwon.inlineparser.BackticksInlineProcessor;
-import io.noties.markwon.inlineparser.HtmlInlineProcessor;
-import io.noties.markwon.inlineparser.MarkwonInlineParser;
-import io.noties.markwon.inlineparser.OpenBracketInlineProcessor;
 import io.noties.markwon.linkify.LinkifyPlugin;
 import io.noties.markwon.syntax.Prism4jTheme;
 import io.noties.markwon.syntax.Prism4jThemeDarkula;
@@ -104,6 +101,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private RelativeLayout layout_root;
     private Toolbar toolbar;
     private BottomAppBar bottomAppBar;
+    private ScrollView scrollView;
     private TextView textView;
     private EditText editTextTitle, editText;
     private ImageButton action_add_content, action_format_style,
@@ -246,7 +244,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *   <li><b>colorTags</b>: Change text color using HTML tags</li>
      *   <li><b>tablePlugin</b>: Enable Markdown's table display</li>
      *   <li><b>inlineCodeNoBackground</b>: Disable inline code background (for monospace font functionality)</li>
-     *   <li><b>inlineParser</b>: Auto add closing symbols/tags</li>
      *   <li>
      *     <b>SyntaxHighlightPlugin</b>: Syntax highlight support with using Prism4j <br/>
      *     *{@link NotieGrammarLocator#languages() Supported Languages}
@@ -259,9 +256,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     public static void initMarkdown(Context context, int bgColor) {
         // Theme-based colors
         @ColorInt int bgColorInt = context.getColor(bgColor),
-                bgColor2Int = isDarkMode(bgColor) ?
-                        context.getColor(R.color.faded_black) :
-                        context.getColor(R.color.faded_white);
+                bgColorContrastInt = isDarkMode(bgColor) ?
+                        context.getColor(R.color.faded_white) :
+                        context.getColor(R.color.faded_black);
 
         // Custom plugins
         // - Create abstract plugins
@@ -285,39 +282,25 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }, tablePlugin = TablePlugin.create(builder ->
                 builder.tableBorderWidth(2)
                         .tableCellPadding(16)
-                        .tableBorderColor(bgColor2Int)
-                        .tableHeaderRowBackgroundColor(bgColor2Int)
+                        .tableBorderColor(bgColorContrastInt)
+                        .tableHeaderRowBackgroundColor(bgColorContrastInt)
                         .tableEvenRowBackgroundColor(bgColorInt)
                         .tableOddRowBackgroundColor(bgColorInt)
         ), inlineCodeNoBackground = new AbstractMarkwonPlugin() {
             @Override
             public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
-                builder.codeTextSize((int) context.getResources().getDimension(R.dimen.content_layout_text_size))
-                        .codeBackgroundColor(bgColorInt);
+                builder.codeBackgroundColor(context.getColor(R.color.black));
             }
-        };
-        // - Inline parser
-        InlineParserFactory inlineParserFactory = MarkwonInlineParser.factoryBuilderNoDefaults()
-                // note that there is no `includeDefaults` method call
-                .referencesEnabled(true)
-                .addInlineProcessor(new BackticksInlineProcessor())
-                .addInlineProcessor(new HtmlInlineProcessor())
-                .addInlineProcessor(new OpenBracketInlineProcessor())
-                .build();
-        MarkwonPlugin inlineParser = new AbstractMarkwonPlugin() {
-            @Override
-            public void configureParser(@NonNull @NotNull Parser.Builder builder) {
-                builder.inlineParserFactory(inlineParserFactory);
-            }
-        };
+        }, anchorHeading = new AnchorHeadingPlugin((view, top) ->
+                ((ScrollView) ((Activity) context).findViewById(R.id.scrollView)).smoothScrollTo(0, top));
         // - Syntax highlighting settings
         Prism4j prism4j = new Prism4j(new NotieGrammarLocator());
         Prism4jTheme prism4jTheme = isDarkMode(bgColor) ?
-                new Prism4jThemeDarkula(bgColor2Int) :
-                new Prism4jThemeDefault(bgColor2Int);
+                new Prism4jThemeDarkula(bgColorInt) :
+                new Prism4jThemeDefault(bgColorInt);
 
         // Build Markwon
-        markwon = Markwon.builder(context)
+        Markwon.Builder builder = Markwon.builder(context)
                 .usePlugin(SoftBreakAddsNewLinePlugin.create())
                 .usePlugin(StrikethroughPlugin.create())
                 .usePlugin(LinkifyPlugin.create())
@@ -327,17 +310,22 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 .usePlugin(colorTags)
                 .usePlugin(tablePlugin)
                 .usePlugin(inlineCodeNoBackground)
-                // .usePlugin(inlineParser)
-                .usePlugin(SyntaxHighlightPlugin.create(prism4j, prism4jTheme))
-                .build();
-        // markwonEditor = MarkwonEditor.create(markwon);
+                .usePlugin(SyntaxHighlightPlugin.create(prism4j, prism4jTheme));
+        if (context instanceof EditorActivity) {
+            builder = builder
+                    .usePlugin(new TableOfContentsPlugin())
+                    .usePlugin(anchorHeading);
+        }
+        markwon = builder.build();
+
+        // Build Markwon Editor
         markwonEditor = MarkwonEditor.builder(markwon)
                 // .useEditHandler(new EmphasisEditHandler())
                 // .useEditHandler(new StrongEmphasisEditHandler())
                 // .useEditHandler(new StrikethroughEditHandler())
                 .useEditHandler(new MonospaceEditHandler())
                 // .useEditHandler(new BlockQuoteEditHandler())
-                .punctuationSpan(ThemePunctuationSpan.class, () -> new ThemePunctuationSpan(bgColor2Int))
+                .punctuationSpan(ThemePunctuationSpan.class, () -> new ThemePunctuationSpan(bgColorContrastInt))
                 .build();
     }
 
@@ -407,6 +395,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         action_undo = findViewById(R.id.action_undo);
         action_redo = findViewById(R.id.action_redo);
         // Content Layout
+        scrollView = findViewById(R.id.scrollView);
         textView = findViewById(R.id.textView);
         editText = findViewById(R.id.editText);
         // Animation
@@ -510,12 +499,22 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 }.start();
             }
         };
+
+        // Add a scroll to top behaviour on editTextTitle
+        editTextTitle.setOnClickListener((view) -> {
+            if (preview) {
+                scrollView.smoothScrollTo(0, view.getTop());
+            }
+        });
+
+        // Add TextWatchers to editText
         editText.addTextChangedListener(MarkwonEditorTextWatcher.withPreRender(
                 markwonEditor,
                 Executors.newCachedThreadPool(),
                 editText
         ));
         editText.addTextChangedListener(textWatcher);
+        textView.setMovementMethod(LinkMovementMethod.getInstance());
     }
 
     // endregion
@@ -2102,10 +2101,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         preview = !preview;
 
         // Parse content of EditText into TextView
-        Editable text = editText.getText();
-        markwon.setMarkdown(textView, text.toString());
-
-        hideKeyboard();
+        if (preview) {
+            Editable text = editText.getText();
+            markwon.setMarkdown(textView, text.toString());
+            hideKeyboard();
+        }
 
         // Toggle editor buttons and hide BottomAppBar
         action_add_content.setEnabled(!preview);
@@ -2129,14 +2129,15 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // - Interacting with title EditText
         // - Visibility of content EditText or TextView
         // - Visibility of hint text of both EditText
+        // - Scroll to each other's scroll position
         // - Icon of action_preview
         @ColorInt int fgColorInt = isDarkMode(bgColor) ?
                 getColor(R.color.white) :
                 MaterialColors.getColor(layout_root, R.attr.colorOnSecondary);
         if (preview) {
-            editTextTitle.setInputType(InputType.TYPE_NULL);
-            editTextTitle.setTextIsSelectable(true);
+            editTextTitle.setEnabled(false);
 
+            // textView.scrollTo(0, editText.getScrollY() * textView.getBottom() / editText.getBottom());
             textView.setVisibility(View.VISIBLE);
             editText.setVisibility(View.INVISIBLE);
 
@@ -2146,8 +2147,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             menuItem.setIcon(R.drawable.action_edit);
             menuItem.setTooltipText(getString(R.string.action_edit));
         } else {
-            editTextTitle.setInputType(InputType.TYPE_CLASS_TEXT);
+            editTextTitle.setEnabled(true);
 
+            // editText.scrollTo(0, textView.getScrollY() * editText.getBottom() / textView.getBottom());
             textView.setVisibility(View.INVISIBLE);
             editText.setVisibility(View.VISIBLE);
 

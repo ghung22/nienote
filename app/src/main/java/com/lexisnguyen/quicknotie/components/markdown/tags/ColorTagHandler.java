@@ -1,4 +1,4 @@
-package com.lexisnguyen.quicknotie.components.markdown;
+package com.lexisnguyen.quicknotie.components.markdown.tags;
 
 import android.content.Context;
 import android.text.style.ForegroundColorSpan;

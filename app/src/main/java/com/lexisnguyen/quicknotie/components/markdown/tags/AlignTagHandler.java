@@ -1,4 +1,4 @@
-package com.lexisnguyen.quicknotie.components.markdown;
+package com.lexisnguyen.quicknotie.components.markdown.tags;
 
 import android.text.Layout;
 import android.text.style.AlignmentSpan;
