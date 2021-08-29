@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
   xmlns:tools="http://schemas.android.com/tools"
   xmlns:app="http://schemas.android.com/apk/res-auto"
   android:id="@+id/layout_root"
   android:layout_width="match_parent"
   android:layout_height="match_parent"
   android:orientation="vertical"
-  tools:context=".activities.EditorActivity">
+  tools:context=".activities.EditorActivity"
+  android:transitionName="@string/transition_new_note">
 
   <com.google.android.material.card.MaterialCardView
     android:id="@+id/materialCardView"
@@ -32,6 +34,7 @@
     android:padding="@dimen/content_layout_padding"
     android:visibility="invisible"
     android:textSize="@dimen/content_layout_text_size"
+    android:background="@color/transparent"
     android:gravity="start"
     android:scrollHorizontally="false"
     android:textIsSelectable="true" />
@@ -45,6 +48,7 @@
     android:layout_above="@id/layout_editor_bottom_appbar"
     android:padding="@dimen/content_layout_padding"
     android:textSize="@dimen/content_layout_text_size"
+    android:background="@color/transparent"
     android:inputType="textMultiLine"
     android:hint="@string/info_text_hint"
     android:gravity="start"

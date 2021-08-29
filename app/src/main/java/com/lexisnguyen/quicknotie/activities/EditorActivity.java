@@ -32,6 +32,7 @@ import android.widget.RelativeLayout;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.annotation.ColorInt;
 import androidx.annotation.ColorRes;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.LayoutRes;
@@ -41,6 +42,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
@@ -48,13 +50,18 @@ import com.google.android.material.color.MaterialColors;
 import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.components.markdown.AlignTagHandler;
 import com.lexisnguyen.quicknotie.components.markdown.ColorTagHandler;
+import com.lexisnguyen.quicknotie.components.markdown.MonospaceEditHandler;
 import com.lexisnguyen.quicknotie.components.markdown.NotieGrammarLocator;
+import com.lexisnguyen.quicknotie.components.markdown.ThemePunctuationSpan;
 import com.lexisnguyen.quicknotie.components.sql.Note;
 import com.lexisnguyen.quicknotie.components.sql.Trash;
 import com.lexisnguyen.quicknotie.components.undo.UndoAdapter;
 import com.lexisnguyen.quicknotie.components.undo.UndoManager;
 
 import org.apache.commons.lang3.StringUtils;
+import org.commonmark.parser.InlineParserFactory;
+import org.commonmark.parser.Parser;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -71,8 +78,13 @@ import io.noties.markwon.SoftBreakAddsNewLinePlugin;
 import io.noties.markwon.core.MarkwonTheme;
 import io.noties.markwon.editor.MarkwonEditor;
 import io.noties.markwon.editor.MarkwonEditorTextWatcher;
+import io.noties.markwon.ext.strikethrough.StrikethroughPlugin;
 import io.noties.markwon.ext.tables.TablePlugin;
 import io.noties.markwon.html.HtmlPlugin;
+import io.noties.markwon.inlineparser.BackticksInlineProcessor;
+import io.noties.markwon.inlineparser.HtmlInlineProcessor;
+import io.noties.markwon.inlineparser.MarkwonInlineParser;
+import io.noties.markwon.inlineparser.OpenBracketInlineProcessor;
 import io.noties.markwon.linkify.LinkifyPlugin;
 import io.noties.markwon.syntax.Prism4jTheme;
 import io.noties.markwon.syntax.Prism4jThemeDarkula;
@@ -91,12 +103,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private Window window;
     private RelativeLayout layout_root;
     private Toolbar toolbar;
-    private MenuItem action_preview, action_remind;
+    private BottomAppBar bottomAppBar;
     private TextView textView;
     private EditText editTextTitle, editText;
     private ImageButton action_add_content, action_format_style,
             action_format_color, action_format_background,
             action_undo, action_redo;
+    private MaterialCardView materialCardView;
 
     // Data
     // - Activity result
@@ -151,7 +164,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         initMarkdown(this, bgColor);
         initRootLayout();
         initTopToolbar();
-        initBottomAppbar();
+        initBottomAppBar();
         initContentLayout();
         initUndoRedo();
         initAnimation();
@@ -225,6 +238,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * Plugins used:
      * <ul>
      *   <li><b>SoftBreakAddsNewLinePlugin</b>: Treat user newline as Markdown's newline (it is ignored by default)</li>
+     *   <li><b>StrikethroughPlugin</b>: Add strikethrough support</li>
      *   <li><b>LinkifyPlugin</b>: Enable Markdown's link display</li>
      *   <li><b>headingTheme</b>: Custom theme for headers</li>
      *   <li><b>Html</b>: Enable HTML support</li>
@@ -232,6 +246,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *   <li><b>colorTags</b>: Change text color using HTML tags</li>
      *   <li><b>tablePlugin</b>: Enable Markdown's table display</li>
      *   <li><b>inlineCodeNoBackground</b>: Disable inline code background (for monospace font functionality)</li>
+     *   <li><b>inlineParser</b>: Auto add closing symbols/tags</li>
      *   <li>
      *     <b>SyntaxHighlightPlugin</b>: Syntax highlight support with using Prism4j <br/>
      *     *{@link NotieGrammarLocator#languages() Supported Languages}
@@ -242,6 +257,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @see <a href="https://github.com/noties/Markwon">Markwon</a>
      */
     public static void initMarkdown(Context context, int bgColor) {
+        // Theme-based colors
+        @ColorInt int bgColorInt = context.getColor(bgColor),
+                bgColor2Int = isDarkMode(bgColor) ?
+                        context.getColor(R.color.faded_black) :
+                        context.getColor(R.color.faded_white);
+
         // Custom plugins
         // - Create abstract plugins
         MarkwonPlugin headingTheme = new AbstractMarkwonPlugin() {
@@ -264,26 +285,41 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }, tablePlugin = TablePlugin.create(builder ->
                 builder.tableBorderWidth(2)
                         .tableCellPadding(16)
-                        .tableBorderColor(context.getColor(R.color.faded_black))
-                        .tableHeaderRowBackgroundColor(context.getColor(R.color.faded_black))
-                        .tableEvenRowBackgroundColor(context.getColor(bgColor))
-                        .tableOddRowBackgroundColor(context.getColor(bgColor))
+                        .tableBorderColor(bgColor2Int)
+                        .tableHeaderRowBackgroundColor(bgColor2Int)
+                        .tableEvenRowBackgroundColor(bgColorInt)
+                        .tableOddRowBackgroundColor(bgColorInt)
         ), inlineCodeNoBackground = new AbstractMarkwonPlugin() {
             @Override
             public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
                 builder.codeTextSize((int) context.getResources().getDimension(R.dimen.content_layout_text_size))
-                        .codeBackgroundColor(context.getColor(bgColor));
+                        .codeBackgroundColor(bgColorInt);
+            }
+        };
+        // - Inline parser
+        InlineParserFactory inlineParserFactory = MarkwonInlineParser.factoryBuilderNoDefaults()
+                // note that there is no `includeDefaults` method call
+                .referencesEnabled(true)
+                .addInlineProcessor(new BackticksInlineProcessor())
+                .addInlineProcessor(new HtmlInlineProcessor())
+                .addInlineProcessor(new OpenBracketInlineProcessor())
+                .build();
+        MarkwonPlugin inlineParser = new AbstractMarkwonPlugin() {
+            @Override
+            public void configureParser(@NonNull @NotNull Parser.Builder builder) {
+                builder.inlineParserFactory(inlineParserFactory);
             }
         };
         // - Syntax highlighting settings
         Prism4j prism4j = new Prism4j(new NotieGrammarLocator());
         Prism4jTheme prism4jTheme = isDarkMode(bgColor) ?
-                new Prism4jThemeDarkula(context.getColor(R.color.faded_black)) :
-                new Prism4jThemeDefault(context.getColor(R.color.faded_white));
+                new Prism4jThemeDarkula(bgColor2Int) :
+                new Prism4jThemeDefault(bgColor2Int);
 
         // Build Markwon
         markwon = Markwon.builder(context)
                 .usePlugin(SoftBreakAddsNewLinePlugin.create())
+                .usePlugin(StrikethroughPlugin.create())
                 .usePlugin(LinkifyPlugin.create())
                 .usePlugin(headingTheme)
                 .usePlugin(HtmlPlugin.create())
@@ -291,9 +327,18 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 .usePlugin(colorTags)
                 .usePlugin(tablePlugin)
                 .usePlugin(inlineCodeNoBackground)
+                // .usePlugin(inlineParser)
                 .usePlugin(SyntaxHighlightPlugin.create(prism4j, prism4jTheme))
                 .build();
-        markwonEditor = MarkwonEditor.create(markwon);
+        // markwonEditor = MarkwonEditor.create(markwon);
+        markwonEditor = MarkwonEditor.builder(markwon)
+                // .useEditHandler(new EmphasisEditHandler())
+                // .useEditHandler(new StrongEmphasisEditHandler())
+                // .useEditHandler(new StrikethroughEditHandler())
+                .useEditHandler(new MonospaceEditHandler())
+                // .useEditHandler(new BlockQuoteEditHandler())
+                .punctuationSpan(ThemePunctuationSpan.class, () -> new ThemePunctuationSpan(bgColor2Int))
+                .build();
     }
 
     /**
@@ -312,39 +357,33 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * Init entering/exiting animation fot the activity
      */
     private void initAnimation() {
-        getWindow().getSharedElementEnterTransition().addListener(new TransitionListenerAdapter() {
+        Transition transition = getWindow().getSharedElementEnterTransition();
+        transition.setDuration(normalAni);
+
+        transition.addListener(new TransitionListenerAdapter() {
             @Override
             public void onTransitionStart(Transition transition) {
                 super.onTransitionStart(transition);
-
-                // Hide everything except the MaterialCardView
-                MaterialCardView materialCardView = findViewById(R.id.materialCardView);
-                materialCardView.setCardBackgroundColor(getColor(bgColor));
-                layout_root.setAlpha(0);
-
-                // If the note is loaded, hide the textView first
                 if (action == ACTION_OPEN_NOTE) {
+                    materialCardView.setCardBackgroundColor(getColor(bgColor));
                     editText.setAlpha(0);
+                } else if (action < ACTION_OPEN_NOTE) {
+                    bottomAppBar.setAlpha(0);
                 }
             }
         });
 
-        getWindow().getSharedElementEnterTransition().addListener(new TransitionListenerAdapter() {
+        transition.addListener(new TransitionListenerAdapter() {
             @Override
             public void onTransitionEnd(Transition transition) {
                 super.onTransitionEnd(transition);
-
-                // Hide the MaterialCardView
-                MaterialCardView materialCardView = findViewById(R.id.materialCardView);
-                materialCardView.setVisibility(View.GONE);
-                layout_root.setAlpha(1);
-                setBackground(bgColor);
-
-                // If the note is loaded, enter preview mode
                 if (action == ACTION_OPEN_NOTE) {
-                    OnMenuItemClick(action_preview);
+                    materialCardView.setVisibility(View.GONE);
                     editText.setAlpha(1);
+                } else if (action < ACTION_OPEN_NOTE) {
+                    bottomAppBar.setAlpha(1);
                 }
+                setBackground(bgColor);
             }
         });
     }
@@ -360,6 +399,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         toolbar = findViewById(R.id.toolbar);
         editTextTitle = findViewById(R.id.editTextTitle);
         // Bottom Appbar
+        bottomAppBar = findViewById(R.id.bottomAppBar);
         action_add_content = findViewById(R.id.action_add_content);
         action_format_style = findViewById(R.id.action_format_style);
         action_format_color = findViewById(R.id.action_format_color);
@@ -369,6 +409,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // Content Layout
         textView = findViewById(R.id.textView);
         editText = findViewById(R.id.editText);
+        // Animation
+        materialCardView = findViewById(R.id.materialCardView);
     }
 
     /**
@@ -390,10 +432,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * </ul>
      */
     private void initTopToolbar() {
-        Menu menu = toolbar.getMenu();
-        action_preview = menu.findItem(R.id.action_preview);
-        action_remind = menu.findItem(R.id.action_remind);
-
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -401,11 +439,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             actionBar.setDisplayHomeAsUpEnabled(true);
             actionBar.setDisplayShowTitleEnabled(false);
         }
-        toolbar.setOnMenuItemClickListener(this::OnMenuItemClick);
+        toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
     }
 
     /**
-     * Init the BottomAppbar consisting the following buttons
+     * Init the BottomAppBar consisting the following buttons
      * <ul>
      *   <li><b>ADD</b>: Add an image/drawing</li>
      *   <li><b>STYLE</b>: Perform text formatting
@@ -424,7 +462,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *   <li><b>REDO</b>: Redo last change (hold for history list)</li>
      * </ul>
      */
-    private void initBottomAppbar() {
+    private void initBottomAppBar() {
         action_add_content.setOnClickListener(this::onClick);
         action_format_style.setOnClickListener(this::onClick);
         action_format_color.setOnClickListener(this::onClick);
@@ -510,7 +548,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @return Result of performed action (should be true)
      */
     @SuppressLint("NonConstantResourceId")
-    private boolean OnMenuItemClick(MenuItem menuItem) {
+    private boolean onMenuItemClick(MenuItem menuItem) {
         int id = menuItem.getItemId();
         switch (id) {
             case R.id.action_preview:
@@ -1998,32 +2036,32 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         // Update icon color based on background color
         // - Get color and filter (?colorOnSecondary is the default color for icons)
-        int fgColor, statusBarIconColor, hintColor;
+        int fgColorInt, statusBarIconColorFlag, hintColorInt;
         if (isDarkMode(bgColor)) {
-            fgColor = getColor(R.color.white);
-            statusBarIconColor = 0;
-            hintColor = getColor(R.color.faded_white);
+            fgColorInt = getColor(R.color.white);
+            statusBarIconColorFlag = 0;
+            hintColorInt = getColor(R.color.faded_white);
         } else {
-            fgColor = MaterialColors.getColor(layout_root, R.attr.colorOnSecondary);
-            statusBarIconColor = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-            hintColor = getColor(R.color.faded_black);
+            fgColorInt = MaterialColors.getColor(layout_root, R.attr.colorOnSecondary);
+            statusBarIconColorFlag = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+            hintColorInt = getColor(R.color.faded_black);
         }
         // - Root layout
-        getWindow().getDecorView().setSystemUiVisibility(statusBarIconColor);
+        getWindow().getDecorView().setSystemUiVisibility(statusBarIconColorFlag);
         // - Top Toolbar
-        toolbar.getNavigationIcon().setTint(fgColor);
-        action_preview.getIcon().setTint(fgColor);
-        action_remind.getIcon().setTint(fgColor);
-        toolbar.getOverflowIcon().setTint(fgColor);
+        toolbar.getNavigationIcon().setTint(fgColorInt);
+        toolbar.getMenu().findItem(R.id.action_preview).getIcon().setTint(fgColorInt);
+        toolbar.getMenu().findItem(R.id.action_remind).getIcon().setTint(fgColorInt);
+        toolbar.getOverflowIcon().setTint(fgColorInt);
         // - Content Layout
-        editTextTitle.setTextColor(fgColor);
-        editTextTitle.setHintTextColor(hintColor);
-        editTextTitle.setBackgroundColor(getColor(bgColor));
-        editText.setTextColor(fgColor);
-        editText.setHintTextColor(hintColor);
-        editText.setBackgroundColor(getColor(bgColor));
-        textView.setTextColor(fgColor);
-        textView.setHintTextColor(hintColor);
+        editTextTitle.setTextColor(fgColorInt);
+        editTextTitle.setHintTextColor(hintColorInt);
+        editText.setTextColor(fgColorInt);
+        editText.setHintTextColor(hintColorInt);
+        textView.setTextColor(fgColorInt);
+        textView.setHintTextColor(hintColorInt);
+        // - Animation
+        materialCardView.setBackgroundColor(getColor(bgColor));
         // - Rebuild Markdown theme
         initMarkdown(this, bgColor);
     }
@@ -2069,19 +2107,32 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         hideKeyboard();
 
-        // Toggle editor buttons
+        // Toggle editor buttons and hide BottomAppBar
         action_add_content.setEnabled(!preview);
         action_format_style.setEnabled(!preview);
         action_format_color.setEnabled(!preview);
         action_format_background.setEnabled(!preview);
         action_undo.setEnabled(!preview);
         action_redo.setEnabled(!preview);
+        bottomAppBar.setVisibility(View.VISIBLE);
+        bottomAppBar.animate().alpha(preview ? 0 : 1).setDuration(normalAni)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        if (preview) {
+                            findViewById(R.id.bottomAppBar).setVisibility(View.GONE);
+                        }
+                    }
+                });
 
         // Switching functions and UI based on current mode:
         // - Interacting with title EditText
         // - Visibility of content EditText or TextView
         // - Visibility of hint text of both EditText
         // - Icon of action_preview
+        @ColorInt int fgColorInt = isDarkMode(bgColor) ?
+                getColor(R.color.white) :
+                MaterialColors.getColor(layout_root, R.attr.colorOnSecondary);
         if (preview) {
             editTextTitle.setInputType(InputType.TYPE_NULL);
             editTextTitle.setTextIsSelectable(true);
@@ -2093,11 +2144,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             editTextTitle.setHint("");
 
             menuItem.setIcon(R.drawable.action_edit);
-            if (isDarkMode(bgColor)) {
-                menuItem.getIcon().setTint(getColor(R.color.white));
-            } else {
-                menuItem.getIcon().setTint(MaterialColors.getColor(layout_root, R.attr.colorOnSecondary));
-            }
             menuItem.setTooltipText(getString(R.string.action_edit));
         } else {
             editTextTitle.setInputType(InputType.TYPE_CLASS_TEXT);
@@ -2109,13 +2155,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             editTextTitle.setHint(R.string.info_text_hint);
 
             menuItem.setIcon(R.drawable.action_preview);
-            if (isDarkMode(bgColor)) {
-                menuItem.getIcon().setTint(getColor(R.color.white));
-            } else {
-                menuItem.getIcon().setTint(MaterialColors.getColor(layout_root, R.attr.colorOnSecondary));
-            }
             menuItem.setTooltipText(getString(R.string.action_preview));
         }
+        menuItem.getIcon().setTint(fgColorInt);
     }
 
     private void action_delete() {
@@ -2159,9 +2201,5 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         setResult(RESULT_OK, intent);
 
         super.onBackPressed();
-        overridePendingTransition(
-                R.anim.anim_null,
-                R.anim.anim_slide_down_ease_out
-        );
     }
 }

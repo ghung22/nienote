@@ -19,6 +19,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.customview.widget.ViewDragHelper;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.RecyclerView;
@@ -103,7 +104,7 @@ public class MainActivity extends AppCompatActivity {
         initActivityResults();
         initGuiElements();
         initDrawer();
-        initBottomAppbar();
+        initBottomAppBar();
         initContentView();
 
         cd("/");
@@ -125,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
      * Init (get) all views on the layouts by saving them into a variable
      */
     private void initGuiElements() {
-        // - DrawerLayout
+        // DrawerLayout
         drawerLayout = findViewById(R.id.drawerLayout);
         ExpandableListView expandableListView = findViewById(R.id.expandableListView);
         navigationView = findViewById(R.id.navigationView);
@@ -133,14 +134,14 @@ public class MainActivity extends AppCompatActivity {
         action_drawer_favorites = findViewById(R.id.action_drawer_favorites);
         action_drawer_locked = findViewById(R.id.action_drawer_locked);
         action_drawer_trash = findViewById(R.id.action_drawer_trash);
-        // - Bottom Appbar
+        // Bottom Appbar
         bottomAppBar = findViewById(R.id.bottomAppBar);
         action_show_menu = findViewById(R.id.action_show_menu);
         action_add_codeblock = findViewById(R.id.action_add_codeblock);
         action_add_image = findViewById(R.id.action_add_image);
         action_settings = findViewById(R.id.action_settings);
         fab = findViewById(R.id.fab);
-        // - Content view
+        // Content view
         searchView = findViewById(R.id.searchView);
         recyclerView = findViewById(R.id.recyclerView);
     }
@@ -188,7 +189,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Init the BottomAppbar consisting the following buttons
+     * Init the BottomAppBar consisting the following buttons
      * <ul>
      *   <li><b>MENU</b>: Show drawer menu on the left/Go back to Notes</li>
      *   <li><b>CHECKLIST</b>: Add a note with an empty checklist</li>
@@ -197,7 +198,7 @@ public class MainActivity extends AppCompatActivity {
      *   <li><b>SETTINGS</b>: Show Settings screen</li>
      * </ul>
      */
-    private void initBottomAppbar() {
+    private void initBottomAppBar() {
         action_show_menu.setOnClickListener(this::onClick);
         action_add_codeblock.setOnClickListener(this::onClick);
         fab.setOnClickListener(this::onClick);
@@ -217,6 +218,7 @@ public class MainActivity extends AppCompatActivity {
         editorLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
                 result -> {
+                    // Get updated note data
                     if (result.getResultCode() != RESULT_OK) {
                         return;
                     }
@@ -226,16 +228,20 @@ public class MainActivity extends AppCompatActivity {
                         return;
                     }
                     extras = data.getExtras();
+                    if (!extras.containsKey("noteId")) {
+                        return;
+                    }
+
+                    // Update view
                     long noteId = extras.getLong("noteId");
                     String title = extras.getString("title"),
                             text = extras.getString("text");
                     int bgColor = extras.getInt("bgColor");
+                    // - Delete or change this note (if exists)
                     for (Note note : notes) {
                         if (note.getId() != noteId) {
                             continue;
                         }
-
-                        // Delete or change this note
                         if (extras.containsKey("trashed")) {
                             if (extras.getBoolean("trashed")) {
                                 // Delete from view
@@ -246,7 +252,7 @@ public class MainActivity extends AppCompatActivity {
                         adapter.notifyItemChange(notes.indexOf(note), title, text, bgColor);
                         return;
                     }
-                    // Add a new note (if not exist)
+                    // - Add a new note (if not exists)
                     Note note = Note.findById(Note.class, noteId);
                     notes.add(0, note);
                     adapter.notifyItemInsert(noteId);
@@ -305,8 +311,10 @@ public class MainActivity extends AppCompatActivity {
                             }
                         });
                 break;
-            case R.id.action_add_codeblock:
             case R.id.fab:
+                action_add(ACTION_ADD_EMPTY);
+                break;
+            case R.id.action_add_codeblock:
             case R.id.action_add_image:
                 view.animate().translationYBy(-bounceAmount).setDuration(quickAni)
                         .setListener(new AnimatorListenerAdapter() {
@@ -315,8 +323,6 @@ public class MainActivity extends AppCompatActivity {
                                 super.onAnimationEnd(animation);
                                 if (viewId == R.id.action_add_codeblock) {
                                     action_add(ACTION_ADD_CODEBLOCK);
-                                } else if (viewId == R.id.fab) {
-                                    action_add(ACTION_ADD_EMPTY);
                                 } else {
                                     action_add(ACTION_ADD_IMAGE);
                                 }
@@ -376,11 +382,11 @@ public class MainActivity extends AppCompatActivity {
         bundle.putInt("action", action);
         bundle.putString("folder", currentFolder);
         intent.putExtras(bundle);
-        editorLauncher.launch(intent);
-        overridePendingTransition(
-                R.anim.anim_slide_up_ease_in,
-                R.anim.anim_null
-        );
+
+
+        ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
+                this, findViewById(R.id.bottomAppBar), getString(R.string.transition_new_note));
+        editorLauncher.launch(intent, options);
     }
 
     /**
@@ -408,14 +414,14 @@ public class MainActivity extends AppCompatActivity {
             case "/" + FOLDER_TRASH:
                 notes = Note.listAll(Note.class);
                 notes.removeIf(note ->
-                        trash.stream().map(Trash::getId)
+                        !trash.stream().map(t -> t.note.getId())
                                 .collect(Collectors.toList())
                                 .contains(note.getId()));
                 break;
             default:
                 notes = Note.find(Note.class, "folder = ?", currentFolder);
                 notes.removeIf(note ->
-                        !trash.stream().map(Trash::getId)
+                        trash.stream().map(t -> t.note.getId())
                                 .collect(Collectors.toList())
                                 .contains(note.getId()));
                 break;

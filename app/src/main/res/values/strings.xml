@@ -34,8 +34,9 @@
     <![CDATA[</[\\s\\t]*color[\\s\\t]*>]]>
   </string>
 
-  <!-- Transition text - For transitioning to another activity -->
+  <!-- Transition text - For opening another activity with an animation -->
   <string name="transition_open_note">openNote</string>
+  <string name="transition_new_note">newNote</string>
 
   <!-- Actions - Labels for buttons, menus -->
   <!-- General -->
