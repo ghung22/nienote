@@ -1058,26 +1058,18 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @param dialog The dialog in question
      * @throws Throwable Any error occurred
      */
-    @SuppressWarnings("DuplicatedCode")
     private void layout_add_content(BottomSheetDialog dialog) throws Throwable {
-        Button action_add_camera = dialog.findViewById(R.id.action_add_camera),
-                action_add_image = dialog.findViewById(R.id.action_add_image),
-                action_add_table = dialog.findViewById(R.id.action_add_table),
-                action_add_codeblock = dialog.findViewById(R.id.action_add_codeblock),
-                action_add_link = dialog.findViewById(R.id.action_add_link),
-                action_add_quote = dialog.findViewById(R.id.action_add_quote),
-                action_add_line = dialog.findViewById(R.id.action_add_line);
-        if (action_add_camera == null || action_add_image == null || action_add_table == null || action_add_codeblock == null
-                || action_add_link == null || action_add_quote == null || action_add_line == null) {
-            throw new Throwable("Missing button in Add Content dialog");
+        ArrayList<Integer> ids = new ArrayList<>(
+                Arrays.asList(R.id.action_add_camera, R.id.action_add_image, R.id.action_add_table,
+                        R.id.action_add_codeblock, R.id.action_add_link, R.id.action_add_quote, R.id.action_add_line));
+
+        for (Integer integer : ids) {
+            Button button = dialog.findViewById(integer);
+            if (button == null) {
+                throw new Throwable("Missing button in Add Content dialog");
+            }
+            button.setOnClickListener(view -> onClickAnimation(dialog, view));
         }
-        action_add_camera.setOnClickListener(view -> onClickAnimation(dialog, view));
-        action_add_image.setOnClickListener(view -> onClickAnimation(dialog, view));
-        action_add_table.setOnClickListener(view -> onClickAnimation(dialog, view));
-        action_add_codeblock.setOnClickListener(view -> onClickAnimation(dialog, view));
-        action_add_link.setOnClickListener(view -> onClickAnimation(dialog, view));
-        action_add_quote.setOnClickListener(view -> onClickAnimation(dialog, view));
-        action_add_line.setOnClickListener(view -> onClickAnimation(dialog, view));
     }
 
     /**
@@ -1212,48 +1204,25 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @param dialog The dialog in question
      * @throws Throwable Any error occurred
      */
-    @SuppressWarnings("DuplicatedCode")
     private void layout_format_color(BottomSheetDialog dialog) throws Throwable {
-        ImageButton action_color_red = dialog.findViewById(R.id.action_color_red),
-                action_color_orange = dialog.findViewById(R.id.action_color_orange),
-                action_color_yellow = dialog.findViewById(R.id.action_color_yellow),
-                action_color_green = dialog.findViewById(R.id.action_color_green),
-                action_color_tortoise = dialog.findViewById(R.id.action_color_tortoise),
-                action_color_cyan = dialog.findViewById(R.id.action_color_cyan),
-                action_color_blue = dialog.findViewById(R.id.action_color_blue),
-                action_color_violet = dialog.findViewById(R.id.action_color_violet),
-                action_color_purple = dialog.findViewById(R.id.action_color_purple),
-                action_color_magenta = dialog.findViewById(R.id.action_color_magenta),
-                action_color_pink = dialog.findViewById(R.id.action_color_pink),
-                action_color_black = dialog.findViewById(R.id.action_color_black),
-                action_color_lightgray = dialog.findViewById(R.id.action_color_lightgray),
-                action_color_light = dialog.findViewById(R.id.action_color_light),
-                action_color_white = dialog.findViewById(R.id.action_color_white);
-        MaterialButton action_reset = dialog.findViewById(R.id.action_reset);
-        if (action_color_red == null || action_color_orange == null || action_color_yellow == null ||
-                action_color_green == null || action_color_tortoise == null || action_color_cyan == null ||
-                action_color_blue == null || action_color_violet == null || action_color_purple == null ||
-                action_color_magenta == null || action_color_pink == null || action_color_black == null ||
-                action_color_lightgray == null || action_color_light == null || action_color_white == null ||
-                action_reset == null) {
-            throw new Throwable("Missing button in Format Color dialog");
+        ArrayList<Integer> ids = new ArrayList<>(Arrays.asList(R.id.action_color_red, R.id.action_color_orange,
+                R.id.action_color_yellow, R.id.action_color_green, R.id.action_color_tortoise, R.id.action_color_cyan,
+                R.id.action_color_blue, R.id.action_color_violet, R.id.action_color_purple, R.id.action_color_magenta,
+                R.id.action_color_pink, R.id.action_color_black, R.id.action_color_lightgray, R.id.action_color_light,
+                R.id.action_color_white, R.id.action_reset)),
+                colors = new ArrayList<>(Arrays.asList(R.color.red, R.color.orange, R.color.yellow, R.color.green,
+                        R.color.tortoise, R.color.cyan, R.color.blue, R.color.violet, R.color.purple, R.color.magenta,
+                        R.color.pink, R.color.black, R.color.lightgray, R.color.light, R.color.white,
+                        R.color.transparent));
+
+        for (int id = 0; id < ids.size(); ++id) {
+            View button = dialog.findViewById(ids.get(id));
+            if (button == null) {
+                throw new Throwable("Missing button in Format Color dialog");
+            }
+            final int i = id;
+            button.setOnClickListener((view) -> setTextColor(colors.get(i)));
         }
-        action_color_red.setOnClickListener((view) -> setTextColor(R.color.red));
-        action_color_orange.setOnClickListener((view) -> setTextColor(R.color.orange));
-        action_color_yellow.setOnClickListener((view) -> setTextColor(R.color.yellow));
-        action_color_green.setOnClickListener((view) -> setTextColor(R.color.green));
-        action_color_tortoise.setOnClickListener((view) -> setTextColor(R.color.tortoise));
-        action_color_cyan.setOnClickListener((view) -> setTextColor(R.color.cyan));
-        action_color_blue.setOnClickListener((view) -> setTextColor(R.color.blue));
-        action_color_violet.setOnClickListener((view) -> setTextColor(R.color.violet));
-        action_color_purple.setOnClickListener((view) -> setTextColor(R.color.purple));
-        action_color_magenta.setOnClickListener((view) -> setTextColor(R.color.magenta));
-        action_color_pink.setOnClickListener((view) -> setTextColor(R.color.pink));
-        action_color_black.setOnClickListener((view) -> setTextColor(R.color.black));
-        action_color_lightgray.setOnClickListener((view) -> setTextColor(R.color.lightgray));
-        action_color_light.setOnClickListener((view) -> setTextColor(R.color.light));
-        action_color_white.setOnClickListener((view) -> setTextColor(R.color.white));
-        action_reset.setOnClickListener((view) -> setTextColor(R.color.transparent));
     }
 
     /**
@@ -1262,49 +1231,32 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * @param dialog The dialog in question
      * @throws Throwable Any error occurred
      */
-    @SuppressWarnings("DuplicatedCode")
     private void layout_format_background(BottomSheetDialog dialog) throws Throwable {
-        ImageButton action_color_lightred = dialog.findViewById(R.id.action_color_lightred),
-                action_color_lightorange = dialog.findViewById(R.id.action_color_lightorange),
-                action_color_lightyellow = dialog.findViewById(R.id.action_color_lightyellow),
-                action_color_lightgreen = dialog.findViewById(R.id.action_color_lightgreen),
-                action_color_lighttortoise = dialog.findViewById(R.id.action_color_lighttortoise),
-                action_color_lightcyan = dialog.findViewById(R.id.action_color_lightcyan),
-                action_color_lightblue = dialog.findViewById(R.id.action_color_lightblue),
-                action_color_lightviolet = dialog.findViewById(R.id.action_color_lightviolet),
-                action_color_lightpurple = dialog.findViewById(R.id.action_color_lightpurple),
-                action_color_lightmagenta = dialog.findViewById(R.id.action_color_lightmagenta),
-                action_color_lightpink = dialog.findViewById(R.id.action_color_lightpink),
-                action_color_lightgray = dialog.findViewById(R.id.action_color_lightgray),
-                action_color_lightergray = dialog.findViewById(R.id.action_color_lightergray),
-                action_color_light = dialog.findViewById(R.id.action_color_light),
-                action_color_white = dialog.findViewById(R.id.action_color_white);
-        MaterialButton action_reset = dialog.findViewById(R.id.action_reset);
-        if (action_color_lightred == null || action_color_lightorange == null || action_color_lightyellow == null ||
-                action_color_lightgreen == null || action_color_lighttortoise == null || action_color_lightcyan == null ||
-                action_color_lightblue == null || action_color_lightviolet == null || action_color_lightpurple == null ||
-                action_color_lightmagenta == null || action_color_lightpink == null || action_color_lightgray == null ||
-                action_color_lightergray == null || action_color_light == null || action_color_white == null ||
-                action_reset == null) {
-            throw new Throwable("Missing button in Format Background dialog");
+        ArrayList<Integer> ids = new ArrayList<>(Arrays.asList(R.id.action_color_lightred,
+                R.id.action_color_lightorange, R.id.action_color_lightyellow, R.id.action_color_lightgreen,
+                R.id.action_color_lighttortoise, R.id.action_color_lightcyan, R.id.action_color_lightblue,
+                R.id.action_color_lightviolet, R.id.action_color_lightpurple, R.id.action_color_lightmagenta,
+                R.id.action_color_lightpink, R.id.action_color_lightgray, R.id.action_color_lightergray,
+                R.id.action_color_light, R.id.action_color_white)),
+                colors = new ArrayList<>(Arrays.asList(R.color.lightred, R.color.lightorange, R.color.lightyellow,
+                        R.color.lightgreen, R.color.lighttortoise, R.color.lightcyan, R.color.lightblue,
+                        R.color.lightviolet, R.color.lightpurple, R.color.lightmagenta, R.color.lightpink,
+                        R.color.lightgray, R.color.lightergray, R.color.light, R.color.white));
+
+        for (int id = 0; id < ids.size(); ++id) {
+            View button = dialog.findViewById(ids.get(id));
+            if (button == null) {
+                throw new Throwable("Missing button in Format Background dialog");
+            }
+            final int i = id;
+            button.setOnClickListener((view) -> setBackground(dialog, colors.get(i)));
         }
-        action_color_lightred.setOnClickListener((view) -> setBackground(dialog, R.color.lightred));
-        action_color_lightorange.setOnClickListener((view) -> setBackground(dialog, R.color.lightorange));
-        action_color_lightyellow.setOnClickListener((view) -> setBackground(dialog, R.color.lightyellow));
-        action_color_lightgreen.setOnClickListener((view) -> setBackground(dialog, R.color.lightgreen));
-        action_color_lighttortoise.setOnClickListener((view) -> setBackground(dialog, R.color.lighttortoise));
-        action_color_lightcyan.setOnClickListener((view) -> setBackground(dialog, R.color.lightcyan));
-        action_color_lightblue.setOnClickListener((view) -> setBackground(dialog, R.color.lightblue));
-        action_color_lightviolet.setOnClickListener((view) -> setBackground(dialog, R.color.lightviolet));
-        action_color_lightpurple.setOnClickListener((view) -> setBackground(dialog, R.color.lightpurple));
-        action_color_lightmagenta.setOnClickListener((view) -> setBackground(dialog, R.color.lightmagenta));
-        action_color_lightpink.setOnClickListener((view) -> setBackground(dialog, R.color.lightpink));
-        action_color_lightgray.setOnClickListener((view) -> setBackground(dialog, R.color.lightgray));
-        action_color_lightergray.setOnClickListener((view) -> setBackground(dialog, R.color.lightergray));
-        action_color_light.setOnClickListener((view) -> setBackground(dialog, R.color.light));
-        action_color_white.setOnClickListener((view) -> setBackground(dialog, R.color.white));
 
         // Get default bgColor
+        MaterialButton action_reset = dialog.findViewById(R.id.action_reset);
+        if (action_reset == null) {
+            throw new Throwable("Missing button in Format Background dialog");
+        }
         if (bgColor == oldBgColor) {
             action_reset.setVisibility(View.GONE);
         } else {
