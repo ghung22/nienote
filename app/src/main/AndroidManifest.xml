@@ -24,10 +24,15 @@
       android:name="DATABASE"
       android:value="quicknotie.db" />
 
+    <meta-data
+      android:name="QUERY_LOG"
+      android:value="false" />
+
     <activity
       android:name=".activities.SplashActivity"
       android:configChanges="orientation|keyboardHidden"
       android:screenOrientation="portrait">
+
       <intent-filter>
         <action android:name="android.intent.action.MAIN" />
         <category android:name="android.intent.category.LAUNCHER" />
@@ -38,6 +43,7 @@
       android:name=".activities.MainActivity"
       android:configChanges="orientation|keyboardHidden"
       android:screenOrientation="portrait">
+
       <meta-data
         android:name="android.app.searchable"
         android:resource="@xml/searchable" />

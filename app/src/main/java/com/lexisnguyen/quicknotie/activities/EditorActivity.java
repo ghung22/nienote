@@ -54,7 +54,6 @@ import com.lexisnguyen.quicknotie.components.markdown.NotieGrammarLocator;
 import com.lexisnguyen.quicknotie.components.markdown.ThemePunctuationSpan;
 import com.lexisnguyen.quicknotie.components.markdown.edithandlers.MonospaceEditHandler;
 import com.lexisnguyen.quicknotie.components.markdown.plugins.AnchorHeadingPlugin;
-import com.lexisnguyen.quicknotie.components.markdown.plugins.TableOfContentsPlugin;
 import com.lexisnguyen.quicknotie.components.markdown.tags.AlignTagHandler;
 import com.lexisnguyen.quicknotie.components.markdown.tags.ColorTagHandler;
 import com.lexisnguyen.quicknotie.components.sql.Note;
@@ -68,6 +67,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -100,6 +100,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private Window window;
     private RelativeLayout layout_root;
     private Toolbar toolbar;
+    private MaterialButton action_delete, action_restore;
     private BottomAppBar bottomAppBar;
     private ScrollView scrollView;
     private TextView textView;
@@ -116,6 +117,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private Bundle result;
     // - SQLite
     private Note note;
+    private Trash trash;
     // - Animation
     private final float bounceAmount = 20;
     private final int quickAni = 150;
@@ -176,7 +178,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_editor_top, menu);
+        if (trash == null) {
+            getMenuInflater().inflate(R.menu.menu_editor_top, menu);
+        }
         return super.onCreateOptionsMenu(menu);
     }
 
@@ -192,6 +196,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // From Activity result
         action = bundle.getInt("action");
         folder = bundle.getString("folder");
+        result = new Bundle();
         switch (action) {
             case ACTION_ADD_EMPTY:
                 // Create an empty list
@@ -203,14 +208,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 // Put image into note
                 break;
         }
-        result = new Bundle();
-
 
         // From Settings
         bgColor = R.color.white;
         oldBgColor = R.color.white;
 
         // From SQLite
+        // - Get saved data
         boolean queryFailed = true;
         if (bundle.containsKey("noteId")) {
             long id = bundle.getLong("noteId");
@@ -221,6 +225,22 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             oldBgColor = bgColor;
             queryFailed = false;
         }
+        // - If this is in the trash -> Disable edit and show a restore button
+        if (bundle.containsKey("noteId")) {
+            long id = bundle.getLong("noteId");
+            List<Trash> trashes = Trash.find(Trash.class, "note = ?", String.valueOf(id));
+            if (!trashes.isEmpty()) {
+                trash = trashes.get(0);
+                Menu menu = toolbar.getMenu();
+                onCreateOptionsMenu(menu);
+                action_preview(menu.findItem(R.id.action_preview));
+                action_delete.setVisibility(View.VISIBLE);
+                action_delete.setOnClickListener(this::onClick);
+                action_restore.setVisibility(View.VISIBLE);
+                action_restore.setOnClickListener(this::onClick);
+            }
+        }
+        // - If this is a new note -> Init new data
         if (queryFailed) {
             // Create a new note
             note = new Note(
@@ -313,7 +333,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 .usePlugin(SyntaxHighlightPlugin.create(prism4j, prism4jTheme));
         if (context instanceof EditorActivity) {
             builder = builder
-                    .usePlugin(new TableOfContentsPlugin())
+                    // .usePlugin(new TableOfContentsPlugin())
                     .usePlugin(anchorHeading);
         }
         markwon = builder.build();
@@ -354,6 +374,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 super.onTransitionStart(transition);
                 if (action == ACTION_OPEN_NOTE) {
                     materialCardView.setCardBackgroundColor(getColor(bgColor));
+                    toolbar.setAlpha(0);
                     editText.setAlpha(0);
                 } else if (action < ACTION_OPEN_NOTE) {
                     bottomAppBar.setAlpha(0);
@@ -367,6 +388,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 super.onTransitionEnd(transition);
                 if (action == ACTION_OPEN_NOTE) {
                     materialCardView.setVisibility(View.GONE);
+                    toolbar.setAlpha(1);
                     editText.setAlpha(1);
                 } else if (action < ACTION_OPEN_NOTE) {
                     bottomAppBar.setAlpha(1);
@@ -386,6 +408,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // Top Toolbar
         toolbar = findViewById(R.id.toolbar);
         editTextTitle = findViewById(R.id.editTextTitle);
+        action_delete = findViewById(R.id.action_delete);
+        action_restore = findViewById(R.id.action_restore);
         // Bottom Appbar
         bottomAppBar = findViewById(R.id.bottomAppBar);
         action_add_content = findViewById(R.id.action_add_content);
@@ -410,7 +434,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     }
 
     /**
-     * Init the top Toolbar consisting the following buttons
+     * Init the top Toolbar consisting the following inputs
      * <ul>
      *   <li><b>BACK</b>: Return to MainActivity</li>
      *   <li><b>EDITTEXT</b>: Show & set note title</li>
@@ -418,6 +442,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *   <li><b>REMIND</b>: Set a reminder for this note</li>
      *   <li><b>SHARE</b>: Share this note</li>
      *   <li><b>OVERFLOW</b>: Show more options</li>
+     * </ul>
+     * When the note is in trash, only these 2 buttons will be shown:
+     * <ul>
+     *   <li><b>DELETE</b>: Restore the note if it is in the trash</li>
+     *   <li><b>RESTORE</b>: Restore the note if it is in the trash</li>
      * </ul>
      */
     private void initTopToolbar() {
@@ -595,6 +624,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         textView.removeTextChangedListener(textWatcher);
 
         switch (viewId) {
+            // Top bar
+            case R.id.action_delete:
+                // Delete permanently
+                action_delete(true);
+                break;
+            case R.id.action_restore:
+                action_restore();
+                break;
             // Bottom bar
             case R.id.action_add_content:
             case R.id.action_format_style:
@@ -1987,23 +2024,32 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         // Update icon color based on background color
         // - Get color and filter (?colorOnSecondary is the default color for icons)
-        int fgColorInt, statusBarIconColorFlag, hintColorInt;
+        int fgColorInt, statusBarIconColorFlag, hintColorInt, btnBgColor;
         if (isDarkMode(bgColor)) {
             fgColorInt = getColor(R.color.white);
             statusBarIconColorFlag = 0;
             hintColorInt = getColor(R.color.faded_white);
+            btnBgColor = MaterialColors.getColor(layout_root, R.attr.colorSecondary);
         } else {
             fgColorInt = MaterialColors.getColor(layout_root, R.attr.colorOnSecondary);
             statusBarIconColorFlag = View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
             hintColorInt = getColor(R.color.faded_black);
+            btnBgColor = MaterialColors.getColor(layout_root, R.attr.colorPrimary);
         }
         // - Root layout
         getWindow().getDecorView().setSystemUiVisibility(statusBarIconColorFlag);
         // - Top Toolbar
         toolbar.getNavigationIcon().setTint(fgColorInt);
-        toolbar.getMenu().findItem(R.id.action_preview).getIcon().setTint(fgColorInt);
-        toolbar.getMenu().findItem(R.id.action_remind).getIcon().setTint(fgColorInt);
-        toolbar.getOverflowIcon().setTint(fgColorInt);
+        if (trash == null) {
+            toolbar.getMenu().findItem(R.id.action_preview).getIcon().setTint(fgColorInt);
+            toolbar.getMenu().findItem(R.id.action_remind).getIcon().setTint(fgColorInt);
+            toolbar.getOverflowIcon().setTint(fgColorInt);
+        } else {
+            action_delete.setTextColor(fgColorInt);
+            action_delete.setBackgroundColor(btnBgColor);
+            action_restore.setTextColor(fgColorInt);
+            action_restore.setBackgroundColor(btnBgColor);
+        }
         // - Content Layout
         editTextTitle.setTextColor(fgColorInt);
         editTextTitle.setHintTextColor(hintColorInt);
@@ -2114,27 +2160,88 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         menuItem.getIcon().setTint(fgColorInt);
     }
 
+    /**
+     * Delete the note
+     *
+     * @param permanently Whether delete it permanently or move it into the trash
+     */
+    private void action_delete(boolean permanently) {
+        if (!permanently) {
+            Trash trash = new Trash(note);
+            trash.save();
+            if (!result.containsKey("moved")) {
+                result.putBoolean("trashed", true);
+            } else {
+                result.remove("trashed");
+                result.remove("moved");
+            }
+            onBackPressed();
+        } else {
+            if (trash.delete()) {
+                if (note.delete()) {
+                    result.putBoolean("trashed", true);
+                    onBackPressed();
+                    return;
+                }
+            }
+            Log.e(TAG, "action_delete: Delete note permanently failed");
+        }
+    }
+
+    /**
+     * Move the note into the trash
+     */
     private void action_delete() {
-        Trash trash = new Trash(note);
-        trash.save();
+        action_delete(false);
+    }
+
+    /**
+     * Restore the note into it's original folder
+     */
+    private void action_restore() {
+        if (!trash.delete()) {
+            Log.e(TAG, "action_restore: Delete note failed");
+            return;
+        }
+        trash = null;
+        Menu menu = toolbar.getMenu();
+        onCreateOptionsMenu(menu);
+        action_preview(menu.findItem(R.id.action_preview));
+        action_restore.setVisibility(View.GONE);
+        action_restore.setOnClickListener(null);
+        action_delete.setVisibility(View.GONE);
+        action_delete.setOnClickListener(null);
         result.putBoolean("trashed", true);
-        onBackPressed();
+        result.putString("moved", note.folder);
     }
 
     // endregion
 
+    /**
+     * Save the note into SQLite
+     */
     private void saveNote() {
+        // If no content, abort
         String title = editTextTitle.getText().toString(),
                 text = editText.getText().toString();
         if (title.isEmpty() && text.isEmpty()) {
             return;
         }
+
+        // If it is deleted, abort
+        if (result.containsKey("trashed")) {
+            result.putLong("noteId", note.getId());
+            return;
+        }
+
+        // Save in SQLite
         note.title = title;
         note.text = text;
         note.bgColor = bgColor;
         note.savedDate = Date.from(Instant.now());
         note.save();
 
+        // Return the remaining data
         result.putLong("noteId", note.getId());
         result.putString("title", note.title);
         result.putString("text", note.text);

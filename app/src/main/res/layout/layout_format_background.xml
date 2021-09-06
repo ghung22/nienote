@@ -28,6 +28,7 @@
     android:text="@string/action_reset"
     android:textColor="?android:textColorLink"
     android:textSize="@dimen/unelevated_button_text_size"
+    android:foreground="?selectableItemBackground"
     android:background="@color/transparent"
     android:theme="@style/Widget.MaterialComponents.Button.UnelevatedButton" />
 

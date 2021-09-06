@@ -108,7 +108,7 @@ public class MainActivity extends AppCompatActivity {
         initContentView();
 
         cd("/");
-        sort(SORT_SAVED_DATE, DESCENDING);
+        sort(SORT_ID, DESCENDING);
     }
 
     // region Init events
@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                     String title = extras.getString("title"),
                             text = extras.getString("text");
                     int bgColor = extras.getInt("bgColor");
-                    // - Delete or change this note (if exists)
+                    // - Delete or change this note from view (if exists)
                     for (Note note : notes) {
                         if (note.getId() != noteId) {
                             continue;
@@ -246,6 +246,14 @@ public class MainActivity extends AppCompatActivity {
                             if (extras.getBoolean("trashed")) {
                                 // Delete from view
                                 adapter.notifyItemRemove(notes.indexOf(note));
+                                // Delete from local data
+                                if (currentFolder.equals("/" + FOLDER_TRASH)) {
+                                    notes.remove(note);
+                                }
+                                // Move to a folder
+                                if (extras.containsKey("moved")) {
+                                    cd(extras.getString("moved"));
+                                }
                                 return;
                             }
                         }

@@ -61,6 +61,7 @@
   <string name="action_export">Export as file…</string>
   <string name="action_delete">Delete</string>
   <string name="action_lock">Lock note</string>
+  <string name="action_restore">Restore</string>
   <!-- EditorActivity bottom sheet dialog -->
   <string name="action_undo">Undo</string>
   <string name="action_redo">Redo</string>

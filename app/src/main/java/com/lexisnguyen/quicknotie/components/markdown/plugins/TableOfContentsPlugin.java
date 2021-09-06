@@ -16,6 +16,7 @@ import io.noties.markwon.MarkwonVisitor;
 import io.noties.markwon.core.SimpleBlockNodeVisitor;
 
 public class TableOfContentsPlugin extends AbstractMarkwonPlugin {
+
     @Override
     public void configure(@NonNull Registry registry) {
         // just to make it explicit
@@ -29,7 +30,6 @@ public class TableOfContentsPlugin extends AbstractMarkwonPlugin {
 
     @Override
     public void beforeRender(@NonNull Node node) {
-
         // custom block to hold TOC
         final TableOfContentsBlock block = new TableOfContentsBlock();
 

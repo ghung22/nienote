@@ -28,6 +28,7 @@
   <dimen name="rounded_layout_spinner_width">200dp</dimen>
   <!-- EditorActivity layout_format_color bottom dialog -->
   <dimen name="unelevated_button_margin">16dp</dimen>
+  <dimen name="unelevated_button_margin_quarter">4dp</dimen>
   <dimen name="unelevated_button_text_size">12sp</dimen>
   <!-- EditorActivity layout_undo_redo bottom dialog -->
   <dimen name="list_layout_text_size">16sp</dimen>
