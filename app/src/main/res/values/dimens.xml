@@ -37,4 +37,6 @@
   <dimen name="drawer_menu_item_padding">12dp</dimen>
   <dimen name="drawer_menu_item_text_size">16sp</dimen>
   <dimen name="drawer_menu_item_drawable_padding">16dp</dimen>
+  <!-- SettingsActivity BottomAppBar -->
+  <dimen name="bottom_app_bar_button_drawable_padding">8dp</dimen>
 </resources>

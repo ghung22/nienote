@@ -40,9 +40,11 @@
 
   <!-- Actions - Labels for buttons, menus -->
   <!-- General -->
+  <string name="action_back">Back</string>
   <string name="action_close">Close</string>
   <string name="action_retry">Retry</string>
   <string name="action_reset">Reset</string>
+  <string name="action_save">Save</string>
   <!-- MainActivity bottom bar -->
   <string name="action_add">Add a Note</string>
   <string name="action_show_menu">Show menu</string>

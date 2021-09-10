@@ -32,7 +32,7 @@
         android:contentDescription="@string/action_show_menu"
         android:src="@drawable/action_show_menu"
         android:scaleType="fitCenter"
-        app:tint="?attr/colorOnPrimary" />
+        app:tint="?colorOnPrimary" />
 
       <ImageButton
         android:id="@+id/action_add_codeblock"
@@ -44,7 +44,7 @@
         android:contentDescription="@string/action_add_codeblock"
         android:src="@drawable/action_add_codeblock"
         android:scaleType="fitCenter"
-        app:tint="?attr/colorOnPrimary" />
+        app:tint="?colorOnPrimary" />
 
       <Space
         android:layout_width="0dp"
@@ -61,7 +61,7 @@
         android:contentDescription="@string/action_add_image"
         android:src="@drawable/action_add_image"
         android:scaleType="fitCenter"
-        app:tint="?attr/colorOnPrimary" />
+        app:tint="?colorOnPrimary" />
 
       <ImageButton
         android:id="@+id/action_settings"
@@ -73,7 +73,7 @@
         android:contentDescription="@string/action_settings"
         android:src="@drawable/action_settings"
         android:scaleType="fitCenter"
-        app:tint="?attr/colorOnPrimary" />
+        app:tint="?colorOnPrimary" />
     </LinearLayout>
   </com.google.android.material.bottomappbar.BottomAppBar>
 
@@ -84,6 +84,6 @@
     android:contentDescription="@string/action_add"
     android:src="@drawable/action_add"
     app:layout_anchor="@id/bottomAppBar"
-    app:tint="?attr/colorOnPrimary" />
+    app:tint="?colorOnPrimary" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

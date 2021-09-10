@@ -387,6 +387,12 @@ public class MainActivity extends AppCompatActivity {
                                             public void onAnimationEnd(Animator animation) {
                                                 super.onAnimationEnd(animation);
                                                 // Show settings
+                                                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                                                startActivity(intent);
+                                                overridePendingTransition(
+                                                        R.anim.anim_slide_left_enter,
+                                                        R.anim.anim_slide_left_leave
+                                                );
                                             }
                                         });
                             }

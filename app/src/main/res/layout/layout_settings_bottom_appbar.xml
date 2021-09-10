@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="match_parent"
+  tools:context=".activities.SettingsActivity">
+
+  <com.google.android.material.bottomappbar.BottomAppBar
+    android:id="@+id/bottomAppBar"
+    style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_gravity="bottom"
+    app:contentInsetStart="0dp"
+    app:fabAlignmentMode="end"
+    app:fabAnimationMode="scale"
+    app:fabCradleRoundedCornerRadius="16dp">
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="match_parent"
+      android:orientation="horizontal">
+
+      <TextView
+        android:id="@+id/action_save"
+        android:layout_width="wrap_content"
+        android:layout_height="?actionBarSize"
+        android:paddingHorizontal="@dimen/xlarge_icon_padding"
+        android:gravity="center"
+        android:text="@string/action_save"
+        android:textAllCaps="true"
+        android:textColor="?colorOnPrimary"
+        app:drawableStartCompat="?homeAsUpIndicator"
+        android:drawablePadding="@dimen/bottom_app_bar_button_drawable_padding"
+        app:drawableTint="?colorOnPrimary" />
+    </LinearLayout>
+  </com.google.android.material.bottomappbar.BottomAppBar>
+
+  <com.google.android.material.floatingactionbutton.FloatingActionButton
+    android:id="@+id/fab"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:contentDescription="@string/action_reset"
+    android:src="@drawable/action_reset"
+    app:layout_anchor="@id/bottomAppBar"
+    app:tint="?colorOnPrimary" />
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
