@@ -11,34 +11,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <com.google.android.material.appbar.AppBarLayout
-      android:layout_width="match_parent"
-      android:layout_height="wrap_content"
-      app:elevation="0dp"
-      android:translationZ="0.1dp"
-      android:background="@color/transparent">
-
-      <com.google.android.material.card.MaterialCardView
-        android:id="@+id/materialCardView"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_margin="@dimen/card_margin"
-        app:layout_scrollFlags="scroll|enterAlways|snap">
-
-        <androidx.appcompat.widget.SearchView
-          android:id="@+id/searchView"
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-          app:queryHint="@string/info_search_hint"
-          app:defaultQueryHint="@string/info_search_hint"
-          app:queryBackground="@android:color/transparent"
-          app:iconifiedByDefault="false" />
-      </com.google.android.material.card.MaterialCardView>
-    </com.google.android.material.appbar.AppBarLayout>
-
     <androidx.core.widget.NestedScrollView
+      android:id="@+id/nestedScrollView"
       android:layout_width="match_parent"
-      android:layout_height="match_parent">
+      android:layout_height="match_parent"
+      app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
       <RelativeLayout
         android:layout_width="match_parent"
@@ -71,6 +48,32 @@
           android:layout_below="@id/recyclerView" />
       </RelativeLayout>
     </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.appbar.AppBarLayout
+      android:id="@+id/appBarLayout"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      app:elevation="0dp"
+      android:translationZ="0.1dp"
+      android:background="@color/transparent">
+
+      <com.google.android.material.card.MaterialCardView
+        android:id="@+id/materialCardView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/card_margin"
+        app:layout_scrollFlags="scroll|enterAlways|snap">
+
+        <androidx.appcompat.widget.SearchView
+          android:id="@+id/searchView"
+          android:layout_width="match_parent"
+          android:layout_height="wrap_content"
+          app:queryHint="@string/info_search_hint"
+          app:defaultQueryHint="@string/info_search_hint"
+          app:queryBackground="@android:color/transparent"
+          app:iconifiedByDefault="false" />
+      </com.google.android.material.card.MaterialCardView>
+    </com.google.android.material.appbar.AppBarLayout>
 
     <include layout="@layout/layout_main_bottom_appbar" />
   </androidx.coordinatorlayout.widget.CoordinatorLayout>

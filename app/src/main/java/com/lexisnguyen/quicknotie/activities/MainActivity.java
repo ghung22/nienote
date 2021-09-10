@@ -10,6 +10,7 @@ import android.os.Looper;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.view.ViewTreeObserver;
 import android.widget.Button;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
@@ -20,10 +21,12 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityOptionsCompat;
+import androidx.core.widget.NestedScrollView;
 import androidx.customview.widget.ViewDragHelper;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.appbar.AppBarLayout;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
@@ -43,7 +46,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("FieldCanBeLocal")
+@SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class MainActivity extends AppCompatActivity {
     // GUI Elements
     // - DrawerLayout
@@ -215,6 +218,35 @@ public class MainActivity extends AppCompatActivity {
     private void initContentView() {
         adapter = new NoteAdapter(this, notes, editorLauncher);
         recyclerView.setAdapter(adapter);
+
+        // Make search bar background transparent
+        // REF: https://stackoverflow.com/a/41259257
+        AppBarLayout appBarLayout = findViewById(R.id.appBarLayout);
+        NestedScrollView scrollView = findViewById(R.id.nestedScrollView);
+        scrollView.getViewTreeObserver().addOnGlobalLayoutListener(new ViewTreeObserver.OnGlobalLayoutListener() {
+            @Override
+            public void onGlobalLayout() {
+                scrollView.getViewTreeObserver().removeOnGlobalLayoutListener(this);
+
+                final int appBarHeight = appBarLayout.getHeight();
+                scrollView.setTranslationY(-appBarHeight);
+                scrollView.getLayoutParams().height = scrollView.getHeight() + appBarHeight;
+            }
+        });
+
+        // Add search functionality
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                return true;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                adapter.search(newText);
+                return true;
+            }
+        });
     }
 
     private void initActivityResults() {

@@ -33,12 +33,15 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
     private final List<Note> notes;
     private final ActivityResultLauncher<Intent> editorLauncher;
 
+    private NoteFilter filter;
+
     private final String TAG = "NoteAdapter";
 
     public NoteAdapter(Context context, List<Note> notes, ActivityResultLauncher<Intent> editorLauncher) {
         this.context = context;
         this.notes = notes;
         this.editorLauncher = editorLauncher;
+        filter = new NoteFilter(this, notes);
     }
 
     @NonNull
@@ -85,10 +88,25 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         return notes.size();
     }
 
-    public void notifyDataSetChanged(List<Note> notes) {
+    public void search(String phrase) {
+        filter.filter(phrase);
+    }
+
+    public void notifyDataSetChanged(List<Note> notes, boolean updateFilter) {
         this.notes.clear();
         this.notes.addAll(notes);
+        if (updateFilter) {
+            filter = new NoteFilter(this, notes);
+        }
         notifyDataSetChanged();
+    }
+
+    public void notifyDataSetChanged(List<Note> notes) {
+        notifyDataSetChanged(notes, true);
+    }
+
+    public void notifyDataSetFiltered(List<Note> notes) {
+        notifyDataSetChanged(notes, false);
     }
 
     public void notifyItemChange(int position, String title, String text, int bgColor) {
@@ -99,6 +117,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         notes.get(position).title = title;
         notes.get(position).text = text;
         notes.get(position).bgColor = bgColor;
+        filter = new NoteFilter(this, notes);
         notifyItemChanged(position);
     }
 
@@ -106,6 +125,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         Note note = Note.findById(Note.class, noteId);
         notes.add(0, note);
         notifyItemInserted(0);
+        filter = new NoteFilter(this, notes);
     }
 
     public void notifyItemRemove(int position) {
@@ -115,6 +135,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         }
         notes.remove(position);
         notifyItemRemoved(position);
+        filter = new NoteFilter(this, notes);
     }
 
     private void openNote(View view, Note note) {
