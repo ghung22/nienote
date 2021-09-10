@@ -24,6 +24,7 @@
     <item name="bottomSheetDialogTheme">@style/Theme.QuickNotie.BottomSheetDialog</item>
     <item name="cardViewStyle">@style/Theme.QuickNotie.MaterialCardView</item>
     <item name="materialCardViewStyle">@style/Theme.QuickNotie.MaterialCardView</item>
+    <item name="android:searchViewStyle">@style/Theme.QuickNotie.SearchView</item>
   </style>
 
   <!-- Drawer buttons -->
@@ -72,5 +73,10 @@
     <item name="android:clickable">true</item>
     <item name="android:focusable">true</item>
     <item name="android:checkable">true</item>
+  </style>
+
+  <!-- SearchView -->
+  <style name="Theme.QuickNotie.SearchView" parent="Widget.AppCompat.SearchView">
+    <item name="android:textSize">@dimen/search_view_text_size</item>
   </style>
 </resources>

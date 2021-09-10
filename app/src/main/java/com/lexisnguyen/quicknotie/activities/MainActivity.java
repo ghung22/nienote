@@ -25,6 +25,7 @@ import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
+import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
@@ -54,6 +55,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton action_show_menu, action_add_codeblock, action_add_image, action_settings;
     private FloatingActionButton fab;
     // - Content view
+    private MaterialCardView materialCardView;
     private SearchView searchView;
     private RecyclerView recyclerView;
 
@@ -142,6 +144,7 @@ public class MainActivity extends AppCompatActivity {
         action_settings = findViewById(R.id.action_settings);
         fab = findViewById(R.id.fab);
         // Content view
+        materialCardView = findViewById(R.id.materialCardView);
         searchView = findViewById(R.id.searchView);
         recyclerView = findViewById(R.id.recyclerView);
     }
@@ -356,6 +359,11 @@ public class MainActivity extends AppCompatActivity {
                                         });
                             }
                         });
+                break;
+
+            // Content view
+            case R.id.searchView:
+                materialCardView.performClick();
                 break;
 
             default:
