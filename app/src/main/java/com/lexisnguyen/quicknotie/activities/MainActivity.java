@@ -252,7 +252,8 @@ public class MainActivity extends AppCompatActivity {
                                 }
                                 // Move to a folder
                                 if (extras.containsKey("moved")) {
-                                    cd(extras.getString("moved"));
+                                    String moved = extras.getString("moved");
+                                    cd(moved);
                                 }
                                 return;
                             }
@@ -279,10 +280,6 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_drawer_favorites:
             case R.id.action_drawer_locked:
             case R.id.action_drawer_trash:
-                action_drawer_all.setBackgroundColor(getColor(R.color.transparent));
-                action_drawer_favorites.setBackgroundColor(getColor(R.color.transparent));
-                action_drawer_locked.setBackgroundColor(getColor(R.color.transparent));
-                action_drawer_trash.setBackgroundColor(getColor(R.color.transparent));
                 switch (viewId) {
                     case R.id.action_drawer_all:
                         cd("/");
@@ -297,7 +294,6 @@ public class MainActivity extends AppCompatActivity {
                         cd("/" + FOLDER_TRASH);
                         break;
                 }
-                view.setBackgroundColor(MaterialColors.getColor(drawerLayout, R.attr.colorPrimary));
                 drawerLayout.closeDrawer(Gravity.START);
                 break;
 
@@ -408,18 +404,44 @@ public class MainActivity extends AppCompatActivity {
      * @param folder The folder to change to
      */
     private void cd(String folder) {
+        // Abort if already in folder
         if (currentFolder.equals(folder)) {
             return;
         }
+
+        // Reset drawer active folder state
+        View view;
+        switch (currentFolder) {
+            case "/" + FOLDER_FAVORITES:
+                view = action_drawer_favorites;
+                break;
+            case "/" + FOLDER_LOCKED:
+                view = action_drawer_locked;
+                break;
+            case "/" + FOLDER_TRASH:
+                view = action_drawer_trash;
+                break;
+            default:
+                view = action_drawer_all;
+                break;
+        }
+        view.setBackgroundColor(getColor(R.color.transparent));
+
+        // Set current folder and clear current note list
         currentFolder = folder;
         trash = Trash.listAll(Trash.class);
         notes.clear();
+
+        // Get new note list based on new folder
         switch (currentFolder) {
             case "/" + FOLDER_FAVORITES:
+                view = action_drawer_favorites;
                 break;
             case "/" + FOLDER_LOCKED:
+                view = action_drawer_locked;
                 break;
             case "/" + FOLDER_TRASH:
+                view = action_drawer_trash;
                 notes = Note.listAll(Note.class);
                 notes.removeIf(note ->
                         !trash.stream().map(t -> t.note.getId())
@@ -427,6 +449,7 @@ public class MainActivity extends AppCompatActivity {
                                 .contains(note.getId()));
                 break;
             default:
+                view = action_drawer_all;
                 notes = Note.find(Note.class, "folder = ?", currentFolder);
                 notes.removeIf(note ->
                         trash.stream().map(t -> t.note.getId())
@@ -434,6 +457,9 @@ public class MainActivity extends AppCompatActivity {
                                 .contains(note.getId()));
                 break;
         }
+
+        // Update drawer and note list view
+        view.setBackgroundColor(MaterialColors.getColor(drawerLayout, R.attr.colorPrimary));
         new Handler(Looper.getMainLooper()).post(() -> adapter.notifyDataSetChanged(notes));
     }
 
