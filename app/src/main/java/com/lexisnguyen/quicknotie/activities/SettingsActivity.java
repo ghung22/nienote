@@ -9,12 +9,17 @@ import android.view.View;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import androidx.fragment.app.FragmentManager;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceFragmentCompat;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lexisnguyen.quicknotie.R;
 
 @SuppressWarnings("FieldCanBeLocal")
-public class SettingsActivity extends AppCompatActivity {
+public class SettingsActivity extends AppCompatActivity implements
+        PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
     // GUI Elements
     private TextView action_save;
     private FloatingActionButton fab;
@@ -40,6 +45,35 @@ public class SettingsActivity extends AppCompatActivity {
 
         action_save.setOnClickListener(this::onClick);
         fab.setOnClickListener(this::onClick);
+
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.frameLayout, new SettingsFragment())
+                .commit();
+    }
+
+    @Override
+    public boolean onPreferenceStartFragment(PreferenceFragmentCompat caller, Preference pref) {
+        // Instantiate the new Fragment
+        final Bundle args = pref.getExtras();
+        final FragmentManager supportFragmentManager = getSupportFragmentManager();
+        final Fragment fragment = supportFragmentManager.getFragmentFactory().instantiate(
+                getClassLoader(),
+                pref.getFragment());
+        fragment.setArguments(args);
+
+        // Replace the existing Fragment with the new Fragment
+        supportFragmentManager.beginTransaction()
+                .replace(R.id.frameLayout, fragment)
+                .addToBackStack(null)
+                .commit();
+        supportFragmentManager.setFragmentResultListener(
+                "requestKey",
+                caller.getViewLifecycleOwner(),
+                (requestKey, result) -> {
+                    // Get result from bundle
+                });
+        return true;
     }
 
     @SuppressLint("NonConstantResourceId")
@@ -92,5 +126,13 @@ public class SettingsActivity extends AppCompatActivity {
     public void onBackPressed() {
         super.onBackPressed();
         overridePendingTransition(R.anim.anim_slide_right_enter, R.anim.anim_slide_right_leave);
+    }
+
+    public static class SettingsFragment extends PreferenceFragmentCompat {
+
+        @Override
+        public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
+            setPreferencesFromResource(R.xml.preferences, rootKey);
+        }
     }
 }

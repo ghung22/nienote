@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:tools="http://schemas.android.com/tools"
+  xmlns:app="http://schemas.android.com/apk/res-auto">
+
+  <PreferenceCategory
+    android:title="General"
+    app:allowDividerBelow="true">
+
+    <DropDownPreference
+      android:key="app_theme"
+      android:title="App theme"
+      android:entries="@array/app_theme_titles"
+      android:entryValues="@array/app_theme_values"
+      tools:summary="Follow system" />
+
+    <SwitchPreference
+      android:key="auto_save"
+      android:title="Auto-save notes"
+      android:defaultValue="true"
+      android:summaryOn="Save notes as they are being edited"
+      android:summaryOff="Save notes when you press back" />
+
+    <Preference
+      android:key="manage_folders"
+      android:title="Manage folders" />
+  </PreferenceCategory>
+
+  <PreferenceCategory
+    android:title="Note editor"
+    app:allowDividerBelow="true">
+
+    <SeekBarPreference
+      android:key="note_text_size"
+      android:title="Text size"
+      android:min="8"
+      android:max="32"
+      android:defaultValue="15"
+      tools:summary="15sp" />
+
+    <ListPreference
+      android:key="note_background"
+      android:title="Default note background"
+      android:dialogTitle="Default note background"
+      android:entries="@array/note_background_titles"
+      android:entryValues="@array/note_background_values"
+      tools:summary="White" />
+
+    <SeekBarPreference
+      android:key="undo_size"
+      android:title="Undo stack size"
+      android:min="0"
+      android:max="200"
+      android:defaultValue="50"
+      tools:summary="50 steps" />
+
+    <SeekBarPreference
+      android:key="undo_delay"
+      android:title="Undo step delay"
+      android:min="5"
+      android:max="50"
+      android:defaultValue="10"
+      tools:summary="1000 milliseconds" />
+  </PreferenceCategory>
+
+  <PreferenceCategory
+    android:title="Advanced"
+    app:allowDividerBelow="true">
+
+    <SwitchPreference
+      android:key="delete_permanently"
+      android:title="Delete notes permanently"
+      android:summary="Delete notes permanently without moving them to trash" />
+  </PreferenceCategory>
+</PreferenceScreen>

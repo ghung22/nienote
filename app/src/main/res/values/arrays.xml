@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string-array name="note_background_titles">
+    <item>Light Red</item>
+    <item>Light Orange</item>
+    <item>Light Yellow</item>
+    <item>Light Green</item>
+    <item>Light Tortoise</item>
+    <item>Light Cyan</item>
+    <item>Light Blue</item>
+    <item>Light Violet</item>
+    <item>Light Purple</item>
+    <item>Light Magenta</item>
+    <item>Light Pink</item>
+    <item>Light Gray</item>
+    <item>Lighter Gray</item>
+    <item>Light</item>
+    <item>White</item>
+  </string-array>
+  <string-array name="note_background_values">
+    <item>lightred</item>
+    <item>lightorange</item>
+    <item>lightyellow</item>
+    <item>lightgreen</item>
+    <item>lighttortoise</item>
+    <item>lightcyan</item>
+    <item>lightblue</item>
+    <item>lightviolet</item>
+    <item>lightpurple</item>
+    <item>lightmagenta</item>
+    <item>lightpink</item>
+    <item>lightgray</item>
+    <item>lightergray</item>
+    <item>light</item>
+    <item>white</item>
+  </string-array>
+
+  <string-array name="app_theme_titles">
+    <item>Light theme</item>
+    <item>Dark theme</item>
+    <item>Follow system</item>
+  </string-array>
+  <string-array name="app_theme_values">
+    <item>light</item>
+    <item>dark</item>
+    <item>system</item>
+  </string-array>
+</resources>
