@@ -44,7 +44,7 @@
         android:paddingHorizontal="@dimen/xlarge_icon_padding"
         android:gravity="center"
         android:text="@string/action_default"
-        android:textColor="?colorOnSecondary"
+        android:textColor="?colorSecondary"
         android:backgroundTint="?colorOnPrimary" />
     </RelativeLayout>
   </com.google.android.material.bottomappbar.BottomAppBar>

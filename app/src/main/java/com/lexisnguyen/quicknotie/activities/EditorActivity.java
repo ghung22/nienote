@@ -42,6 +42,7 @@ import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -227,6 +228,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         undo_size = settingsManager.undo_size;
         undo_delay = settingsManager.undo_delay;
         delete_permanently = settingsManager.delete_permanently;
+        // - Force light theme
+        AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         // - Set text size
         editTextTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, note_text_size);
         editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, note_text_size);

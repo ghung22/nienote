@@ -19,6 +19,7 @@ import android.widget.ImageButton;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.widget.NestedScrollView;
@@ -34,6 +35,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.components.notes.NoteAdapter;
+import com.lexisnguyen.quicknotie.components.settings.SettingsManager;
 import com.lexisnguyen.quicknotie.components.sql.Note;
 import com.lexisnguyen.quicknotie.components.sql.Trash;
 import com.orm.SugarDb;
@@ -66,6 +68,9 @@ public class MainActivity extends AppCompatActivity {
     // - Activity results
     private ActivityResultLauncher<Intent> editorLauncher;
     private ActivityResultLauncher<Intent> settingsLauncher;
+    // - Settings
+    private String app_theme;
+    private boolean delete_permanently;
     // - SQLite
     public static SugarDb db;
     private List<Note> notes = new ArrayList<>();
@@ -125,6 +130,27 @@ public class MainActivity extends AppCompatActivity {
         // From SQLite
         db = new SugarDb(this);
         db.onCreate(db.getDB());
+
+        // From Settings
+        // - Get settings
+        SettingsManager settingsManager = new SettingsManager(this);
+        app_theme = settingsManager.app_theme;
+        delete_permanently = settingsManager.delete_permanently;
+        // - Set theme
+        switch (app_theme) {
+            case "light":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                break;
+            case "dark":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                break;
+            case "system":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                break;
+            default:
+                Log.w(TAG, "update_app_theme: Unknown theme " + app_theme);
+                break;
+        }
     }
 
     /**

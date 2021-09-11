@@ -14,6 +14,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.preference.ListPreference;
@@ -170,6 +171,8 @@ public class SettingsActivity extends AppCompatActivity implements
         // Advanced settings
         private SwitchPreference delete_permanently;
 
+        private final String TAG = "SettingsFragment";
+
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
             try {
@@ -310,6 +313,21 @@ public class SettingsActivity extends AppCompatActivity implements
                     .getStringArray(R.array.app_theme_titles)[themeId];
             app_theme.setValue(settingsManager.app_theme);
             app_theme.setSummary(theme);
+
+            switch (settingsManager.app_theme) {
+                case "light":
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                    break;
+                case "dark":
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                    break;
+                case "system":
+                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                    break;
+                default:
+                    Log.w(TAG, "update_app_theme: Unknown theme " + settingsManager.app_theme);
+                    break;
+            }
         }
 
         private void update_auto_save() {
