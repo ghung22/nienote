@@ -13,7 +13,7 @@
       android:dialogTitle="App theme"
       android:entries="@array/app_theme_titles"
       android:entryValues="@array/app_theme_values"
-      android:defaultValue="2"
+      android:defaultValue="system"
       tools:summary="Follow system" />
 
     <SwitchPreference
@@ -81,6 +81,7 @@
 
     <SwitchPreference
       android:key="delete_permanently"
+      android:icon="@drawable/action_drawer_trash"
       android:title="Delete notes permanently"
       android:defaultValue="false"
       android:summary="Delete notes permanently without moving them to trash" />

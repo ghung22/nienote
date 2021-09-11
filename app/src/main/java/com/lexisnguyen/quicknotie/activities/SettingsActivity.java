@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -33,6 +34,7 @@ public class SettingsActivity extends AppCompatActivity implements
         PreferenceFragmentCompat.OnPreferenceStartFragmentCallback {
     // GUI Elements
     private TextView action_save;
+    private Button action_default;
     private FloatingActionButton fab;
 
     // Data
@@ -55,9 +57,11 @@ public class SettingsActivity extends AppCompatActivity implements
         setContentView(R.layout.activity_settings);
 
         action_save = findViewById(R.id.action_save);
+        action_default = findViewById(R.id.action_default);
         fab = findViewById(R.id.fab);
 
         action_save.setOnClickListener(this::onClick);
+        action_default.setOnClickListener(this::onClick);
         fab.setOnClickListener(this::onClick);
 
         fragment = new SettingsFragment();
@@ -66,12 +70,7 @@ public class SettingsActivity extends AppCompatActivity implements
                 .replace(R.id.frameLayout, fragment)
                 .commit();
 
-        try {
-            settingsManager = new SettingsManager(this);
-        } catch (ClassCastException e) {
-            PreferenceManager.getDefaultSharedPreferences(this).edit().clear().apply();
-            settingsManager = new SettingsManager(this);
-        }
+        settingsManager = new SettingsManager(this);
     }
 
     @Override
@@ -120,6 +119,11 @@ public class SettingsActivity extends AppCompatActivity implements
                         });
                 break;
 
+            case R.id.action_default:
+                settingsManager.restoreDefault();
+                fragment.updateUi();
+                break;
+
             case R.id.fab:
                 view.animate().rotationBy(-rotateAmount).setDuration(quickAni)
                         .setListener(new AnimatorListenerAdapter() {
@@ -131,7 +135,7 @@ public class SettingsActivity extends AppCompatActivity implements
                                             @Override
                                             public void onAnimationEnd(Animator animation) {
                                                 super.onAnimationEnd(animation);
-                                                settingsManager.resetSettings();
+                                                settingsManager.reset();
                                                 fragment.updateUi();
                                             }
                                         });
@@ -147,7 +151,6 @@ public class SettingsActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
-        settingsManager.updateSettings();
         super.onBackPressed();
         overridePendingTransition(R.anim.anim_slide_right_enter, R.anim.anim_slide_right_leave);
     }
@@ -172,7 +175,7 @@ public class SettingsActivity extends AppCompatActivity implements
             try {
                 setPreferencesFromResource(R.xml.preferences, rootKey);
             } catch (ClassCastException e) {
-                PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().clear().apply();
+                settingsManager.clean();
                 setPreferencesFromResource(R.xml.preferences, rootKey);
             }
         }
@@ -212,8 +215,8 @@ public class SettingsActivity extends AppCompatActivity implements
         private void set_app_theme() {
             app_theme.setOnPreferenceChangeListener((
                     (preference, newValue) -> {
-                        settingsManager.app_theme = Integer.parseInt(String.valueOf(newValue));
-                        app_theme();
+                        settingsManager.app_theme = String.valueOf(newValue);
+                        update_app_theme();
                         return true;
                     }));
         }
@@ -223,7 +226,7 @@ public class SettingsActivity extends AppCompatActivity implements
                     (preference, newValue) -> {
                         String val = String.valueOf(newValue);
                         settingsManager.auto_save = Boolean.parseBoolean(val);
-                        auto_save();
+                        update_auto_save();
                         return true;
                     }));
         }
@@ -241,7 +244,7 @@ public class SettingsActivity extends AppCompatActivity implements
                     (preference, newValue) -> {
                         String val = String.valueOf(newValue);
                         settingsManager.note_text_size = Integer.parseInt(val);
-                        note_text_size();
+                        update_note_text_size();
                         return true;
                     }));
         }
@@ -250,7 +253,7 @@ public class SettingsActivity extends AppCompatActivity implements
             note_background.setOnPreferenceChangeListener((
                     (preference, newValue) -> {
                         settingsManager.note_background = String.valueOf(newValue);
-                        note_background();
+                        update_note_background();
                         return true;
                     }));
         }
@@ -260,7 +263,7 @@ public class SettingsActivity extends AppCompatActivity implements
                     (preference, newValue) -> {
                         String val = String.valueOf(newValue);
                         settingsManager.undo_size = Integer.parseInt(val);
-                        undo_size();
+                        update_undo_size();
                         return true;
                     }));
         }
@@ -270,7 +273,7 @@ public class SettingsActivity extends AppCompatActivity implements
                     (preference, newValue) -> {
                         String val = String.valueOf(newValue);
                         settingsManager.undo_delay = Integer.parseInt(val);
-                        undo_delay();
+                        update_undo_delay();
                         return true;
                     }));
         }
@@ -280,7 +283,7 @@ public class SettingsActivity extends AppCompatActivity implements
                     (preference, newValue) -> {
                         String val = String.valueOf(newValue);
                         settingsManager.delete_permanently = Boolean.parseBoolean(val);
-                        delete_permanently();
+                        update_delete_permanently();
                         return true;
                     }));
         }
@@ -289,55 +292,58 @@ public class SettingsActivity extends AppCompatActivity implements
         // endregion
 
         public void updateUi() {
-            app_theme();
-            auto_save();
-            note_text_size();
-            note_background();
-            undo_size();
-            undo_delay();
-            delete_permanently();
+            update_app_theme();
+            update_auto_save();
+            update_note_text_size();
+            update_note_background();
+            update_undo_size();
+            update_undo_delay();
+            update_delete_permanently();
         }
 
         // region Update each single preferences
 
-        private void app_theme() {
+        private void update_app_theme() {
+            int themeId = Arrays.asList(requireContext().getResources()
+                    .getStringArray(R.array.app_theme_values)).indexOf(settingsManager.app_theme);
             String theme = requireContext().getResources()
-                    .getStringArray(R.array.app_theme_titles)[settingsManager.app_theme];
-            app_theme.setValue(String.valueOf(settingsManager.app_theme));
+                    .getStringArray(R.array.app_theme_titles)[themeId];
+            app_theme.setValue(settingsManager.app_theme);
             app_theme.setSummary(theme);
         }
 
-        private void auto_save() {
+        private void update_auto_save() {
             auto_save.setChecked(settingsManager.auto_save);
         }
 
-        private void note_text_size() {
+        private void update_note_text_size() {
             note_text_size.setValue(settingsManager.note_text_size);
             note_text_size.setSummary(settingsManager.note_text_size + "sp");
         }
 
-        private void note_background() {
-            int bgId = Arrays.asList(requireContext().getResources().getStringArray(R.array.note_background_values))
-                    .indexOf(settingsManager.note_background);
-            String bg = requireContext().getResources().getStringArray(R.array.note_background_titles)[bgId];
+        private void update_note_background() {
+            int bgId = Arrays.asList(requireContext().getResources()
+                    .getStringArray(R.array.note_background_values)).indexOf(settingsManager.note_background);
+            String bg = requireContext().getResources()
+                    .getStringArray(R.array.note_background_titles)[bgId];
             note_background.setValue(settingsManager.note_background);
             note_background.setSummary(bg);
         }
 
-        private void undo_size() {
+        private void update_undo_size() {
             undo_size.setValue(settingsManager.undo_size);
-            String size = (settingsManager.undo_delay == 0) ?
+            String size = (settingsManager.undo_size == 0) ?
                     "Disabled" :
                     settingsManager.undo_size + " steps";
             undo_size.setSummary(size);
         }
 
-        private void undo_delay() {
+        private void update_undo_delay() {
             undo_delay.setValue(settingsManager.undo_delay);
             undo_delay.setSummary(settingsManager.undo_delay + "00ms");
         }
 
-        private void delete_permanently() {
+        private void update_delete_permanently() {
             delete_permanently.setChecked(settingsManager.delete_permanently);
         }
 

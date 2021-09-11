@@ -18,15 +18,15 @@
     app:fabAnimationMode="scale"
     app:fabCradleRoundedCornerRadius="16dp">
 
-    <LinearLayout
+    <RelativeLayout
       android:layout_width="match_parent"
-      android:layout_height="match_parent"
-      android:orientation="horizontal">
+      android:layout_height="match_parent">
 
       <TextView
         android:id="@+id/action_save"
         android:layout_width="wrap_content"
         android:layout_height="?actionBarSize"
+        android:layout_alignParentStart="true"
         android:paddingHorizontal="@dimen/xlarge_icon_padding"
         android:gravity="center"
         android:text="@string/action_save"
@@ -35,7 +35,18 @@
         app:drawableStartCompat="?homeAsUpIndicator"
         android:drawablePadding="@dimen/bottom_app_bar_button_drawable_padding"
         app:drawableTint="?colorOnPrimary" />
-    </LinearLayout>
+
+      <Button
+        android:id="@+id/action_default"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:paddingHorizontal="@dimen/xlarge_icon_padding"
+        android:gravity="center"
+        android:text="@string/action_default"
+        android:textColor="?colorOnSecondary"
+        android:backgroundTint="?colorOnPrimary" />
+    </RelativeLayout>
   </com.google.android.material.bottomappbar.BottomAppBar>
 
   <com.google.android.material.floatingactionbutton.FloatingActionButton

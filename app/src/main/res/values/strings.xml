@@ -45,6 +45,7 @@
   <string name="action_retry">Retry</string>
   <string name="action_reset">Reset</string>
   <string name="action_save">Save</string>
+  <string name="action_default">Restore default</string>
   <!-- MainActivity bottom bar -->
   <string name="action_add">Add a Note</string>
   <string name="action_show_menu">Show menu</string>

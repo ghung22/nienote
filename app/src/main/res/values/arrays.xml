@@ -41,8 +41,8 @@
     <item>Follow system</item>
   </string-array>
   <string-array name="app_theme_values">
-    <item>0</item>
-    <item>1</item>
-    <item>2</item>
+    <item>light</item>
+    <item>dark</item>
+    <item>system</item>
   </string-array>
 </resources>
