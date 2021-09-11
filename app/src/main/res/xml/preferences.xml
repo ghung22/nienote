@@ -7,11 +7,13 @@
     android:title="General"
     app:allowDividerBelow="true">
 
-    <DropDownPreference
+    <ListPreference
       android:key="app_theme"
       android:title="App theme"
+      android:dialogTitle="App theme"
       android:entries="@array/app_theme_titles"
       android:entryValues="@array/app_theme_values"
+      android:defaultValue="2"
       tools:summary="Follow system" />
 
     <SwitchPreference
@@ -23,7 +25,13 @@
 
     <Preference
       android:key="manage_folders"
-      android:title="Manage folders" />
+      android:title="Manage folders">
+
+      <intent
+        android:action="com.lexisnguyen.quicknotie.SETTING_START_ACTIVITY"
+        android:targetClass="com.lexisnguyen.quicknotie.ManageFoldersActivity"
+        android:targetPackage="com.lexisnguyen.quicknotie" />
+    </Preference>
   </PreferenceCategory>
 
   <PreferenceCategory
@@ -36,6 +44,7 @@
       android:min="8"
       android:max="32"
       android:defaultValue="15"
+      app:updatesContinuously="true"
       tools:summary="15sp" />
 
     <ListPreference
@@ -44,14 +53,16 @@
       android:dialogTitle="Default note background"
       android:entries="@array/note_background_titles"
       android:entryValues="@array/note_background_values"
+      android:defaultValue="white"
       tools:summary="White" />
 
     <SeekBarPreference
       android:key="undo_size"
-      android:title="Undo stack size"
+      android:title="Undo history size"
       android:min="0"
       android:max="200"
       android:defaultValue="50"
+      app:updatesContinuously="true"
       tools:summary="50 steps" />
 
     <SeekBarPreference
@@ -60,6 +71,7 @@
       android:min="5"
       android:max="50"
       android:defaultValue="10"
+      app:updatesContinuously="true"
       tools:summary="1000 milliseconds" />
   </PreferenceCategory>
 
@@ -70,6 +82,7 @@
     <SwitchPreference
       android:key="delete_permanently"
       android:title="Delete notes permanently"
+      android:defaultValue="false"
       android:summary="Delete notes permanently without moving them to trash" />
   </PreferenceCategory>
 </PreferenceScreen>

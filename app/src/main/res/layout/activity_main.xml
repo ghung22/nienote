@@ -36,7 +36,7 @@
           android:paddingBottom="@dimen/rounded_layout_icon_size"
           android:divider="@color/transparent"
           android:overScrollMode="never"
-          android:layoutAnimation="@anim/list_anim"
+          android:layoutAnimation="@anim/anim_show_list"
           app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
           app:spanCount="2"
           tools:listitem="@layout/layout_note_item"

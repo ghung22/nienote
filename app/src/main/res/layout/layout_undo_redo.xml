@@ -29,7 +29,7 @@
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
       android:overScrollMode="ifContentScrolls"
-      android:layoutAnimation="@anim/list_anim"
+      android:layoutAnimation="@anim/anim_show_list"
       app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
       tools:listitem="@layout/layout_undo_redo_item"
       tools:itemCount="4" />

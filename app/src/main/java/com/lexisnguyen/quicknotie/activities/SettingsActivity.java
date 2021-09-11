@@ -5,17 +5,28 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.TextView;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
+import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
+import androidx.preference.SeekBarPreference;
+import androidx.preference.SwitchPreference;
 
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.lexisnguyen.quicknotie.R;
+import com.lexisnguyen.quicknotie.components.settings.SettingsManager;
+
+import java.util.Arrays;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class SettingsActivity extends AppCompatActivity implements
@@ -25,7 +36,10 @@ public class SettingsActivity extends AppCompatActivity implements
     private FloatingActionButton fab;
 
     // Data
+    // - Fragments
+    private SettingsFragment fragment;
     // - Shared Preferences
+    static SettingsManager settingsManager;
     // - Animation
     private final float bounceAmount = 20;
     private final float rotateAmount = 45;
@@ -46,10 +60,18 @@ public class SettingsActivity extends AppCompatActivity implements
         action_save.setOnClickListener(this::onClick);
         fab.setOnClickListener(this::onClick);
 
+        fragment = new SettingsFragment();
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.frameLayout, new SettingsFragment())
+                .replace(R.id.frameLayout, fragment)
                 .commit();
+
+        try {
+            settingsManager = new SettingsManager(this);
+        } catch (ClassCastException e) {
+            PreferenceManager.getDefaultSharedPreferences(this).edit().clear().apply();
+            settingsManager = new SettingsManager(this);
+        }
     }
 
     @Override
@@ -109,7 +131,8 @@ public class SettingsActivity extends AppCompatActivity implements
                                             @Override
                                             public void onAnimationEnd(Animator animation) {
                                                 super.onAnimationEnd(animation);
-                                                // TODO: Reset settings
+                                                settingsManager.resetSettings();
+                                                fragment.updateUi();
                                             }
                                         });
                             }
@@ -124,15 +147,200 @@ public class SettingsActivity extends AppCompatActivity implements
 
     @Override
     public void onBackPressed() {
+        settingsManager.updateSettings();
         super.onBackPressed();
         overridePendingTransition(R.anim.anim_slide_right_enter, R.anim.anim_slide_right_leave);
     }
 
     public static class SettingsFragment extends PreferenceFragmentCompat {
+        // General settings
+        private ListPreference app_theme;
+        private SwitchPreference auto_save;
+        private Preference manage_folders;
+
+        // Editor settings
+        private SeekBarPreference note_text_size;
+        private ListPreference note_background;
+        private SeekBarPreference undo_size;
+        private SeekBarPreference undo_delay;
+
+        // Advanced settings
+        private SwitchPreference delete_permanently;
 
         @Override
         public void onCreatePreferences(Bundle savedInstanceState, String rootKey) {
-            setPreferencesFromResource(R.xml.preferences, rootKey);
+            try {
+                setPreferencesFromResource(R.xml.preferences, rootKey);
+            } catch (ClassCastException e) {
+                PreferenceManager.getDefaultSharedPreferences(requireContext()).edit().clear().apply();
+                setPreferencesFromResource(R.xml.preferences, rootKey);
+            }
         }
+
+        @Override
+        public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            PreferenceManager prefManager = getPreferenceManager();
+
+            // Get settings
+            app_theme = prefManager.findPreference("app_theme");
+            auto_save = prefManager.findPreference("auto_save");
+            manage_folders = prefManager.findPreference("manage_folders");
+            note_text_size = prefManager.findPreference("note_text_size");
+            note_background = prefManager.findPreference("note_background");
+            undo_size = prefManager.findPreference("undo_size");
+            undo_delay = prefManager.findPreference("undo_delay");
+            delete_permanently = prefManager.findPreference("delete_permanently");
+
+            // Set settings
+            set_app_theme();
+            set_auto_save();
+            set_manage_folders();
+            set_note_text_size();
+            set_note_background();
+            set_undo_size();
+            set_undo_delay();
+            set_delete_permanently();
+
+            // Update UI
+            updateUi();
+
+            return super.onCreateView(inflater, container, savedInstanceState);
+        }
+
+        // region Set each single preferences
+
+        private void set_app_theme() {
+            app_theme.setOnPreferenceChangeListener((
+                    (preference, newValue) -> {
+                        settingsManager.app_theme = Integer.parseInt(String.valueOf(newValue));
+                        app_theme();
+                        return true;
+                    }));
+        }
+
+        private void set_auto_save() {
+            auto_save.setOnPreferenceChangeListener((
+                    (preference, newValue) -> {
+                        String val = String.valueOf(newValue);
+                        settingsManager.auto_save = Boolean.parseBoolean(val);
+                        auto_save();
+                        return true;
+                    }));
+        }
+
+        private void set_manage_folders() {
+            manage_folders.setOnPreferenceClickListener((
+                    (preference) -> {
+                        startActivity(preference.getIntent());
+                        return true;
+                    }));
+        }
+
+        private void set_note_text_size() {
+            note_text_size.setOnPreferenceChangeListener((
+                    (preference, newValue) -> {
+                        String val = String.valueOf(newValue);
+                        settingsManager.note_text_size = Integer.parseInt(val);
+                        note_text_size();
+                        return true;
+                    }));
+        }
+
+        private void set_note_background() {
+            note_background.setOnPreferenceChangeListener((
+                    (preference, newValue) -> {
+                        settingsManager.note_background = String.valueOf(newValue);
+                        note_background();
+                        return true;
+                    }));
+        }
+
+        private void set_undo_size() {
+            undo_size.setOnPreferenceChangeListener((
+                    (preference, newValue) -> {
+                        String val = String.valueOf(newValue);
+                        settingsManager.undo_size = Integer.parseInt(val);
+                        undo_size();
+                        return true;
+                    }));
+        }
+
+        private void set_undo_delay() {
+            undo_delay.setOnPreferenceChangeListener((
+                    (preference, newValue) -> {
+                        String val = String.valueOf(newValue);
+                        settingsManager.undo_delay = Integer.parseInt(val);
+                        undo_delay();
+                        return true;
+                    }));
+        }
+
+        private void set_delete_permanently() {
+            delete_permanently.setOnPreferenceChangeListener((
+                    (preference, newValue) -> {
+                        String val = String.valueOf(newValue);
+                        settingsManager.delete_permanently = Boolean.parseBoolean(val);
+                        delete_permanently();
+                        return true;
+                    }));
+        }
+
+
+        // endregion
+
+        public void updateUi() {
+            app_theme();
+            auto_save();
+            note_text_size();
+            note_background();
+            undo_size();
+            undo_delay();
+            delete_permanently();
+        }
+
+        // region Update each single preferences
+
+        private void app_theme() {
+            String theme = requireContext().getResources()
+                    .getStringArray(R.array.app_theme_titles)[settingsManager.app_theme];
+            app_theme.setValue(String.valueOf(settingsManager.app_theme));
+            app_theme.setSummary(theme);
+        }
+
+        private void auto_save() {
+            auto_save.setChecked(settingsManager.auto_save);
+        }
+
+        private void note_text_size() {
+            note_text_size.setValue(settingsManager.note_text_size);
+            note_text_size.setSummary(settingsManager.note_text_size + "sp");
+        }
+
+        private void note_background() {
+            int bgId = Arrays.asList(requireContext().getResources().getStringArray(R.array.note_background_values))
+                    .indexOf(settingsManager.note_background);
+            String bg = requireContext().getResources().getStringArray(R.array.note_background_titles)[bgId];
+            note_background.setValue(settingsManager.note_background);
+            note_background.setSummary(bg);
+        }
+
+        private void undo_size() {
+            undo_size.setValue(settingsManager.undo_size);
+            String size = (settingsManager.undo_delay == 0) ?
+                    "Disabled" :
+                    settingsManager.undo_size + " steps";
+            undo_size.setSummary(size);
+        }
+
+        private void undo_delay() {
+            undo_delay.setValue(settingsManager.undo_delay);
+            undo_delay.setSummary(settingsManager.undo_delay + "00ms");
+        }
+
+        private void delete_permanently() {
+            delete_permanently.setChecked(settingsManager.delete_permanently);
+        }
+
+        // endregion
     }
 }

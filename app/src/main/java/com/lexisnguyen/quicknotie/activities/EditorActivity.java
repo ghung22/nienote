@@ -17,6 +17,7 @@ import android.text.method.LinkMovementMethod;
 import android.transition.Transition;
 import android.transition.TransitionListenerAdapter;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -56,6 +57,7 @@ import com.lexisnguyen.quicknotie.components.markdown.edithandlers.MonospaceEdit
 import com.lexisnguyen.quicknotie.components.markdown.plugins.AnchorHeadingPlugin;
 import com.lexisnguyen.quicknotie.components.markdown.tags.AlignTagHandler;
 import com.lexisnguyen.quicknotie.components.markdown.tags.ColorTagHandler;
+import com.lexisnguyen.quicknotie.components.settings.SettingsManager;
 import com.lexisnguyen.quicknotie.components.sql.Note;
 import com.lexisnguyen.quicknotie.components.sql.Trash;
 import com.lexisnguyen.quicknotie.components.undo.UndoAdapter;
@@ -115,6 +117,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private int action;
     private String folder;
     private Bundle result;
+    // - Settings
+    private boolean auto_save;
+    private int note_text_size;
+    private String note_background;
+    private int undo_size;
+    private int undo_delay;
+    private boolean delete_permanently;
     // - SQLite
     private Note note;
     private Trash trash;
@@ -210,8 +219,21 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
 
         // From Settings
-        bgColor = R.color.white;
-        oldBgColor = R.color.white;
+        // - Get settings
+        SettingsManager settingsManager = new SettingsManager(this);
+        auto_save = settingsManager.auto_save;
+        note_text_size = settingsManager.note_text_size;
+        note_background = settingsManager.note_background;
+        undo_size = settingsManager.undo_size;
+        undo_delay = settingsManager.undo_delay;
+        delete_permanently = settingsManager.delete_permanently;
+        // - Set text size
+        editTextTitle.setTextSize(TypedValue.COMPLEX_UNIT_SP, note_text_size);
+        editText.setTextSize(TypedValue.COMPLEX_UNIT_SP, note_text_size);
+        textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, note_text_size);
+        // - Set note background
+        bgColor = getResources().getIdentifier(note_background, "color", getPackageName());
+        oldBgColor = bgColor;
 
         // From SQLite
         // - Get saved data
