@@ -3,6 +3,7 @@ package com.lexisnguyen.quicknotie.activities;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,6 +19,7 @@ import android.widget.ImageButton;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SearchView;
@@ -62,6 +64,7 @@ public class MainActivity extends AppCompatActivity {
     // - Content view
     private MaterialCardView materialCardView;
     private SearchView searchView;
+    private ImageButton action_sort, action_order;
     private RecyclerView recyclerView;
 
     // Data
@@ -82,6 +85,9 @@ public class MainActivity extends AppCompatActivity {
     private final float bounceAmount = 20;
     private final int quickAni = 150;
     private final int normalAni = 300;
+    // - Sorting notes
+    private int sort_type = SORT_DEFAULT;
+    private boolean sort_order = DESCENDING;
 
     // Constants
     // - Built-in folders
@@ -95,6 +101,8 @@ public class MainActivity extends AppCompatActivity {
     public static final int SORT_SAVED_DATE = 3;
     public static final boolean ASCENDING = true;
     public static final boolean DESCENDING = false;
+    public static final int SORT_DEFAULT = SORT_SAVED_DATE;
+    public static final boolean ORDER_DEFAULT = DESCENDING;
     // - New note action
     public static final int ACTION_ADD_EMPTY = 0;
     public static final int ACTION_ADD_CODEBLOCK = 1;
@@ -118,7 +126,7 @@ public class MainActivity extends AppCompatActivity {
         initContentView();
 
         cd("/");
-        sort(SORT_SAVED_DATE, DESCENDING);
+        sort(sort_type, sort_order);
     }
 
     // region Init events
@@ -175,6 +183,8 @@ public class MainActivity extends AppCompatActivity {
         // Content view
         materialCardView = findViewById(R.id.materialCardView);
         searchView = findViewById(R.id.searchView);
+        action_sort = findViewById(R.id.action_sort);
+        action_order = findViewById(R.id.action_order);
         recyclerView = findViewById(R.id.recyclerView);
     }
 
@@ -273,6 +283,15 @@ public class MainActivity extends AppCompatActivity {
                 return true;
             }
         });
+        searchView.setOnFocusChangeListener((view, focused) -> {
+            if (focused) {
+                materialCardView.performClick();
+            }
+        });
+
+        // Add sort functionality
+        action_sort.setOnClickListener(this::onClick);
+        action_order.setOnClickListener(this::onClick);
     }
 
     private void initActivityResults() {
@@ -427,7 +446,32 @@ public class MainActivity extends AppCompatActivity {
 
             // Content view
             case R.id.searchView:
-                materialCardView.performClick();
+                searchView.setActivated(true);
+                break;
+            case R.id.action_sort:
+            case R.id.action_order:
+                view.animate().alpha(.5f).setDuration(quickAni)
+                        .setListener(new AnimatorListenerAdapter() {
+                            @Override
+                            public void onAnimationEnd(Animator animation) {
+                                super.onAnimationEnd(animation);
+                                view.animate().alpha(1).setDuration(quickAni)
+                                        .setListener(new AnimatorListenerAdapter() {
+                                            @Override
+                                            public void onAnimationEnd(Animator animation) {
+                                                super.onAnimationEnd(animation);
+                                                switch (viewId) {
+                                                    case R.id.action_sort:
+                                                        action_sort();
+                                                        break;
+                                                    case R.id.action_order:
+                                                        action_order();
+                                                        break;
+                                                }
+                                            }
+                                        });
+                            }
+                        });
                 break;
 
             default:
@@ -463,6 +507,77 @@ public class MainActivity extends AppCompatActivity {
         ActivityOptionsCompat options = ActivityOptionsCompat.makeSceneTransitionAnimation(
                 this, findViewById(R.id.bottomAppBar), getString(R.string.transition_new_note));
         editorLauncher.launch(intent, options);
+    }
+
+    private void action_sort() {
+        DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+            switch (which) {
+                case DialogInterface.BUTTON_NEGATIVE:
+                    // Default button
+                    sort_type = SORT_DEFAULT;
+                case DialogInterface.BUTTON_POSITIVE:
+                    // Sort button
+                    sort(sort_type, sort_order);
+                    break;
+                case DialogInterface.BUTTON_NEUTRAL:
+                    // Cancel button
+                    break;
+                default:
+                    // Option selected
+                    sort_type = which;
+                    break;
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        CharSequence[] choices = {
+                getString(R.string.info_sort_id),
+                getString(R.string.info_sort_name),
+                getString(R.string.info_sort_color),
+                getString(R.string.info_sort_saved_date)
+        };
+        builder.setTitle(R.string.info_sort_type)
+                .setPositiveButton("Sort", dialogClickListener)
+                .setNegativeButton("Default", dialogClickListener)
+                .setNeutralButton("Cancel", dialogClickListener)
+                .setCancelable(true)
+                .setSingleChoiceItems(choices, sort_type, dialogClickListener)
+                .show();
+    }
+
+    @SuppressWarnings("ConstantConditions")
+    private void action_order() {
+        DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+            switch (which) {
+                case DialogInterface.BUTTON_NEGATIVE:
+                    // Default button
+                    sort_order = ORDER_DEFAULT;
+                case DialogInterface.BUTTON_POSITIVE:
+                    // Sort button
+                    sort(sort_type, sort_order);
+                    break;
+                case DialogInterface.BUTTON_NEUTRAL:
+                    // Cancel button
+                    break;
+                default:
+                    // Option selected
+                    sort_order = (which == 0) ? ASCENDING : DESCENDING;
+                    break;
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        CharSequence[] choices = {
+                getString(R.string.info_sort_ascending),
+                getString(R.string.info_sort_descending)
+        };
+        builder.setTitle(R.string.info_sort_order)
+                .setPositiveButton("Sort", dialogClickListener)
+                .setNegativeButton("Default", dialogClickListener)
+                .setNeutralButton("Cancel", dialogClickListener)
+                .setCancelable(true)
+                .setSingleChoiceItems(choices, sort_order ? 0 : 1, dialogClickListener)
+                .show();
     }
 
     /**
@@ -544,12 +659,12 @@ public class MainActivity extends AppCompatActivity {
      *   <li>{@link #SORT_SAVED_DATE} (default): By how recent the note has been edited</li>
      * </ul>
      *
-     * @param mode The type of attribute to sort
+     * @param type The type of attribute to sort
      * @param asc  The order ({@link #ASCENDING} or {@link #DESCENDING})
      */
-    private void sort(int mode, boolean asc) {
+    private void sort(int type, boolean asc) {
         Comparator<Note> comparator;
-        switch (mode) {
+        switch (type) {
             case SORT_ID:
                 comparator = Comparator.comparing(SugarRecord::getId);
                 break;
@@ -569,6 +684,7 @@ public class MainActivity extends AppCompatActivity {
             comparator = comparator.reversed();
         }
         notes.sort(comparator);
+        adapter.notifyDataSetChanged(notes);
     }
 
     /**

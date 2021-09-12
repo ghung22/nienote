@@ -9,6 +9,16 @@
   <!-- MainActivity -->
   <string name="info_search_hint">Enter anything…</string>
   <string name="info_folders">Folders</string>
+  <!-- MainActivity sort dialog -->
+  <string name="info_sort">Sort note list</string>
+  <string name="info_sort_type">Sort type</string>
+  <string name="info_sort_id">By note ID</string>
+  <string name="info_sort_name">By name</string>
+  <string name="info_sort_color">By color</string>
+  <string name="info_sort_saved_date">By saved date</string>
+  <string name="info_sort_order">Sort order</string>
+  <string name="info_sort_ascending">Ascending</string>
+  <string name="info_sort_descending">Descending</string>
   <!-- EditorActivity top toolbar -->
   <string name="info_title_hint">Title</string>
   <string name="info_text_hint">Enter anything…</string>
