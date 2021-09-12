@@ -118,7 +118,7 @@ public class MainActivity extends AppCompatActivity {
         initContentView();
 
         cd("/");
-        sort(SORT_ID, DESCENDING);
+        sort(SORT_SAVED_DATE, DESCENDING);
     }
 
     // region Init events

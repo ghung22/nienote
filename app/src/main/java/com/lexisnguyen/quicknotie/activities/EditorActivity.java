@@ -2206,14 +2206,22 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             }
             onBackPressed();
         } else {
-            if (trash.delete()) {
-                if (note.delete()) {
-                    result.putBoolean("trashed", true);
-                    onBackPressed();
-                    return;
-                }
-            }
-            Log.e(TAG, "action_delete: Delete note permanently failed");
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("This note will be deleted permanently, do you want to continue?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        if (trash != null) {
+                            trash.delete();
+                        }
+                        if (note.delete()) {
+                            result.putBoolean("trashed", true);
+                            onBackPressed();
+                            return;
+                        }
+                        Log.e(TAG, "action_delete: Delete note permanently failed");
+                    })
+                    .setNegativeButton("No", null)
+                    .setCancelable(true)
+                    .show();
         }
     }
 
@@ -2221,7 +2229,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * Move the note into the trash
      */
     private void action_delete() {
-        action_delete(false);
+        action_delete(delete_permanently);
     }
 
     /**
@@ -2316,18 +2324,16 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private boolean saveAbort() {
         String title = editTextTitle.getText().toString(),
                 text = editText.getText().toString();
+        boolean abort = title.isEmpty() && text.isEmpty();
 
-        if (title.isEmpty() && text.isEmpty()) {
-            return true;
-        }
         if (note.title.equals(title) && note.text.equals(text) && note.bgColor == bgColor) {
-            return true;
+            abort = true;
         }
         if (result.containsKey("trashed")) {
             result.putLong("noteId", note.getId());
-            return true;
+            abort = true;
         }
-        return false;
+        return abort;
     }
 
     // endregion
