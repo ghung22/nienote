@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
@@ -41,6 +42,7 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.Toolbar;
@@ -970,7 +972,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 }
             }
         }
-        saveNote();
+        if (auto_save) {
+            saveNote();
+        }
     }
 
     /**
@@ -2242,26 +2246,19 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     // endregion
 
+    // region Save note events
+
     /**
      * Save the note into SQLite
      */
     private void saveNote() {
-        // If no content, abort
-        String title = editTextTitle.getText().toString(),
-                text = editText.getText().toString();
-        if (title.isEmpty() && text.isEmpty()) {
-            return;
-        }
-
-        // If it is deleted, abort
-        if (result.containsKey("trashed")) {
-            result.putLong("noteId", note.getId());
+        if (saveAbort()) {
             return;
         }
 
         // Save in SQLite
-        note.title = title;
-        note.text = text;
+        note.title = editTextTitle.getText().toString();
+        note.text = editText.getText().toString();
         note.bgColor = bgColor;
         note.savedDate = Date.from(Instant.now());
         note.save();
@@ -2274,6 +2271,78 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     }
 
     /**
+     * Show a confirmation dialog to save the note
+     *
+     * @see <a href="https://stackoverflow.com/a/2478662">How to display a Yes/No dialog box on Android? - Stack Overflow</a>
+     */
+    private boolean saveConfirm() {
+        if (saveAbort()) {
+            // Note has nothing to save -> close the editor anyway
+            return false;
+        }
+
+        DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+            switch (which) {
+                case DialogInterface.BUTTON_POSITIVE:
+                    saveNote();
+                case DialogInterface.BUTTON_NEGATIVE:
+                    closeEditor();
+                    break;
+                default:
+                    break;
+            }
+        };
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setMessage("There are changes to the note, do you want to save?")
+                .setPositiveButton("Yes", dialogClickListener)
+                .setNegativeButton("No", dialogClickListener)
+                .setNeutralButton("Cancel", dialogClickListener)
+                .setCancelable(true)
+                .show();
+        return true;
+    }
+
+    /**
+     * Abort saving if...
+     * <ul>
+     *   <li>Both fields are empty</li>
+     *   <li>Nothing is changed</li>
+     *   <li>The note is deleted</li>
+     * </ul>
+     *
+     * @return Whether save should be aborted
+     */
+    private boolean saveAbort() {
+        String title = editTextTitle.getText().toString(),
+                text = editText.getText().toString();
+
+        if (title.isEmpty() && text.isEmpty()) {
+            return true;
+        }
+        if (note.title.equals(title) && note.text.equals(text) && note.bgColor == bgColor) {
+            return true;
+        }
+        if (result.containsKey("trashed")) {
+            result.putLong("noteId", note.getId());
+            return true;
+        }
+        return false;
+    }
+
+    // endregion
+
+    /**
+     * Return the result and close the editor
+     */
+    private void closeEditor() {
+        Intent intent = new Intent();
+        intent.putExtras(result);
+        setResult(RESULT_OK, intent);
+        super.onBackPressed();
+    }
+
+    /**
      * Start an action when user presses Back depending on the states of the app.
      */
     @Override
@@ -2281,11 +2350,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (textChangedTimer != null) {
             textChangedTimer.onFinish();
         }
-        saveNote();
-        Intent intent = new Intent();
-        intent.putExtras(result);
-        setResult(RESULT_OK, intent);
-
-        super.onBackPressed();
+        if (auto_save || action < ACTION_OPEN_NOTE) {
+            saveNote();
+            closeEditor();
+        } else if (!saveConfirm()) {
+            closeEditor();
+        }
     }
 }
