@@ -60,8 +60,8 @@
       android:key="undo_size"
       android:title="Undo history size"
       android:min="0"
-      android:max="200"
-      android:defaultValue="50"
+      android:max="20"
+      android:defaultValue="5"
       app:updatesContinuously="true"
       tools:summary="50 steps" />
 

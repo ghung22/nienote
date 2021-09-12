@@ -227,8 +227,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         auto_save = settingsManager.auto_save;
         note_text_size = settingsManager.note_text_size;
         note_background = settingsManager.note_background;
-        undo_size = settingsManager.undo_size;
-        undo_delay = settingsManager.undo_delay;
+        undo_size = settingsManager.undo_size * 10;
+        undo_delay = settingsManager.undo_delay * 100;
         delete_permanently = settingsManager.delete_permanently;
         // - Force light theme
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
@@ -384,7 +384,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * </ul>
      */
     private void initUndoRedo() {
-        undoManager = new UndoManager(editText, action_undo, action_redo);
+        undoManager = new UndoManager(undo_size, editText, action_undo, action_redo);
         undoManager.setTextWatcher(textWatcher);
     }
 
@@ -540,7 +540,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
             @Override
             public void afterTextChanged(Editable editable) {
-                textChangedTimer = new CountDownTimer(500, 500) {
+                textChangedTimer = new CountDownTimer(undo_delay / 2, undo_delay / 2) {
                     public void onTick(long millisUntilFinished) {}
 
                     public void onFinish() {

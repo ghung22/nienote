@@ -5,6 +5,9 @@ import android.content.SharedPreferences;
 
 import androidx.preference.PreferenceManager;
 
+/**
+ * Handles saving user settings for the app
+ */
 @SuppressWarnings("FieldCanBeLocal")
 public class SettingsManager {
     // General settings
@@ -18,16 +21,16 @@ public class SettingsManager {
     // Editor settings
     public Integer note_text_size,
             old_note_text_size,
-            default_note_text_size = 15;
+            default_note_text_size = 15; // Unit: sp
     public String note_background,
             old_note_background,
-            default_note_background = "white";
+            default_note_background = "white"; // Values in colors.xml
     public Integer undo_size,
             old_undo_size,
-            default_undo_size = 50;
+            default_undo_size = 5; // This value will be multiplied -> 50 steps
     public Integer undo_delay,
             old_undo_delay,
-            default_undo_delay = 1000;
+            default_undo_delay = 10; // This value will be multiplied -> 1000ms
 
     // Advanced settings
     public Boolean delete_permanently,
@@ -37,11 +40,19 @@ public class SettingsManager {
     // Data
     private final SharedPreferences preferences;
 
+    /**
+     * Init a SettingsManager object
+     *
+     * @param context The activity context
+     */
     public SettingsManager(Context context) {
         this.preferences = PreferenceManager.getDefaultSharedPreferences(context);
         get();
     }
 
+    /**
+     * Get settings saved in SharedPreferences
+     */
     public void get() {
         try {
             app_theme = preferences.getString("app_theme", default_app_theme);
@@ -63,6 +74,9 @@ public class SettingsManager {
         old_undo_size = undo_size;
     }
 
+    /**
+     * Recreate SharedPreferences data in events of ClassCastException
+     */
     public void clean() {
         preferences.edit()
                 .remove("app_theme")
@@ -78,6 +92,9 @@ public class SettingsManager {
         update();
     }
 
+    /**
+     * Save local settings into SharedPreferences
+     */
     public void update() {
         preferences.edit()
                 .putString("app_theme", app_theme)
@@ -92,6 +109,9 @@ public class SettingsManager {
                 .apply();
     }
 
+    /**
+     * Restore the default settings
+     */
     public void restoreDefault() {
         app_theme = default_app_theme;
         auto_save = default_auto_save;
@@ -100,6 +120,9 @@ public class SettingsManager {
         undo_size = default_undo_size;
     }
 
+    /**
+     * Reset to the previous settings
+     */
     public void reset() {
         app_theme = old_app_theme;
         auto_save = old_auto_save;

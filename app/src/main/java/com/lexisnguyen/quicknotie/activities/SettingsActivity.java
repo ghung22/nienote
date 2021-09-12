@@ -41,7 +41,7 @@ public class SettingsActivity extends AppCompatActivity implements
     // Data
     // - Fragments
     private SettingsFragment fragment;
-    // - Shared Preferences
+    // - SharedPreferences
     static SettingsManager settingsManager;
     // - Animation
     private final float bounceAmount = 20;
@@ -352,7 +352,7 @@ public class SettingsActivity extends AppCompatActivity implements
             undo_size.setValue(settingsManager.undo_size);
             String size = (settingsManager.undo_size == 0) ?
                     "Disabled" :
-                    settingsManager.undo_size + " steps";
+                    settingsManager.undo_size + "0 steps";
             undo_size.setSummary(size);
         }
 
