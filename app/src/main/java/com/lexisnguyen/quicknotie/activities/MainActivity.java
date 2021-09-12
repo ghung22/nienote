@@ -271,6 +271,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Add search functionality
+        materialCardView.setOnClickListener(this::onClick);
+        searchView.setOnClickListener(this::onClick);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -281,11 +283,6 @@ public class MainActivity extends AppCompatActivity {
             public boolean onQueryTextChange(String newText) {
                 adapter.search(newText);
                 return true;
-            }
-        });
-        searchView.setOnFocusChangeListener((view, focused) -> {
-            if (focused) {
-                materialCardView.performClick();
             }
         });
 
@@ -445,8 +442,8 @@ public class MainActivity extends AppCompatActivity {
                 break;
 
             // Content view
-            case R.id.searchView:
-                searchView.setActivated(true);
+            case R.id.materialCardView:
+                searchView.requestFocus();
                 break;
             case R.id.action_sort:
             case R.id.action_order:
