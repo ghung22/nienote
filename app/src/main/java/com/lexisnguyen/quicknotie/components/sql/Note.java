@@ -29,4 +29,12 @@ public class Note extends SugarRecord {
         this.bgColor = bgColor;
         savedDate = Date.from(Instant.now());
     }
+
+    public Note(String folder, String name, String text, @ColorRes int bgColor, Date savedDate) {
+        this.folder = folder;
+        this.title = name;
+        this.text = text;
+        this.bgColor = bgColor;
+        this.savedDate = savedDate;
+    }
 }

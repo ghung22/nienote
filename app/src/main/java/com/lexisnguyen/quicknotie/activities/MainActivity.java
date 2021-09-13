@@ -8,17 +8,20 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.ColorRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
@@ -42,12 +45,17 @@ import com.lexisnguyen.quicknotie.components.sql.Note;
 import com.lexisnguyen.quicknotie.components.sql.Trash;
 import com.orm.SugarDb;
 import com.orm.SugarRecord;
+import com.thedeanda.lorem.Lorem;
+import com.thedeanda.lorem.LoremIpsum;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
@@ -244,6 +252,7 @@ public class MainActivity extends AppCompatActivity {
         action_show_menu.setOnClickListener(this::onClick);
         action_add_codeblock.setOnClickListener(this::onClick);
         fab.setOnClickListener(this::onClick);
+        fab.setOnLongClickListener((view) -> action_add_generate());
         action_add_image.setOnClickListener(this::onClick);
         action_settings.setOnClickListener(this::onClick);
     }
@@ -506,6 +515,142 @@ public class MainActivity extends AppCompatActivity {
         editorLauncher.launch(intent, options);
     }
 
+    private boolean action_add_generate() {
+        EditText input = new EditText(this);
+        DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
+            switch (which) {
+                case DialogInterface.BUTTON_NEGATIVE:
+                    // Clear first button
+                    notes.clear();
+                    adapter.notifyDataSetChanged(notes);
+                case DialogInterface.BUTTON_POSITIVE:
+                    // Generate button
+                    int generateCount = 0;
+                    if (!input.getText().toString().isEmpty()) {
+                        generateCount = Integer.parseInt(input.getText().toString());
+                    }
+                    action_add_generate_start(Math.abs(generateCount));
+                    break;
+                default:
+                    // Cancel button
+                    break;
+            }
+        };
+
+        input.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_NUMBER_FLAG_SIGNED);
+        input.setHint("Note count");
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.action_add_generate)
+                .setMessage("[DEBUGGING] Generate a specified number of notes")
+                .setView(input)
+                .setPositiveButton("Generate", dialogClickListener)
+                .setNegativeButton("Clear first", dialogClickListener)
+                .setNeutralButton("Cancel", dialogClickListener)
+                .setCancelable(true)
+                .show();
+        input.requestFocus();
+        return true;
+    }
+
+    private void action_add_generate_start(int generateCount) {
+        for (int i = 0; i < generateCount; ++i) {
+            Lorem lorem = LoremIpsum.getInstance();
+            Random random = new Random();
+            String title, text = "", folder = currentFolder;
+            @ColorRes int bgColor;
+            Date savedDate;
+
+            // Generate content
+            title = lorem.getWords(0, 5);
+            if (random.nextBoolean()) {
+                text += "# " + lorem.getWords(4) + "\n" +
+                        "## " + lorem.getWords(4) + "\n";
+            }
+            text += lorem.getWords(8, 20) + "\n";
+            if (random.nextBoolean()) {
+                text += "Contact (<b>" + lorem.getName() + "</b>): <i>" + lorem.getPhone() + "</i>\n";
+            }
+            text += lorem.getParagraphs(0, 3) + "\n";
+            if (random.nextBoolean()) {
+                text += "<u>Important</u>: Visit " + lorem.getCity() + ", " +
+                        lorem.getStateFull() + " before" + " <s>July</s> September!\n";
+            }
+            if (random.nextBoolean()) {
+                text += "[Videos](https://youtu.be)\n" +
+                        "[Games](https://y8.com)\n";
+            }
+            if (random.nextBoolean()) {
+                text += "> 2<sup>2</sup> = 4\n" +
+                        "> > 3<sup>2</sup> = 9\n\n" +
+                        "(x<sub>1</sub> + x<sub>2</sub>)<sup>2</sup> = " +
+                        "x<sub>1</sub><sup>2</sup> + x<sub>1</sub>x<sub>2</sub> + x<sub>2</sub><sup>2</sup>\n";
+            }
+            if (random.nextBoolean()) {
+                text += "\n***\n" +
+                        "# <align center>Time schedule</align>\n\n" +
+                        "Monday | Tuesday | Wednesday\n" +
+                        ":--- | :---: | ---:\n" +
+                        lorem.getFirstName() + " | " + lorem.getFirstName() + " | " + lorem.getFirstName() + "\n" +
+                        "15:00 | 21:00 | 09:00\n\n";
+            }
+            text += lorem.getParagraphs(0, 2) + "\n";
+            if (random.nextBoolean()) {
+                text += "\n***\n" +
+                        "#### <align end>Python `print` code:</align>\n" +
+                        "```python\n" +
+                        "s = \"Python syntax highlighting\"\n" +
+                        "print s\n" +
+                        "```\n";
+            }
+            if (random.nextBoolean()) {
+                text += "### Shopping list:\n" +
+                        "1. Eggs\n" +
+                        "2. Vegetables\n" +
+                        "- Lettuce\n" +
+                        "- Pumpkin\n" +
+                        "- Onions\n";
+            }
+
+            // Generate bgColor
+            List<String> colors = Arrays.asList(getResources().getStringArray(R.array.note_background_values));
+            bgColor = getResources().getIdentifier(
+                    colors.get(random.nextInt(colors.size())), "color", getPackageName());
+
+            // Generate date between 1940 and 2021
+            // REF: https://stackoverflow.com/a/3985467
+            long ms = -946771200000L + (Math.abs(random.nextLong()) % (80L * 365 * 24 * 60 * 60 * 1000));
+            savedDate = new Date(ms);
+            if (folder.equals("/" + FOLDER_FAVORITES) ||
+                    folder.equals("/" + FOLDER_LOCKED) ||
+                    folder.equals("/" + FOLDER_TRASH)) {
+                folder = "/";
+            }
+            Note note = new Note(folder, title, text, bgColor, savedDate);
+            if (currentFolder.equals("/" + FOLDER_FAVORITES)) {
+                // TODO: Add favorite entry
+            }
+            if (currentFolder.equals("/" + FOLDER_LOCKED)) {
+                // TODO: Add locked entry
+            }
+            if (currentFolder.equals("/" + FOLDER_TRASH)) {
+                Trash t = new Trash(note);
+                t.save();
+                trash.add(t);
+            }
+            notes.add(note);
+            adapter.notifyItemInsert(note.save());
+        }
+    }
+
+    /**
+     * Show a sort dialog letting the user chose one of these sort types
+     * <ul>
+     *   <li>By note ID</li>
+     *   <li>By name</li>
+     *   <li>By color</li>
+     *   <li>By saved date</li>
+     * </ul>
+     */
     private void action_sort() {
         DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
             switch (which) {
@@ -542,6 +687,13 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Show a sort dialog letting the user chose one of these sort orders
+     * <ul>
+     *   <li>Ascending</li>
+     *   <li>Descending</li>
+     * </ul>
+     */
     @SuppressWarnings("ConstantConditions")
     private void action_order() {
         DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {

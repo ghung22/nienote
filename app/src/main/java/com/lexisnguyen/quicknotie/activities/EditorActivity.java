@@ -214,7 +214,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 // Create an empty list
                 break;
             case ACTION_ADD_CODEBLOCK:
-                // Create a checklist template
+                // Create a codeblock template
                 break;
             case ACTION_ADD_IMAGE:
                 // Put image into note

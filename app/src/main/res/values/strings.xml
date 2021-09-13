@@ -60,6 +60,7 @@
   <string name="action_add">Add a Note</string>
   <string name="action_show_menu">Show menu</string>
   <string name="action_settings">Settings</string>
+  <string name="action_add_generate">Note generation</string>
   <!-- MainActivity drawer -->
   <string name="action_drawer_all">All notes</string>
   <string name="action_drawer_favorites">Favorites</string>
