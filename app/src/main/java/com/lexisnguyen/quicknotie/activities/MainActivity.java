@@ -521,6 +521,7 @@ public class MainActivity extends AppCompatActivity {
             switch (which) {
                 case DialogInterface.BUTTON_NEGATIVE:
                     // Clear first button
+                    Note.deleteInTx(notes);
                     notes.clear();
                     adapter.notifyDataSetChanged(notes);
                 case DialogInterface.BUTTON_POSITIVE:
@@ -637,9 +638,11 @@ public class MainActivity extends AppCompatActivity {
                 t.save();
                 trash.add(t);
             }
+            note.save();
             notes.add(note);
-            adapter.notifyItemInsert(note.save());
         }
+        sort(sort_type, sort_order);
+        adapter.notifyDataSetChanged(notes);
     }
 
     /**

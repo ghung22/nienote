@@ -21,7 +21,9 @@ import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.activities.EditorActivity;
 import com.lexisnguyen.quicknotie.components.sql.Note;
 
+import java.text.SimpleDateFormat;
 import java.util.List;
+import java.util.Locale;
 
 import static com.lexisnguyen.quicknotie.activities.EditorActivity.initMarkdown;
 import static com.lexisnguyen.quicknotie.activities.EditorActivity.isDarkMode;
@@ -58,7 +60,8 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         Note note = notes.get(position);
         MaterialCardView itemView = holder.itemView;
         TextView textViewTitle = holder.textViewTitle,
-                textView = holder.textView;
+                textView = holder.textView,
+                textViewSavedTime = holder.textViewSavedTime;
 
         // Set content
         if (note.title.isEmpty()) {
@@ -68,15 +71,20 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         initMarkdown(context, note.bgColor);
         markwon.setMarkdown(textView, note.text);
         textView.setMovementMethod(null);
+        SimpleDateFormat format = new SimpleDateFormat("KK:mm a, dd-MM-yy", Locale.ROOT);
+        String savedDate = format.format(notes.get(position).savedDate);
+        textViewSavedTime.setText(savedDate);
         itemView.setCardBackgroundColor(context.getColor(note.bgColor));
 
         // Update text color based on bgColor
         if (isDarkMode(note.bgColor)) {
             textViewTitle.setTextColor(context.getColor(R.color.white));
             textView.setTextColor(context.getColor(R.color.white));
+            textViewSavedTime.setTextColor(context.getColor(R.color.faded_white));
         } else {
             textViewTitle.setTextColor(MaterialColors.getColor(itemView, R.attr.colorOnSecondary));
             textView.setTextColor(MaterialColors.getColor(itemView, R.attr.colorOnSecondary));
+            textViewSavedTime.setTextColor(context.getColor(R.color.faded_black));
         }
 
         // Set input events
@@ -152,7 +160,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public final MaterialCardView itemView;
-        public final TextView textViewTitle, textView;
+        public final TextView textViewTitle, textView, textViewSavedTime;
 
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -160,6 +168,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
             this.itemView = itemView.findViewById(R.id.materialCardView);
             textViewTitle = itemView.findViewById(R.id.textViewTitle);
             textView = itemView.findViewById(R.id.textView);
+            textViewSavedTime = itemView.findViewById(R.id.textViewSavedTime);
         }
     }
 }
