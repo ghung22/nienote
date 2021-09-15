@@ -42,6 +42,7 @@
       android:id="@+id/textViewSavedTime"
       android:layout_width="match_parent"
       android:layout_height="wrap_content"
+      android:layout_marginTop="@dimen/note_card_title_margin"
       android:gravity="center"
       android:autoSizeTextType="uniform"
       android:autoSizeMinTextSize="8sp"

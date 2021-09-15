@@ -20,41 +20,30 @@
       android:layout_height="match_parent"
       android:orientation="horizontal">
 
-      <EditText
-        android:id="@+id/editTextTitle"
+      <HorizontalScrollView
         android:layout_width="0dp"
         android:layout_height="match_parent"
         android:layout_weight="1"
-        android:background="@color/transparent"
-        android:inputType="text"
-        android:hint="@string/info_title_hint"
-        android:importantForAutofill="no" />
+        android:scrollbars="none">
 
-      <com.google.android.material.button.MaterialButton
-        android:id="@+id/action_delete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/unelevated_button_margin_quarter"
-        android:layout_gravity="end|center_vertical"
-        android:visibility="gone"
-        android:text="@string/action_delete"
-        android:textColor="?android:textColorLink"
-        android:textSize="@dimen/unelevated_button_text_size"
-        android:backgroundTint="?colorPrimary"
+        <EditText
+          android:id="@+id/editTextTitle"
+          android:layout_width="wrap_content"
+          android:layout_height="match_parent"
+          android:background="@color/transparent"
+          android:inputType="text"
+          android:scrollHorizontally="true"
+          android:hint="@string/info_title_hint"
+          android:importantForAutofill="no" />
+      </HorizontalScrollView>
+
+      <include
+        layout="@layout/layout_editor_top_toolbar_open"
         tools:visibility="visible" />
 
-      <com.google.android.material.button.MaterialButton
-        android:id="@+id/action_restore"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginHorizontal="@dimen/unelevated_button_margin_quarter"
-        android:layout_gravity="end|center_vertical"
-        android:visibility="gone"
-        android:text="@string/action_restore"
-        android:textColor="?android:textColorLink"
-        android:textSize="@dimen/unelevated_button_text_size"
-        android:backgroundTint="?colorPrimary"
-        tools:visibility="visible" />
+      <include
+        layout="@layout/layout_editor_top_toolbar_trash"
+        tools:visibility="gone" />
     </LinearLayout>
   </androidx.appcompat.widget.Toolbar>
 

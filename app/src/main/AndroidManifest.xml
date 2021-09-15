@@ -50,7 +50,22 @@
       android:configChanges="orientation|keyboardHidden"
       android:screenOrientation="portrait"
       android:parentActivityName=".activities.MainActivity"
-      android:windowSoftInputMode="adjustResize" />
+      android:windowSoftInputMode="adjustResize">
+
+      <!-- Open text file with QuickNotie -->
+      <!-- REF: https://developer.android.com/training/basics/intents/filters -->
+      <!-- REF: https://developer.android.com/training/sharing/receive -->
+      <intent-filter>
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <data
+          android:host="*"
+          android:mimeType="text/*"
+          android:pathPattern=".*"
+          android:scheme="content" />
+      </intent-filter>
+
+    </activity>
 
     <activity
       android:name=".activities.SettingsActivity"

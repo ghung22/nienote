@@ -76,6 +76,7 @@
   <string name="action_delete">Delete</string>
   <string name="action_lock">Lock note</string>
   <string name="action_restore">Restore</string>
+  <string name="action_save_to_quicknotie">Save to QuickNotie</string>
   <!-- EditorActivity bottom sheet dialog -->
   <string name="action_undo">Undo</string>
   <string name="action_redo">Redo</string>

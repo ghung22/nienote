@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.text.Editable;
@@ -68,6 +69,9 @@ import com.lexisnguyen.quicknotie.components.undo.UndoManager;
 
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -98,14 +102,15 @@ import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_ADD_CODE
 import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_ADD_EMPTY;
 import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_ADD_IMAGE;
 import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_OPEN_NOTE;
+import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_OPEN_WITH;
 
 @SuppressWarnings("FieldCanBeLocal")
 public class EditorActivity extends AppCompatActivity implements AdapterView.OnItemSelectedListener {
-    //GUI Elements
+    // region Variables: GUI Elements
     private Window window;
     private RelativeLayout layout_root;
     private Toolbar toolbar;
-    private MaterialButton action_delete, action_restore;
+    private MaterialButton action_delete, action_restore, action_save_to_quicknotie;
     private BottomAppBar bottomAppBar;
     private ScrollView scrollView;
     private TextView textView;
@@ -114,12 +119,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             action_format_color, action_format_background,
             action_undo, action_redo;
     private MaterialCardView materialCardView;
+    // endregion
 
-    // Data
+    // region Variables: Data
     // - Activity result
     private int action;
     private String folder;
     private Bundle result;
+    private String path;
     // - Settings
     private boolean auto_save;
     private int note_text_size;
@@ -162,6 +169,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private UndoManager undoManager;
     private CountDownTimer textChangedTimer = null;
     private TextWatcher textWatcher;
+    // endregion
 
     // Debugging
     private final String TAG = "EditorActivity";
@@ -190,7 +198,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        if (trash == null) {
+        if (trash == null && TextUtils.isEmpty(path)) {
             getMenuInflater().inflate(R.menu.menu_editor_top, menu);
         }
         return super.onCreateOptionsMenu(menu);
@@ -204,21 +212,45 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private void initData() {
         Intent intent = getIntent();
         Bundle bundle = intent.getExtras();
+        result = new Bundle();
 
         // From Activity result
-        action = bundle.getInt("action");
-        folder = bundle.getString("folder");
-        result = new Bundle();
-        switch (action) {
-            case ACTION_ADD_EMPTY:
-                // Create an empty list
-                break;
-            case ACTION_ADD_CODEBLOCK:
-                // Create a codeblock template
-                break;
-            case ACTION_ADD_IMAGE:
-                // Put image into note
-                break;
+        if (intent.getType() != null) {
+            // - Open with: Set readonly and show Save button
+            if (intent.getType().contains("text/")) {
+                bundle = new Bundle();
+                bundle.putInt("action", ACTION_OPEN_WITH);
+                bundle.putString("folder", "/");
+                folder = "/";
+
+                Uri data = intent.getData();
+                path = new File(data.getPath()).getName();
+                int extPos = path.lastIndexOf(".");
+                if (extPos != -1) {
+                    path = path.substring(0, extPos);
+                }
+                editTextTitle.setText(path);
+                editText.setText(readData(data));
+
+                Menu menu = toolbar.getMenu();
+                onCreateOptionsMenu(menu);
+                action_preview(menu.findItem(R.id.action_preview));
+            }
+        } else {
+            // - Default state
+            action = bundle.getInt("action");
+            folder = bundle.getString("folder");
+            switch (action) {
+                case ACTION_ADD_EMPTY:
+                    // Create an empty list
+                    break;
+                case ACTION_ADD_CODEBLOCK:
+                    // Create a codeblock template
+                    break;
+                case ACTION_ADD_IMAGE:
+                    // Put image into note
+                    break;
+            }
         }
 
         // From Settings
@@ -261,10 +293,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 Menu menu = toolbar.getMenu();
                 onCreateOptionsMenu(menu);
                 action_preview(menu.findItem(R.id.action_preview));
-                action_delete.setVisibility(View.VISIBLE);
-                action_delete.setOnClickListener(this::onClick);
-                action_restore.setVisibility(View.VISIBLE);
-                action_restore.setOnClickListener(this::onClick);
             }
         }
         // - If this is a new note -> Init new data
@@ -276,6 +304,21 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                     "",
                     bgColor);
         }
+    }
+
+    private String readData(Uri data) {
+        BufferedReader br;
+        StringBuilder text = new StringBuilder();
+        try {
+            br = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(data)));
+            String line;
+            while ((line = br.readLine()) != null) {
+                text.append(line);
+            }
+            br.close();
+        } catch (Exception ignored) {
+        }
+        return text.toString();
     }
 
     /**
@@ -437,6 +480,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         editTextTitle = findViewById(R.id.editTextTitle);
         action_delete = findViewById(R.id.action_delete);
         action_restore = findViewById(R.id.action_restore);
+        action_save_to_quicknotie = findViewById(R.id.action_save_to_quicknotie);
         // Bottom Appbar
         bottomAppBar = findViewById(R.id.bottomAppBar);
         action_add_content = findViewById(R.id.action_add_content);
@@ -477,6 +521,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      * </ul>
      */
     private void initTopToolbar() {
+        // Default state
         setSupportActionBar(toolbar);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -485,6 +530,20 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             actionBar.setDisplayShowTitleEnabled(false);
         }
         toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
+
+        // When opening external file
+        if (!TextUtils.isEmpty(path)) {
+            action_save_to_quicknotie.setVisibility(View.VISIBLE);
+            action_save_to_quicknotie.setOnClickListener(this::onClick);
+        }
+
+        // When note in trash
+        if (trash != null) {
+            action_delete.setVisibility(View.VISIBLE);
+            action_delete.setOnClickListener(this::onClick);
+            action_restore.setVisibility(View.VISIBLE);
+            action_restore.setOnClickListener(this::onClick);
+        }
     }
 
     /**
@@ -652,6 +711,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         switch (viewId) {
             // Top bar
+            // - Open file
+            case R.id.action_save_to_quicknotie:
+                action_save_to_quicknotie();
+                break;
+            // - Trash
             case R.id.action_delete:
                 // Delete permanently
                 action_delete(true);
@@ -2189,6 +2253,16 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         menuItem.getIcon().setTint(fgColorInt);
     }
 
+    private void action_save_to_quicknotie() {
+        path = null;
+        Menu menu = toolbar.getMenu();
+        onCreateOptionsMenu(menu);
+        action_preview(menu.findItem(R.id.action_preview));
+        action_save_to_quicknotie.setVisibility(View.GONE);
+        action_save_to_quicknotie.setOnClickListener(null);
+        saveNote();
+    }
+
     /**
      * Delete the note
      *
@@ -2327,7 +2401,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         boolean abort = title.isEmpty() && text.isEmpty();
 
         if (note.title.equals(title) && note.text.equals(text) && note.bgColor == bgColor) {
-            abort = true;
+            if (note.getId() != null) {
+                abort = true;
+            }
         }
         if (result.containsKey("trashed")) {
             result.putLong("noteId", note.getId());

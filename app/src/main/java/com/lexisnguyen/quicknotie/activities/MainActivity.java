@@ -19,6 +19,7 @@ import android.widget.ExpandableListAdapter;
 import android.widget.ExpandableListView;
 import android.widget.ImageButton;
 
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.ColorRes;
@@ -60,7 +61,7 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings({"FieldCanBeLocal", "unused"})
 public class MainActivity extends AppCompatActivity {
-    // GUI Elements
+    // region Variables: GUI Elements
     // - DrawerLayout
     private DrawerLayout drawerLayout;
     private NavigationView navigationView;
@@ -74,11 +75,13 @@ public class MainActivity extends AppCompatActivity {
     private SearchView searchView;
     private ImageButton action_sort, action_order;
     private RecyclerView recyclerView;
+    // endregion
 
-    // Data
+    // region Variables: Data
     // - Activity results
     private ActivityResultLauncher<Intent> editorLauncher;
     private ActivityResultLauncher<Intent> settingsLauncher;
+    private ActivityResult result;
     // - Settings
     private String app_theme;
     private boolean delete_permanently;
@@ -96,8 +99,9 @@ public class MainActivity extends AppCompatActivity {
     // - Sorting notes
     private int sort_type = SORT_DEFAULT;
     private boolean sort_order = DESCENDING;
+    // endregion
 
-    // Constants
+    // region Variables: Constants
     // - Built-in folders
     public static final String FOLDER_FAVORITES = "favorites";
     public static final String FOLDER_LOCKED = "locked";
@@ -117,6 +121,8 @@ public class MainActivity extends AppCompatActivity {
     public static final int ACTION_ADD_IMAGE = 2;
     // - Open note action
     public static final int ACTION_OPEN_NOTE = 10;
+    public static final int ACTION_OPEN_WITH = 11;
+    // endregion
 
     // Debugging
     private final String TAG = "MainActivity";
@@ -134,7 +140,16 @@ public class MainActivity extends AppCompatActivity {
         initContentView();
 
         cd("/");
-        sort(sort_type, sort_order);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        if (result != null) {
+            updateDataSet();
+            result = null;
+        }
     }
 
     // region Init events
@@ -300,62 +315,24 @@ public class MainActivity extends AppCompatActivity {
         action_order.setOnClickListener(this::onClick);
     }
 
+    /**
+     * Init the actions that will be performed after a child activity finishes
+     * <p><i>(And after a transition animation is done)</i></p>
+     *
+     * @see <a href="https://stackoverflow.com/a/56265197">Calling startActivity with shared element transition
+     * from onActivityResult - Stack Overflow</a>
+     */
     private void initActivityResults() {
+        // Save updated data and perform actions on them in onResume()
         editorLauncher = registerForActivityResult(
                 new ActivityResultContracts.StartActivityForResult(),
-                result -> {
-                    // Get updated note data
-                    if (result.getResultCode() != RESULT_OK) {
-                        return;
-                    }
-                    Intent data = result.getData();
-                    Bundle extras;
-                    if (data == null) {
-                        return;
-                    }
-                    extras = data.getExtras();
-                    if (!extras.containsKey("noteId")) {
-                        return;
-                    }
-
-                    // Update view
-                    long noteId = extras.getLong("noteId");
-                    String title = extras.getString("title"),
-                            text = extras.getString("text");
-                    int bgColor = extras.getInt("bgColor");
-                    // - Delete or change this note from view (if exists)
-                    for (Note note : notes) {
-                        if (note.getId() != noteId) {
-                            continue;
-                        }
-                        if (extras.containsKey("trashed")) {
-                            if (extras.getBoolean("trashed")) {
-                                // Delete from view
-                                adapter.notifyItemRemove(notes.indexOf(note));
-                                // Delete from local data
-                                if (currentFolder.equals("/" + FOLDER_TRASH)) {
-                                    notes.remove(note);
-                                }
-                                // Move to a folder
-                                if (extras.containsKey("moved")) {
-                                    String moved = extras.getString("moved");
-                                    cd(moved);
-                                }
-                                return;
-                            }
-                        }
-                        adapter.notifyItemChange(notes.indexOf(note), title, text, bgColor);
-                        return;
-                    }
-                    // - Add a new note (if not exists)
-                    Note note = Note.findById(Note.class, noteId);
-                    notes.add(0, note);
-                    adapter.notifyItemInsert(noteId);
-                }
+                result -> this.result = result
         );
     }
 
     // endregion
+
+    // region Input events
 
     @SuppressLint("NonConstantResourceId")
     private void onClick(View view) {
@@ -486,6 +463,10 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    // endregion
+
+    // region Button actions in BottomAppBar
+
     /**
      * Create a new note, starting {@link EditorActivity} with a note preset, specified by the following action
      * codes:
@@ -521,6 +502,15 @@ public class MainActivity extends AppCompatActivity {
             switch (which) {
                 case DialogInterface.BUTTON_NEGATIVE:
                     // Clear first button
+                    if (currentFolder.equals("/" + FOLDER_FAVORITES)) {
+                        // Favorite.deleteAll(Favorite.class);
+                    }
+                    if (currentFolder.equals("/" + FOLDER_LOCKED)) {
+                        // Locked.deleteAll(Locked.class);
+                    }
+                    if (currentFolder.equals("/" + FOLDER_TRASH)) {
+                        Trash.deleteAll(Trash.class);
+                    }
                     Note.deleteInTx(notes);
                     notes.clear();
                     adapter.notifyDataSetChanged(notes);
@@ -627,6 +617,10 @@ public class MainActivity extends AppCompatActivity {
                 folder = "/";
             }
             Note note = new Note(folder, title, text, bgColor, savedDate);
+            note.save();
+            notes.add(note);
+
+            // Handle special folders
             if (currentFolder.equals("/" + FOLDER_FAVORITES)) {
                 // TODO: Add favorite entry
             }
@@ -638,12 +632,14 @@ public class MainActivity extends AppCompatActivity {
                 t.save();
                 trash.add(t);
             }
-            note.save();
-            notes.add(note);
         }
         sort(sort_type, sort_order);
         adapter.notifyDataSetChanged(notes);
     }
+
+    // endregion
+
+    // region Button actions in Top Toolbar
 
     /**
      * Show a sort dialog letting the user chose one of these sort types
@@ -732,6 +728,10 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    // endregion
+
+    // region Handling DataSet
+
     /**
      * Change directory to a folder. Some built-in folders:
      * <ul>
@@ -797,6 +797,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
         }
 
+        // Sort the new list
+        sort(sort_type, sort_order);
+
         // Update drawer and note list view
         view.setBackgroundColor(MaterialColors.getColor(drawerLayout, R.attr.colorPrimary));
         new Handler(Looper.getMainLooper()).post(() -> adapter.notifyDataSetChanged(notes));
@@ -838,6 +841,61 @@ public class MainActivity extends AppCompatActivity {
         notes.sort(comparator);
         adapter.notifyDataSetChanged(notes);
     }
+
+    /**
+     * Update the note list after editing
+     */
+    private void updateDataSet() {
+        // Get updated note data
+        if (result.getResultCode() != RESULT_OK) {
+            return;
+        }
+        Intent data = result.getData();
+        Bundle extras;
+        if (data == null) {
+            return;
+        }
+        extras = data.getExtras();
+        if (!extras.containsKey("noteId")) {
+            return;
+        }
+
+        // Update view
+        long noteId = extras.getLong("noteId");
+        String title = extras.getString("title"),
+                text = extras.getString("text");
+        int bgColor = extras.getInt("bgColor");
+        // - Delete or change this note from view (if exists)
+        for (Note note : notes) {
+            if (note.getId() != noteId) {
+                continue;
+            }
+            if (extras.containsKey("trashed")) {
+                if (extras.getBoolean("trashed")) {
+                    // Delete from view
+                    adapter.notifyItemRemove(notes.indexOf(note));
+                    // Delete from local data
+                    if (currentFolder.equals("/" + FOLDER_TRASH)) {
+                        notes.remove(note);
+                    }
+                    // Move to a folder
+                    if (extras.containsKey("moved")) {
+                        String moved = extras.getString("moved");
+                        cd(moved);
+                    }
+                    return;
+                }
+            }
+            adapter.notifyItemChange(notes.indexOf(note), title, text, bgColor);
+            return;
+        }
+        // - Add a new note (if not exists)
+        Note note = Note.findById(Note.class, noteId);
+        notes.add(0, note);
+        adapter.notifyItemInsert(noteId);
+    }
+
+    // endregion
 
     /**
      * Start an action when user presses Back depending on the states of the app.
