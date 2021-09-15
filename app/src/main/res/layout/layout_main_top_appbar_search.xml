@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content">
+
+  <com.google.android.material.card.MaterialCardView
+    android:id="@+id/materialCardView"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/card_margin"
+    app:layout_scrollFlags="scroll|enterAlways|snap">
+
+    <LinearLayout
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:orientation="horizontal"
+      android:gravity="center_vertical">
+
+      <androidx.appcompat.widget.SearchView
+        android:id="@+id/searchView"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        app:queryHint="@string/info_search_hint"
+        app:defaultQueryHint="@string/info_search_hint"
+        app:queryBackground="@android:color/transparent"
+        app:iconifiedByDefault="false" />
+
+      <ImageButton
+        android:id="@+id/action_sort"
+        android:layout_width="@dimen/rounded_layout_icon_size"
+        android:layout_height="@dimen/rounded_layout_icon_size"
+        app:backgroundTint="@color/transparent"
+        android:src="@drawable/action_sort"
+        app:tint="?colorAccent"
+        android:contentDescription="@string/info_sort_type" />
+
+      <ImageButton
+        android:id="@+id/action_order"
+        android:layout_width="@dimen/rounded_layout_icon_size"
+        android:layout_height="@dimen/rounded_layout_icon_size"
+        android:layout_marginEnd="@dimen/card_margin"
+        app:backgroundTint="@color/transparent"
+        android:src="@drawable/action_order"
+        app:tint="?colorAccent"
+        android:contentDescription="@string/info_sort_order" />
+    </LinearLayout>
+  </com.google.android.material.card.MaterialCardView>
+</RelativeLayout>

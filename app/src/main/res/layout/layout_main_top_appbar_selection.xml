@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout
+  xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  xmlns:tools="http://schemas.android.com/tools"
+  android:layout_width="match_parent"
+  android:layout_height="wrap_content">
+
+  <com.google.android.material.card.MaterialCardView
+    android:id="@+id/materialCardViewSelection"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="@dimen/card_margin"
+    android:backgroundTint="?colorAccent"
+    app:layout_scrollFlags="scroll|enterAlways|snap">
+
+    <com.google.android.material.appbar.MaterialToolbar
+      android:id="@+id/toolbar"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_marginEnd="@dimen/card_margin"
+      android:background="@color/transparent"
+      app:navigationIcon="@drawable/action_close"
+      app:navigationIconTint="?colorPrimaryVariant"
+      app:contentInsetStartWithNavigation="@dimen/card_margin"
+      app:subtitleTextColor="?colorPrimaryVariant"
+      app:menu="@menu/menu_main_selection"
+      tools:subtitle="5 notes selected" />
+  </com.google.android.material.card.MaterialCardView>
+
+</RelativeLayout>

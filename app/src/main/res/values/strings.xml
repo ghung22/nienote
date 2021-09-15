@@ -22,6 +22,7 @@
   <!-- EditorActivity top toolbar -->
   <string name="info_title_hint">Title</string>
   <string name="info_text_hint">Enter anything…</string>
+  <string name="info_selection">%d notes selected</string>
   <!-- EditorActivity bottom appbar -->
   <string name="info_undo_history">Undo history</string>
   <string name="info_redo_history">Redo history</string>
@@ -52,10 +53,14 @@
   <!-- General -->
   <string name="action_back">Back</string>
   <string name="action_close">Close</string>
+  <string name="action_cancel">Cancel</string>
   <string name="action_retry">Retry</string>
   <string name="action_reset">Reset</string>
   <string name="action_save">Save</string>
   <string name="action_default">Restore default</string>
+  <string name="action_select_all">Select all</string>
+  <!-- MainActivity top toolbar -->
+  <string name="action_create_folder">Create folder from selection</string>
   <!-- MainActivity bottom bar -->
   <string name="action_add">Add a Note</string>
   <string name="action_show_menu">Show menu</string>

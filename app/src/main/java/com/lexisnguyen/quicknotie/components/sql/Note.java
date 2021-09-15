@@ -4,6 +4,7 @@ import androidx.annotation.ColorRes;
 
 import com.lexisnguyen.quicknotie.R;
 import com.orm.SugarRecord;
+import com.orm.dsl.Ignore;
 
 import java.time.Instant;
 import java.util.Date;
@@ -19,6 +20,10 @@ public class Note extends SugarRecord {
 
     // Private info
     String password = "";
+
+    // Ignored info
+    @Ignore
+    public boolean isChecked = false;
 
     public Note() {}
 

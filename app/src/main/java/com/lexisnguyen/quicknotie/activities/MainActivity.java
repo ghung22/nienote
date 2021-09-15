@@ -5,12 +5,15 @@ import android.animation.AnimatorListenerAdapter;
 import android.annotation.SuppressLint;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.text.InputType;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.Gravity;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewTreeObserver;
 import android.widget.Button;
@@ -31,9 +34,11 @@ import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.widget.NestedScrollView;
 import androidx.customview.widget.ViewDragHelper;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.appbar.AppBarLayout;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomappbar.BottomAppBar;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
@@ -71,9 +76,10 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton action_show_menu, action_add_codeblock, action_add_image, action_settings;
     private FloatingActionButton fab;
     // - Content view
-    private MaterialCardView materialCardView;
+    private MaterialCardView materialCardView, materialCardViewSelection;
     private SearchView searchView;
     private ImageButton action_sort, action_order;
+    private MaterialToolbar toolbar;
     private RecyclerView recyclerView;
     // endregion
 
@@ -96,9 +102,11 @@ public class MainActivity extends AppCompatActivity {
     private final float bounceAmount = 20;
     private final int quickAni = 150;
     private final int normalAni = 300;
-    // - Sorting notes
+    // - Handling DataSet
     private int sort_type = SORT_DEFAULT;
     private boolean sort_order = DESCENDING;
+    private int selectCountBefore = 0;
+    public MutableLiveData<Integer> selectCount = new MutableLiveData<>(0);
     // endregion
 
     // region Variables: Constants
@@ -182,6 +190,31 @@ public class MainActivity extends AppCompatActivity {
                 Log.w(TAG, "update_app_theme: Unknown theme " + app_theme);
                 break;
         }
+
+        // Handling DataSet
+        selectCount.observe(this, integer -> {
+            if (selectCountBefore == integer) {
+                return;
+            }
+            int height = getActionBarHeight();
+
+            // Hide search bar and show selection bar
+            if (selectCountBefore == 0) {
+                materialCardView.animate().translationYBy(-height).setDuration(quickAni);
+                materialCardViewSelection.animate().translationYBy(height).setDuration(quickAni);
+            }
+
+            // Update toolbar content
+            toolbar.setSubtitle(getString(R.string.info_selection, integer));
+
+            // Hide selection bar and show search bar
+            if (integer == 0) {
+                materialCardViewSelection.animate().translationYBy(-height).setDuration(quickAni);
+                materialCardView.animate().translationYBy(height).setDuration(quickAni);
+            }
+
+            selectCountBefore = integer;
+        });
     }
 
     /**
@@ -205,9 +238,11 @@ public class MainActivity extends AppCompatActivity {
         fab = findViewById(R.id.fab);
         // Content view
         materialCardView = findViewById(R.id.materialCardView);
+        materialCardViewSelection = findViewById(R.id.materialCardViewSelection);
         searchView = findViewById(R.id.searchView);
         action_sort = findViewById(R.id.action_sort);
         action_order = findViewById(R.id.action_order);
+        toolbar = findViewById(R.id.toolbar);
         recyclerView = findViewById(R.id.recyclerView);
     }
 
@@ -276,7 +311,7 @@ public class MainActivity extends AppCompatActivity {
      * Init the layout consisting the Search bar and the Note list
      */
     private void initContentView() {
-        adapter = new NoteAdapter(this, notes, editorLauncher);
+        adapter = new NoteAdapter(this, notes, editorLauncher, recyclerView);
         recyclerView.setAdapter(adapter);
 
         // Make search bar background transparent
@@ -294,7 +329,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Add search functionality
+        // Search
         materialCardView.setOnClickListener(this::onClick);
         searchView.setOnClickListener(this::onClick);
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
@@ -310,9 +345,45 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        // Add sort functionality
+        // Sort
         action_sort.setOnClickListener(this::onClick);
         action_order.setOnClickListener(this::onClick);
+
+        // Selection
+        int height = getActionBarHeight();
+        materialCardViewSelection.animate().translationYBy(-height).setDuration(0);
+        toolbar.setNavigationOnClickListener(view -> {
+            selectCount.setValue(0);
+            adapter.clearSelection();
+        });
+        toolbar.getMenu().findItem(R.id.action_create_folder).getIcon()
+                .setTint(MaterialColors.getColor(this, R.attr.colorPrimaryVariant, Color.WHITE));
+        toolbar.getMenu().findItem(R.id.action_delete).getIcon()
+                .setTint(MaterialColors.getColor(this, R.attr.colorPrimaryVariant, Color.WHITE));
+        toolbar.getMenu().findItem(R.id.action_select_all).getIcon()
+                .setTint(MaterialColors.getColor(this, R.attr.colorPrimaryVariant, Color.WHITE));
+        toolbar.setOnMenuItemClickListener(this::onMenuItemClick);
+    }
+
+    private int getActionBarHeight() {
+        TypedValue typedValue = new TypedValue();
+        int actionBarHeight = 0, actionBarMargin = 0;
+        if (getTheme().resolveAttribute(android.R.attr.actionBarSize, typedValue, true)) {
+            actionBarHeight = TypedValue.complexToDimensionPixelSize(
+                    typedValue.data, getResources().getDisplayMetrics());
+            actionBarMargin = (int) (getResources().getDimension(R.dimen.card_margin)
+                    / getResources().getDisplayMetrics().density);
+        }
+        return actionBarHeight + actionBarMargin * 4;
+    }
+
+    @SuppressWarnings("SameParameterValue")
+    private void setToolbarIconsVisibility(boolean action_delete,
+                                           boolean action_create_folder,
+                                           boolean action_select_all) {
+        toolbar.getMenu().findItem(R.id.action_delete).setVisible(action_delete);
+        toolbar.getMenu().findItem(R.id.action_create_folder).setVisible(action_create_folder);
+        toolbar.getMenu().findItem(R.id.action_select_all).setVisible(action_select_all);
     }
 
     /**
@@ -461,6 +532,23 @@ public class MainActivity extends AppCompatActivity {
                 Log.w(TAG, "OnClick: Unknown item " + view.getId());
                 break;
         }
+    }
+
+    @SuppressLint("NonConstantResourceId")
+    private boolean onMenuItemClick(MenuItem item) {
+        switch (item.getItemId()) {
+            case R.id.action_create_folder:
+                break;
+            case R.id.action_delete:
+                break;
+            case R.id.action_select_all:
+                adapter.selectAll();
+                break;
+            default:
+                Log.w(TAG, "OnMenuItemClick: Unknown item " + item.getTitle());
+                return false;
+        }
+        return true;
     }
 
     // endregion
@@ -771,13 +859,15 @@ public class MainActivity extends AppCompatActivity {
         trash = Trash.listAll(Trash.class);
         notes.clear();
 
-        // Get new note list based on new folder
+        // Get new note list & update UI based on new folder
         switch (currentFolder) {
             case "/" + FOLDER_FAVORITES:
                 view = action_drawer_favorites;
+                setToolbarIconsVisibility(true, false, true);
                 break;
             case "/" + FOLDER_LOCKED:
                 view = action_drawer_locked;
+                setToolbarIconsVisibility(true, false, true);
                 break;
             case "/" + FOLDER_TRASH:
                 view = action_drawer_trash;
@@ -786,6 +876,7 @@ public class MainActivity extends AppCompatActivity {
                         !trash.stream().map(t -> t.note.getId())
                                 .collect(Collectors.toList())
                                 .contains(note.getId()));
+                setToolbarIconsVisibility(true, false, true);
                 break;
             default:
                 view = action_drawer_all;
@@ -794,6 +885,7 @@ public class MainActivity extends AppCompatActivity {
                         trash.stream().map(t -> t.note.getId())
                                 .collect(Collectors.toList())
                                 .contains(note.getId()));
+                setToolbarIconsVisibility(true, true, true);
                 break;
         }
 

@@ -1,24 +1,28 @@
 package com.lexisnguyen.quicknotie.components.notes;
 
+import android.animation.Animator;
+import android.animation.AnimatorListenerAdapter;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.card.MaterialCardView;
-import com.google.android.material.color.MaterialColors;
 import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.activities.EditorActivity;
+import com.lexisnguyen.quicknotie.activities.MainActivity;
 import com.lexisnguyen.quicknotie.components.sql.Note;
 
 import java.text.SimpleDateFormat;
@@ -30,19 +34,30 @@ import static com.lexisnguyen.quicknotie.activities.EditorActivity.isDarkMode;
 import static com.lexisnguyen.quicknotie.activities.EditorActivity.markwon;
 import static com.lexisnguyen.quicknotie.activities.MainActivity.ACTION_OPEN_NOTE;
 
+@SuppressWarnings("FieldCanBeLocal")
 public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
+    // Passed data
     private final Context context;
     private final List<Note> notes;
     private final ActivityResultLauncher<Intent> editorLauncher;
+    private final RecyclerView recyclerView;
 
+    // Internal data
     private NoteFilter filter;
+    private int selectCount = 0;
+
+    // Animation
+    private final int quickAni = 150;
+    private final int normalAni = 300;
 
     private final String TAG = "NoteAdapter";
 
-    public NoteAdapter(Context context, List<Note> notes, ActivityResultLauncher<Intent> editorLauncher) {
+    public NoteAdapter(Context context, List<Note> notes,
+                       ActivityResultLauncher<Intent> editorLauncher, RecyclerView recyclerView) {
         this.context = context;
         this.notes = notes;
         this.editorLauncher = editorLauncher;
+        this.recyclerView = recyclerView;
         filter = new NoteFilter(this, notes);
     }
 
@@ -77,18 +92,30 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         itemView.setCardBackgroundColor(context.getColor(note.bgColor));
 
         // Update text color based on bgColor
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(R.attr.colorOnSecondary, typedValue, true);
+        @ColorRes int color = typedValue.resourceId;
         if (isDarkMode(note.bgColor)) {
             textViewTitle.setTextColor(context.getColor(R.color.white));
             textView.setTextColor(context.getColor(R.color.white));
             textViewSavedTime.setTextColor(context.getColor(R.color.faded_white));
+            itemView.setCheckedIconTint(context.getColorStateList(color));
         } else {
-            textViewTitle.setTextColor(MaterialColors.getColor(itemView, R.attr.colorOnSecondary));
-            textView.setTextColor(MaterialColors.getColor(itemView, R.attr.colorOnSecondary));
+            textViewTitle.setTextColor(context.getColor(color));
+            textView.setTextColor(context.getColor(color));
             textViewSavedTime.setTextColor(context.getColor(R.color.faded_black));
+            itemView.setCheckedIconTint(context.getColorStateList(R.color.white));
         }
 
         // Set input events
-        itemView.setOnClickListener((view) -> openNote(view, note));
+        itemView.setOnClickListener((view) -> {
+            if (selectCount == 0) {
+                openNote(view, note);
+            } else {
+                select(view, note);
+            }
+        });
+        itemView.setOnLongClickListener((view) -> select(view, note));
     }
 
     @Override
@@ -96,9 +123,101 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         return notes.size();
     }
 
+    /**
+     * Search a note containing a phrase
+     *
+     * @param phrase The phrase in question
+     */
     public void search(String phrase) {
         filter.filter(phrase);
     }
+
+    /**
+     * Open a note in {@link EditorActivity}
+     *
+     * @param view CardView of the note
+     * @param note The note in question
+     */
+    private void openNote(View view, Note note) {
+        ActivityOptionsCompat options = ActivityOptionsCompat
+                .makeSceneTransitionAnimation((Activity) context, view, context.getString(R.string.transition_open_note));
+        Intent intent = new Intent(context, EditorActivity.class);
+        Bundle bundle = new Bundle();
+        bundle.putInt("action", ACTION_OPEN_NOTE);
+        bundle.putString("folder", note.folder);
+        bundle.putLong("noteId", note.getId());
+        intent.putExtras(bundle);
+        editorLauncher.launch(intent, options);
+    }
+
+    /**
+     * Select a note in the list
+     *
+     * @param view CardView of the note
+     * @param note The note in question
+     * @return True
+     */
+    private boolean select(View view, Note note) {
+        // Set data
+        note.isChecked = !note.isChecked;
+        ((MaterialCardView) view).setChecked(note.isChecked);
+        selectCount += note.isChecked ? 1 : -1;
+        selectCount = Integer.max(0, selectCount);
+        ((MainActivity) context).selectCount.postValue(selectCount);
+
+        // Update UI
+        if (note.isChecked) {
+            view.animate().scaleX(.95f).scaleY(.95f).rotationBy(5).setDuration(quickAni)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                        }
+                    });
+        } else {
+            view.animate().scaleX(1).scaleY(1).rotationBy(-5).setDuration(quickAni)
+                    .setListener(new AnimatorListenerAdapter() {
+                        @Override
+                        public void onAnimationEnd(Animator animation) {
+                            super.onAnimationEnd(animation);
+                        }
+                    });
+        }
+        return true;
+    }
+
+    /**
+     * Select/Deselect everything in note list
+     */
+    public void selectAll() {
+        boolean deselectAll = (selectCount == notes.size());
+        for (Note note : notes) {
+            if (deselectAll || !note.isChecked) {
+                ViewHolder holder = (ViewHolder)
+                        recyclerView.findViewHolderForAdapterPosition(notes.indexOf(note));
+                if (holder != null) {
+                    select(holder.itemView, note);
+                }
+            }
+        }
+    }
+
+    /**
+     * Deselect everything in note list
+     */
+    public void clearSelection() {
+        for (Note note : notes) {
+            if (note.isChecked) {
+                ViewHolder holder = (ViewHolder)
+                        recyclerView.findViewHolderForAdapterPosition(notes.indexOf(note));
+                if (holder != null) {
+                    select(holder.itemView, note);
+                }
+            }
+        }
+    }
+
+    // region Update view events
 
     public void notifyDataSetChanged(List<Note> notes, boolean updateFilter) {
         this.notes.clear();
@@ -146,17 +265,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         filter = new NoteFilter(this, notes);
     }
 
-    private void openNote(View view, Note note) {
-        ActivityOptionsCompat options = ActivityOptionsCompat
-                .makeSceneTransitionAnimation((Activity) context, view, context.getString(R.string.transition_open_note));
-        Intent intent = new Intent(context, EditorActivity.class);
-        Bundle bundle = new Bundle();
-        bundle.putInt("action", ACTION_OPEN_NOTE);
-        bundle.putString("folder", note.folder);
-        bundle.putLong("noteId", note.getId());
-        intent.putExtras(bundle);
-        editorLauncher.launch(intent, options);
-    }
+    // endregion
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         public final MaterialCardView itemView;
