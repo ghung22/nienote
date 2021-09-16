@@ -127,6 +127,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private String folder;
     private Bundle result;
     private String path;
+    private boolean previewFirst = false;
     // - Settings
     private boolean auto_save;
     private int note_text_size;
@@ -232,9 +233,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 editTextTitle.setText(path);
                 editText.setText(readData(data));
 
-                Menu menu = toolbar.getMenu();
-                onCreateOptionsMenu(menu);
-                action_preview(menu.findItem(R.id.action_preview));
+                previewFirst = true;
             }
         } else {
             // - Default state
@@ -290,9 +289,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             List<Trash> trashes = Trash.find(Trash.class, "note = ?", String.valueOf(id));
             if (!trashes.isEmpty()) {
                 trash = trashes.get(0);
-                Menu menu = toolbar.getMenu();
-                onCreateOptionsMenu(menu);
-                action_preview(menu.findItem(R.id.action_preview));
+                previewFirst = true;
             }
         }
         // - If this is a new note -> Init new data
@@ -630,6 +627,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         ));
         editText.addTextChangedListener(textWatcher);
         textView.setMovementMethod(LinkMovementMethod.getInstance());
+
+        // Switch to preview if specified
+        if (previewFirst) {
+            Menu menu = toolbar.getMenu();
+            onCreateOptionsMenu(menu);
+            action_preview(menu.findItem(R.id.action_preview));
+        }
     }
 
     // endregion
