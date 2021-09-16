@@ -29,6 +29,7 @@ import androidx.annotation.ColorRes;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.SearchView;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.core.widget.NestedScrollView;
@@ -103,6 +104,8 @@ public class MainActivity extends AppCompatActivity {
     private final int quickAni = 150;
     private final int normalAni = 300;
     // - Handling DataSet
+    private final List<Integer> sortDrawables = Arrays.asList(R.drawable.sort_id, R.drawable.sort_name,
+            R.drawable.sort_color, R.drawable.sort_saved_date);
     private int sort_type = SORT_DEFAULT;
     private boolean sort_order = DESCENDING;
     private int selectCountBefore = 0;
@@ -939,6 +942,7 @@ public class MainActivity extends AppCompatActivity {
         }
         notes.sort(comparator);
         new Handler(Looper.getMainLooper()).post(() -> adapter.notifyDataSetChanged(notes));
+        action_sort.setImageDrawable(AppCompatResources.getDrawable(this, sortDrawables.get(sort_type)));
     }
 
     /**

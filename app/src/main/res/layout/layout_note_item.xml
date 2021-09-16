@@ -44,11 +44,10 @@
       android:layout_height="wrap_content"
       android:layout_marginTop="@dimen/note_card_title_margin"
       android:gravity="center"
-      android:autoSizeTextType="uniform"
-      android:autoSizeMinTextSize="8sp"
-      android:autoSizeMaxTextSize="12sp"
-      android:autoSizeStepGranularity="3sp"
       android:textColor="@color/faded_black"
+      android:textSize="10sp"
+      android:textStyle="bold"
+      android:fontFamily="monospace"
       android:maxLines="1"
       tools:text="@tools:sample/date/ddmmyy" />
   </LinearLayout>
