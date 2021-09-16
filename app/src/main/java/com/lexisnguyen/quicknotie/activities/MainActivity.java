@@ -775,45 +775,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /**
-     * Show a sort dialog letting the user chose one of these sort orders
+     * Flip between these sort orders
      * <ul>
      *   <li>Ascending</li>
      *   <li>Descending</li>
      * </ul>
      */
-    @SuppressWarnings("ConstantConditions")
     private void action_order() {
-        DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
-            switch (which) {
-                case DialogInterface.BUTTON_NEGATIVE:
-                    // Default button
-                    sort_order = ORDER_DEFAULT;
-                case DialogInterface.BUTTON_POSITIVE:
-                    // Sort button
-                    sort(sort_type, sort_order);
-                    break;
-                case DialogInterface.BUTTON_NEUTRAL:
-                    // Cancel button
-                    break;
-                default:
-                    // Option selected
-                    sort_order = (which == 0) ? ASCENDING : DESCENDING;
-                    break;
-            }
-        };
-
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        CharSequence[] choices = {
-                getString(R.string.info_sort_ascending),
-                getString(R.string.info_sort_descending)
-        };
-        builder.setTitle(R.string.info_sort_order)
-                .setPositiveButton("Sort", dialogClickListener)
-                .setNegativeButton("Default", dialogClickListener)
-                .setNeutralButton("Cancel", dialogClickListener)
-                .setCancelable(true)
-                .setSingleChoiceItems(choices, sort_order ? 0 : 1, dialogClickListener)
-                .show();
+        action_order.animate().rotationXBy(180).setDuration(quickAni)
+                .setListener(new AnimatorListenerAdapter() {
+                    @Override
+                    public void onAnimationEnd(Animator animation) {
+                        super.onAnimationEnd(animation);
+                        sort_order = !sort_order;
+                        sort(sort_type, sort_order);
+                    }
+                });
     }
 
     // endregion
@@ -931,7 +908,7 @@ public class MainActivity extends AppCompatActivity {
             comparator = comparator.reversed();
         }
         notes.sort(comparator);
-        adapter.notifyDataSetChanged(notes);
+        new Handler(Looper.getMainLooper()).post(() -> adapter.notifyDataSetChanged(notes));
     }
 
     /**
