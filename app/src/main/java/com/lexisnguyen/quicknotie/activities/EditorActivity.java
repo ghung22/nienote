@@ -596,7 +596,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
             @Override
             public void afterTextChanged(Editable editable) {
-                textChangedTimer = new CountDownTimer(undo_delay / 2, undo_delay / 2) {
+                textChangedTimer = new CountDownTimer(undo_delay, 1000) {
                     public void onTick(long millisUntilFinished) {}
 
                     public void onFinish() {
@@ -1030,9 +1030,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     private void onPostInput(String undo, @DrawableRes int drawableId) {
         if (!TextUtils.isEmpty(undo)) {
-            if (!editTextTitle.getText().toString().equals(note.title) &&
-                    !editText.getText().toString().equals(note.text) &&
-                    bgColor != note.bgColor) {
+            if (!saveAbort()) {
                 if (drawableId != -1) {
                     undoManager.add(undo, drawableId);
                 } else {

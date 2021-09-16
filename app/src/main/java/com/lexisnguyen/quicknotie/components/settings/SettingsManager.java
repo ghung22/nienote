@@ -72,6 +72,7 @@ public class SettingsManager {
         old_note_text_size = note_text_size;
         old_note_background = note_background;
         old_undo_size = undo_size;
+        old_undo_delay = undo_delay;
     }
 
     /**
