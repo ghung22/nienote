@@ -212,10 +212,21 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     private void initData() {
         Intent intent = getIntent();
-        Bundle bundle = intent.getExtras();
         result = new Bundle();
 
-        // From Activity result
+        fromActivityResult(intent);
+        fromSettings();
+        fromDatabase(intent);
+    }
+
+    /**
+     * Get saved data from ActivityResult
+     *
+     * @param intent Provided intent
+     */
+    private void fromActivityResult(Intent intent) {
+        Bundle bundle = intent.getExtras();
+
         if (intent.getType() != null) {
             // - Open with: Set readonly and show Save button
             if (intent.getType().contains("text/")) {
@@ -251,8 +262,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                     break;
             }
         }
+    }
 
-        // From Settings
+    /**
+     * Get saved data from Settings
+     */
+    private void fromSettings() {
         // - Get settings
         SettingsManager settingsManager = new SettingsManager(this);
         auto_save = settingsManager.auto_save;
@@ -270,8 +285,16 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // - Set note background
         bgColor = getResources().getIdentifier(note_background, "color", getPackageName());
         oldBgColor = bgColor;
+    }
 
-        // From SQLite
+    /**
+     * Get saved data from SQLite
+     *
+     * @param intent Provided intent
+     */
+    private void fromDatabase(Intent intent) {
+        Bundle bundle = intent.getExtras();
+
         // - Get saved data
         boolean queryFailed = true;
         if (bundle.containsKey("noteId")) {
@@ -303,6 +326,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         }
     }
 
+    /**
+     * Read content of an external file
+     *
+     * @param data The data of user-chosen file
+     * @return The content
+     */
     private String readData(Uri data) {
         BufferedReader br;
         StringBuilder text = new StringBuilder();

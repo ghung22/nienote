@@ -36,6 +36,9 @@ public class SettingsManager {
     public Boolean delete_permanently,
             old_delete_permanently,
             default_delete_permanently = false;
+    public Boolean debugging,
+            old_debugging,
+            default_debugging = false;
 
     // Data
     private final SharedPreferences preferences;
@@ -64,15 +67,20 @@ public class SettingsManager {
             undo_delay = preferences.getInt("undo_delay", default_undo_delay);
 
             delete_permanently = preferences.getBoolean("delete_permanently", default_delete_permanently);
+            debugging = preferences.getBoolean("debugging", default_debugging);
         } catch (ClassCastException e) {
             clean();
         }
         old_app_theme = app_theme;
         old_auto_save = auto_save;
+
         old_note_text_size = note_text_size;
         old_note_background = note_background;
         old_undo_size = undo_size;
         old_undo_delay = undo_delay;
+
+        old_delete_permanently = delete_permanently;
+        old_debugging = debugging;
     }
 
     /**
@@ -89,6 +97,7 @@ public class SettingsManager {
                 .remove("undo_delay")
 
                 .remove("delete_permanently")
+                .remove("debugging")
                 .apply();
         update();
     }
@@ -107,6 +116,7 @@ public class SettingsManager {
                 .putInt("undo_delay", undo_delay)
 
                 .putBoolean("delete_permanently", delete_permanently)
+                .putBoolean("debugging", debugging)
                 .apply();
     }
 
@@ -116,9 +126,14 @@ public class SettingsManager {
     public void restoreDefault() {
         app_theme = default_app_theme;
         auto_save = default_auto_save;
+
         note_text_size = default_note_text_size;
         note_background = default_note_background;
         undo_size = default_undo_size;
+        undo_delay = default_undo_delay;
+
+        delete_permanently = default_delete_permanently;
+        debugging = default_debugging;
     }
 
     /**
@@ -127,8 +142,13 @@ public class SettingsManager {
     public void reset() {
         app_theme = old_app_theme;
         auto_save = old_auto_save;
+
         note_text_size = old_note_text_size;
         note_background = old_note_background;
         undo_size = old_undo_size;
+        undo_delay = old_undo_delay;
+
+        delete_permanently = old_delete_permanently;
+        debugging = old_debugging;
     }
 }

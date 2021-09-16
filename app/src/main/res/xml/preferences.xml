@@ -85,5 +85,11 @@
       android:title="Delete notes permanently"
       android:defaultValue="false"
       android:summary="Delete notes permanently without moving them to trash" />
+
+    <SwitchPreference
+      android:key="debugging"
+      android:title="Debugging"
+      android:defaultValue="false"
+      android:summary="Enable debugging functions" />
   </PreferenceCategory>
 </PreferenceScreen>

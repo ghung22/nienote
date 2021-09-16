@@ -92,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
     // - Settings
     private String app_theme;
     private boolean delete_permanently;
+    private boolean debugging;
     // - SQLite
     public static SugarDb db;
     private List<Note> notes = new ArrayList<>();
@@ -163,36 +164,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    protected void onRestart() {
+        super.onRestart();
+        fromSettings();
+        adapter.clearSelection();
+    }
+
     // region Init events
 
     /**
      * Init data from many sources
      */
     private void initData() {
-        // From SQLite
-        db = new SugarDb(this);
-        db.onCreate(db.getDB());
-
-        // From Settings
-        // - Get settings
-        SettingsManager settingsManager = new SettingsManager(this);
-        app_theme = settingsManager.app_theme;
-        delete_permanently = settingsManager.delete_permanently;
-        // - Set theme
-        switch (app_theme) {
-            case "light":
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
-                break;
-            case "dark":
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-                break;
-            case "system":
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
-                break;
-            default:
-                Log.w(TAG, "update_app_theme: Unknown theme " + app_theme);
-                break;
-        }
+        fromSettings();
+        fromDatabase();
 
         // Handling DataSet
         selectCount.observe(this, integer -> {
@@ -218,6 +204,40 @@ public class MainActivity extends AppCompatActivity {
 
             selectCountBefore = integer;
         });
+    }
+
+    /**
+     * Get saved data from Settings
+     */
+    private void fromSettings() {
+        // - Get settings
+        SettingsManager settingsManager = new SettingsManager(this);
+        app_theme = settingsManager.app_theme;
+        delete_permanently = settingsManager.delete_permanently;
+        debugging = settingsManager.debugging;
+        // - Set theme
+        switch (app_theme) {
+            case "light":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+                break;
+            case "dark":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+                break;
+            case "system":
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+                break;
+            default:
+                Log.w(TAG, "update_app_theme: Unknown theme " + app_theme);
+                break;
+        }
+    }
+
+    /**
+     * Get saved data from SQLite
+     */
+    private void fromDatabase() {
+        db = new SugarDb(this);
+        db.onCreate(db.getDB());
     }
 
     /**
@@ -614,6 +634,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private boolean action_add_generate() {
+        if (!debugging) {
+            return true;
+        }
+
         EditText input = new EditText(this);
         DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
             switch (which) {
