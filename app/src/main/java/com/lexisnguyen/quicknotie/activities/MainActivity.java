@@ -167,8 +167,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onRestart() {
         super.onRestart();
+        // Update settings
         fromSettings();
+        // Clear selection after changing
         adapter.clearSelection();
+        // Fix note list empty after changing app theme
+        if (adapter.getItemCount() < notes.size()) {
+            adapter.notifyDataSetChanged(notes);
+        }
     }
 
     // region Init events
