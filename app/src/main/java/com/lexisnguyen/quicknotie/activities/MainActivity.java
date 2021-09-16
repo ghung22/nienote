@@ -378,12 +378,22 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @SuppressWarnings("SameParameterValue")
-    private void setToolbarIconsVisibility(boolean action_delete,
-                                           boolean action_create_folder,
-                                           boolean action_select_all) {
+    private void setToolbarVisibility(boolean action_delete,
+                                      boolean action_create_folder,
+                                      boolean action_select_all) {
         toolbar.getMenu().findItem(R.id.action_delete).setVisible(action_delete);
         toolbar.getMenu().findItem(R.id.action_create_folder).setVisible(action_create_folder);
         toolbar.getMenu().findItem(R.id.action_select_all).setVisible(action_select_all);
+    }
+
+    private void setAppBarVisibility(boolean action_add_codeblock,
+                                     boolean fab,
+                                     boolean action_add_image) {
+        this.action_add_codeblock.setEnabled(action_add_codeblock);
+        this.action_add_codeblock.setVisibility(action_add_codeblock ? View.VISIBLE : View.INVISIBLE);
+        this.fab.setAlpha(fab ? 1 : .2f);
+        this.action_add_image.setEnabled(action_add_image);
+        this.action_add_image.setVisibility(action_add_image ? View.VISIBLE : View.INVISIBLE);
     }
 
     /**
@@ -450,7 +460,23 @@ public class MainActivity extends AppCompatActivity {
                         });
                 break;
             case R.id.fab:
-                action_add(ACTION_ADD_EMPTY);
+                if (view.getAlpha() >= 1) {
+                    view.animate().alpha(.5f).setDuration(quickAni)
+                            .setListener(new AnimatorListenerAdapter() {
+                                @Override
+                                public void onAnimationEnd(Animator animation) {
+                                    super.onAnimationEnd(animation);
+                                    view.animate().alpha(1).setDuration(quickAni)
+                                            .setListener(new AnimatorListenerAdapter() {
+                                                @Override
+                                                public void onAnimationEnd(Animator animation) {
+                                                    super.onAnimationEnd(animation);
+                                                    action_add(ACTION_ADD_EMPTY);
+                                                }
+                                            });
+                                }
+                            });
+                }
                 break;
             case R.id.action_add_codeblock:
             case R.id.action_add_image:
@@ -840,11 +866,13 @@ public class MainActivity extends AppCompatActivity {
         switch (currentFolder) {
             case "/" + FOLDER_FAVORITES:
                 view = action_drawer_favorites;
-                setToolbarIconsVisibility(true, false, true);
+                setToolbarVisibility(true, false, true);
+                setAppBarVisibility(false, false, false);
                 break;
             case "/" + FOLDER_LOCKED:
                 view = action_drawer_locked;
-                setToolbarIconsVisibility(true, false, true);
+                setToolbarVisibility(true, false, true);
+                setAppBarVisibility(false, false, false);
                 break;
             case "/" + FOLDER_TRASH:
                 view = action_drawer_trash;
@@ -853,7 +881,8 @@ public class MainActivity extends AppCompatActivity {
                         !trash.stream().map(t -> t.note.getId())
                                 .collect(Collectors.toList())
                                 .contains(note.getId()));
-                setToolbarIconsVisibility(true, false, true);
+                setToolbarVisibility(true, false, true);
+                setAppBarVisibility(false, false, false);
                 break;
             default:
                 view = action_drawer_all;
@@ -862,7 +891,8 @@ public class MainActivity extends AppCompatActivity {
                         trash.stream().map(t -> t.note.getId())
                                 .collect(Collectors.toList())
                                 .contains(note.getId()));
-                setToolbarIconsVisibility(true, true, true);
+                setToolbarVisibility(true, true, true);
+                setAppBarVisibility(true, true, true);
                 break;
         }
 

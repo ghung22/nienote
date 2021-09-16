@@ -88,7 +88,7 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
         initMarkdown(context, note.bgColor);
         markwon.setMarkdown(textView, note.text);
         textView.setMovementMethod(null);
-        SimpleDateFormat format = new SimpleDateFormat("KK:mm a, dd-MM-yy", Locale.ROOT);
+        SimpleDateFormat format = new SimpleDateFormat("KK:mm a, dd-MM-yyy", Locale.ROOT);
         String savedDate = format.format(notes.get(position).savedDate);
         textViewSavedTime.setText(savedDate);
         itemView.setCardBackgroundColor(context.getColor(note.bgColor));
