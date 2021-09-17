@@ -43,7 +43,7 @@
         android:layout_centerInParent="true"
         android:paddingHorizontal="@dimen/xlarge_icon_padding"
         android:gravity="center"
-        android:text="@string/action_default"
+        android:text="@string/action_restore_default"
         android:textColor="?colorSecondary"
         android:backgroundTint="?colorOnPrimary" />
     </RelativeLayout>

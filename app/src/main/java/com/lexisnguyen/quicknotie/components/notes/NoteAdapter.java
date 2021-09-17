@@ -16,6 +16,7 @@ import android.widget.TextView;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.annotation.ColorRes;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -24,6 +25,7 @@ import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.activities.EditorActivity;
 import com.lexisnguyen.quicknotie.activities.MainActivity;
 import com.lexisnguyen.quicknotie.components.sql.Note;
+import com.lexisnguyen.quicknotie.components.sql.Trash;
 
 import java.text.SimpleDateFormat;
 import java.util.List;
@@ -101,12 +103,12 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
             textViewTitle.setTextColor(context.getColor(R.color.white));
             textView.setTextColor(context.getColor(R.color.white));
             textViewSavedTime.setTextColor(context.getColor(R.color.faded_white));
-            itemView.setCheckedIconTint(context.getColorStateList(color));
+            itemView.setCheckedIconTint(context.getColorStateList(R.color.white));
         } else {
             textViewTitle.setTextColor(context.getColor(color));
             textView.setTextColor(context.getColor(color));
             textViewSavedTime.setTextColor(context.getColor(R.color.faded_black));
-            itemView.setCheckedIconTint(context.getColorStateList(R.color.white));
+            itemView.setCheckedIconTint(context.getColorStateList(color));
         }
 
         // Set input events
@@ -216,6 +218,76 @@ public class NoteAdapter extends RecyclerView.Adapter<NoteAdapter.ViewHolder> {
                     select(holder.itemView, note);
                 }
             }
+        }
+    }
+
+    /**
+     * Delete selected notes
+     *
+     * @param permanently Whether delete it permanently or move it into the trash
+     */
+    public void delete(boolean permanently) {
+        /* FIXME:
+        E/AndroidRuntime: FATAL EXCEPTION: main
+            Process: com.lexisnguyen.quicknotie, PID: 18652
+            java.util.ConcurrentModificationException
+            at java.util.ArrayList$Itr.next(ArrayList.java:860)
+            at com.lexisnguyen.quicknotie.components.notes.NoteAdapter.delete(NoteAdapter.java:230)
+            at com.lexisnguyen.quicknotie.activities.MainActivity.action_delete(MainActivity.java:861)
+            at com.lexisnguyen.quicknotie.activities.MainActivity.onMenuItemClick(MainActivity.java:598)
+            at com.lexisnguyen.quicknotie.activities.MainActivity.lambda$PaItOa5DqNwajJ0QTZhXAR7cHAE(Unknown Source:0)
+            at com.lexisnguyen.quicknotie.activities.-$$Lambda$MainActivity$PaItOa5DqNwajJ0QTZhXAR7cHAE.onMenuItemClick(Unknown Source:2)
+            at androidx.appcompat.widget.Toolbar$1.onMenuItemClick(Toolbar.java:208)
+            at androidx.appcompat.widget.ActionMenuView$MenuBuilderCallback.onMenuItemSelected(ActionMenuView.java:780)
+            at androidx.appcompat.view.menu.MenuBuilder.dispatchMenuItemSelected(MenuBuilder.java:834)
+            at androidx.appcompat.view.menu.MenuItemImpl.invoke(MenuItemImpl.java:158)
+            at androidx.appcompat.view.menu.MenuBuilder.performItemAction(MenuBuilder.java:985)
+            at androidx.appcompat.view.menu.MenuBuilder.performItemAction(MenuBuilder.java:975)
+            at androidx.appcompat.widget.ActionMenuView.invokeItem(ActionMenuView.java:624)
+            at androidx.appcompat.view.menu.ActionMenuItemView.onClick(ActionMenuItemView.java:151)
+            at android.view.View.performClick(View.java:7125)
+            at android.view.View.performClickInternal(View.java:7102)
+            at android.view.View.access$3500(View.java:801)
+            at android.view.View$PerformClick.run(View.java:27336)
+            at android.os.Handler.handleCallback(Handler.java:883)
+            at android.os.Handler.dispatchMessage(Handler.java:100)
+            at android.os.Looper.loop(Looper.java:214)
+            at android.app.ActivityThread.main(ActivityThread.java:7356)
+            at java.lang.reflect.Method.invoke(Native Method)
+            at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:492)
+            at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:930)
+        I/Process: Sending signal. PID: 18652 SIG: 9
+        */
+        for (Note note : notes) {
+            if (note.isChecked)
+                delete(notes.indexOf(note), permanently);
+        }
+    }
+
+    private void delete(int noteId, boolean permanently) {
+        if (!permanently) {
+            Trash trash = new Trash(notes.get(noteId));
+            trash.save();
+            notifyItemRemove(noteId);
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(context);
+            builder.setMessage("This note will be deleted permanently, do you want to continue?")
+                    .setPositiveButton("Yes", (dialog, which) -> {
+                        List<Trash> trashes = Trash.find(Trash.class,
+                                "note = ?", String.valueOf(notes.get(noteId).getId()));
+                        Trash trash;
+                        if (trashes.size() > 0) {
+                            trash = trashes.get(0);
+                            trash.delete();
+                        }
+                        if (notes.get(noteId).delete()) {
+                            return;
+                        }
+                        Log.e(TAG, "action_delete: Delete note permanently failed");
+                    })
+                    .setNegativeButton("No", null)
+                    .setCancelable(true)
+                    .show();
         }
     }
 

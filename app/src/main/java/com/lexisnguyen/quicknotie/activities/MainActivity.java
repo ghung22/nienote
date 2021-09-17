@@ -595,6 +595,7 @@ public class MainActivity extends AppCompatActivity {
             case R.id.action_create_folder:
                 break;
             case R.id.action_delete:
+                action_delete();
                 break;
             case R.id.action_select_all:
                 adapter.selectAll();
@@ -649,14 +650,16 @@ public class MainActivity extends AppCompatActivity {
             switch (which) {
                 case DialogInterface.BUTTON_NEGATIVE:
                     // Clear first button
-                    if (currentFolder.equals("/" + FOLDER_FAVORITES)) {
-                        // Favorite.deleteAll(Favorite.class);
-                    }
-                    if (currentFolder.equals("/" + FOLDER_LOCKED)) {
-                        // Locked.deleteAll(Locked.class);
-                    }
-                    if (currentFolder.equals("/" + FOLDER_TRASH)) {
-                        Trash.deleteAll(Trash.class);
+                    switch (currentFolder) {
+                        case "/" + FOLDER_FAVORITES:
+                            // Favorite.deleteAll(Favorite.class);
+                            break;
+                        case "/" + FOLDER_LOCKED:
+                            // Locked.deleteAll(Locked.class);
+                            break;
+                        case "/" + FOLDER_TRASH:
+                            Trash.deleteAll(Trash.class);
+                            break;
                     }
                     Note.deleteInTx(notes);
                     notes.clear();
@@ -768,16 +771,18 @@ public class MainActivity extends AppCompatActivity {
             notes.add(note);
 
             // Handle special folders
-            if (currentFolder.equals("/" + FOLDER_FAVORITES)) {
-                // TODO: Add favorite entry
-            }
-            if (currentFolder.equals("/" + FOLDER_LOCKED)) {
-                // TODO: Add locked entry
-            }
-            if (currentFolder.equals("/" + FOLDER_TRASH)) {
-                Trash t = new Trash(note);
-                t.save();
-                trash.add(t);
+            switch (currentFolder) {
+                case "/" + FOLDER_FAVORITES:
+                    // TODO: Add favorite entry
+                    break;
+                case "/" + FOLDER_LOCKED:
+                    // TODO: Add locked entry
+                    break;
+                case "/" + FOLDER_TRASH:
+                    Trash t = new Trash(note);
+                    t.save();
+                    trash.add(t);
+                    break;
             }
         }
         sort(sort_type, sort_order);
@@ -825,9 +830,9 @@ public class MainActivity extends AppCompatActivity {
                 getString(R.string.info_sort_saved_date)
         };
         builder.setTitle(R.string.info_sort_type)
-                .setPositiveButton("Sort", dialogClickListener)
-                .setNegativeButton("Default", dialogClickListener)
-                .setNeutralButton("Cancel", dialogClickListener)
+                .setPositiveButton(R.string.action_sort, dialogClickListener)
+                .setNegativeButton(R.string.action_default, dialogClickListener)
+                .setNeutralButton(R.string.action_cancel, dialogClickListener)
                 .setCancelable(true)
                 .setSingleChoiceItems(choices, sort_type, dialogClickListener)
                 .show();
@@ -850,6 +855,10 @@ public class MainActivity extends AppCompatActivity {
                         sort(sort_type, sort_order);
                     }
                 });
+    }
+
+    private void action_delete() {
+        adapter.delete(delete_permanently || currentFolder.equals("/" + FOLDER_TRASH));
     }
 
     // endregion

@@ -26,6 +26,8 @@
   <!-- EditorActivity bottom appbar -->
   <string name="info_undo_history">Undo history</string>
   <string name="info_redo_history">Redo history</string>
+  <!-- EditorActivity save dialog -->
+  <string name="info_save_confirm">There are changes to the note, do you want to save?</string>
 
   <!-- Alert text - To display warnings -->
   <string name="alert_permission_denied_title">Permission request was denied</string>
@@ -54,12 +56,16 @@
   <string name="action_back">Back</string>
   <string name="action_close">Close</string>
   <string name="action_cancel">Cancel</string>
+  <string name="action_yes">Yes</string>
+  <string name="action_no">No</string>
+  <string name="action_default">Default</string>
   <string name="action_retry">Retry</string>
   <string name="action_reset">Reset</string>
   <string name="action_save">Save</string>
-  <string name="action_default">Restore default</string>
+  <string name="action_restore_default">Restore default</string>
   <string name="action_select_all">Select all</string>
   <!-- MainActivity top toolbar -->
+  <string name="action_sort">Sort</string>
   <string name="action_create_folder">Create folder from selection</string>
   <!-- MainActivity bottom bar -->
   <string name="action_add">Add a Note</string>

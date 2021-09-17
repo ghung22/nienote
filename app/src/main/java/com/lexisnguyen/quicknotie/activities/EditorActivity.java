@@ -230,10 +230,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (intent.getType() != null) {
             // - Open with: Set readonly and show Save button
             if (intent.getType().contains("text/")) {
-                bundle = new Bundle();
-                bundle.putInt("action", ACTION_OPEN_WITH);
-                bundle.putString("folder", "/");
+                action = ACTION_OPEN_WITH;
                 folder = "/";
+                bundle = new Bundle();
+                bundle.putInt("action", action);
+                bundle.putString("folder", folder);
+                intent.putExtras(bundle);
 
                 Uri data = intent.getData();
                 path = new File(data.getPath()).getName();
@@ -483,7 +485,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             public void onTransitionEnd(Transition transition) {
                 super.onTransitionEnd(transition);
                 if (action == ACTION_OPEN_NOTE) {
-                    materialCardView.setVisibility(View.GONE);
+                    materialCardView.setVisibility(View.INVISIBLE);
                     toolbar.setAlpha(1);
                     editText.setAlpha(1);
                 } else if (action < ACTION_OPEN_NOTE) {
@@ -2291,6 +2293,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         action_preview(menu.findItem(R.id.action_preview));
         action_save_to_quicknotie.setVisibility(View.GONE);
         action_save_to_quicknotie.setOnClickListener(null);
+        action = ACTION_OPEN_NOTE;
+        getIntent().getExtras().putInt("action", action);
         saveNote();
     }
 
@@ -2407,10 +2411,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         };
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setMessage("There are changes to the note, do you want to save?")
-                .setPositiveButton("Yes", dialogClickListener)
-                .setNegativeButton("No", dialogClickListener)
-                .setNeutralButton("Cancel", dialogClickListener)
+        builder.setMessage(R.string.info_save_confirm)
+                .setPositiveButton(R.string.action_yes, dialogClickListener)
+                .setNegativeButton(R.string.action_no, dialogClickListener)
+                .setNeutralButton(R.string.action_cancel, dialogClickListener)
                 .setCancelable(true)
                 .show();
         return true;
@@ -2463,7 +2467,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (textChangedTimer != null) {
             textChangedTimer.onFinish();
         }
-        if (auto_save || action < ACTION_OPEN_NOTE) {
+
+        // Saving note
+        if (action == ACTION_OPEN_WITH) {
+            closeEditor();
+            return;
+        }
+        if (auto_save) {
             saveNote();
             closeEditor();
         } else if (!saveConfirm()) {
