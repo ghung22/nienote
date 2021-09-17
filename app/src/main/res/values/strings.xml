@@ -6,6 +6,9 @@
   <!-- Info text - To display any normal text -->
   <!-- General -->
   <string name="info_action">Action</string>
+  <!-- Dialogs -->
+  <string name="info_save_confirm">There are changes to the note, do you want to save?</string>
+  <string name="info_delete_confirm">This note will be deleted permanently, do you want to continue?</string>
   <!-- MainActivity -->
   <string name="info_search_hint">Enter anything…</string>
   <string name="info_folders">Folders</string>
@@ -16,6 +19,7 @@
   <string name="info_sort_name">By name</string>
   <string name="info_sort_color">By color</string>
   <string name="info_sort_saved_date">By saved date</string>
+  <string name="info_sort_deleted_date">By deleted date</string>
   <string name="info_sort_order">Sort order</string>
   <string name="info_sort_ascending">Ascending</string>
   <string name="info_sort_descending">Descending</string>
@@ -26,8 +30,6 @@
   <!-- EditorActivity bottom appbar -->
   <string name="info_undo_history">Undo history</string>
   <string name="info_redo_history">Redo history</string>
-  <!-- EditorActivity save dialog -->
-  <string name="info_save_confirm">There are changes to the note, do you want to save?</string>
 
   <!-- Alert text - To display warnings -->
   <string name="alert_permission_denied_title">Permission request was denied</string>
@@ -148,5 +150,4 @@
   <string name="action_color_light_magenta">Magenta</string>
   <string name="action_color_light_pink">Pink</string>
   <string name="action_color_lightergray">Lighter gray</string>
-  <string name="info_delete_confirm">This note will be deleted permanently, do you want to continue?</string>
 </resources>

@@ -105,8 +105,10 @@ public class MainActivity extends AppCompatActivity {
     private final int quickAni = 150;
     private final int normalAni = 300;
     // - Handling DataSet
-    private final List<Integer> sortDrawables = Arrays.asList(R.drawable.sort_id, R.drawable.sort_name,
-            R.drawable.sort_color, R.drawable.sort_saved_date);
+    private final List<Integer> sortDrawables = Arrays.asList(
+            R.drawable.sort_id, R.drawable.sort_name,
+            R.drawable.sort_color, R.drawable.sort_saved_date,
+            R.drawable.sort_deleted_date);
     private int sort_type = SORT_DEFAULT;
     private boolean sort_order = DESCENDING;
     private int selectCountBefore = 0;
@@ -123,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
     public static final int SORT_NAME = 1;
     public static final int SORT_COLOR = 2;
     public static final int SORT_SAVED_DATE = 3;
+    public static final int SORT_DELETED_DATE = 4;
     public static final boolean ASCENDING = true;
     public static final boolean DESCENDING = false;
     public static final int SORT_DEFAULT = SORT_SAVED_DATE;
@@ -802,6 +805,7 @@ public class MainActivity extends AppCompatActivity {
      *   <li>By name</li>
      *   <li>By color</li>
      *   <li>By saved date</li>
+     *   <li>By deleted date (if is in Trash)</li>
      * </ul>
      */
     private void action_sort() {
@@ -831,6 +835,10 @@ public class MainActivity extends AppCompatActivity {
                 getString(R.string.info_sort_color),
                 getString(R.string.info_sort_saved_date)
         };
+        if (currentFolder.equals("/" + FOLDER_TRASH)) {
+            choices = Arrays.copyOf(choices, choices.length + 1);
+            choices[choices.length - 1] = getString(R.string.info_sort_deleted_date);
+        }
         builder.setTitle(R.string.info_sort_type)
                 .setPositiveButton(R.string.action_sort, dialogClickListener)
                 .setNegativeButton(R.string.action_default, dialogClickListener)
@@ -995,6 +1003,11 @@ public class MainActivity extends AppCompatActivity {
                                 .contains(note.getId()));
                 setToolbarVisibility(true, true, true);
                 setAppBarVisibility(true, true, true);
+
+                // Change to default sort type if current one is invalid in this folder
+                if (sort_type == SORT_DELETED_DATE) {
+                    sort_type = SORT_DEFAULT;
+                }
                 break;
         }
 
@@ -1013,6 +1026,7 @@ public class MainActivity extends AppCompatActivity {
      *   <li>{@link #SORT_NAME}: Sort by name (alphabetical order)</li>
      *   <li>{@link #SORT_COLOR}: By color codes</li>
      *   <li>{@link #SORT_SAVED_DATE} (default): By how recent the note has been edited</li>
+     *   <li>{@link #SORT_DELETED_DATE}: By how recent the note has been deleted</li>
      * </ul>
      *
      * @param type The type of attribute to sort
@@ -1032,6 +1046,17 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case SORT_SAVED_DATE:
                 comparator = Comparator.comparing(n -> n.savedDate);
+                break;
+            case SORT_DELETED_DATE:
+                comparator = Comparator.comparing(n -> {
+                    List<Trash> trashes = Trash.find(Trash.class, "note = ?", String.valueOf(n.getId()));
+                    if (trashes.isEmpty()) {
+                        // Fallback to SORT_SAVED_DATE
+                        return n.savedDate;
+                    }
+                    Trash t = trashes.get(0);
+                    return t.deletedDate;
+                });
                 break;
             default:
                 return;
