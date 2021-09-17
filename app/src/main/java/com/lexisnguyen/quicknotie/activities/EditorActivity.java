@@ -1378,7 +1378,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                         R.color.pink, R.color.black, R.color.lightgray, R.color.light, R.color.white,
                         R.color.transparent));
 
-        for (int id = 0; id < ids.size(); ++id) {
+        for (int id = 0; id < ids.size(); id++) {
             View button = dialog.findViewById(ids.get(id));
             if (button == null) {
                 throw new Throwable("Missing button in Format Color dialog");
@@ -1406,7 +1406,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                         R.color.lightviolet, R.color.lightpurple, R.color.lightmagenta, R.color.lightpink,
                         R.color.lightgray, R.color.lightergray, R.color.light, R.color.white));
 
-        for (int id = 0; id < ids.size(); ++id) {
+        for (int id = 0; id < ids.size(); id++) {
             View button = dialog.findViewById(ids.get(id));
             if (button == null) {
                 throw new Throwable("Missing button in Format Background dialog");
@@ -2305,8 +2305,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     private void action_delete(boolean permanently) {
         if (!permanently) {
-            Trash trash = new Trash(note);
-            trash.save();
+            note.delete(false);
             if (!result.containsKey("moved")) {
                 result.putBoolean("trashed", true);
             } else {
@@ -2316,19 +2315,17 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             onBackPressed();
         } else {
             AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage("This note will be deleted permanently, do you want to continue?")
-                    .setPositiveButton("Yes", (dialog, which) -> {
-                        if (trash != null) {
-                            trash.delete();
-                        }
-                        if (note.delete()) {
+            builder.setMessage(R.string.info_delete_confirm)
+                    .setPositiveButton(R.string.action_yes, (dialog, which) -> {
+                        if (note.delete(true)) {
+                            trash = null;
                             result.putBoolean("trashed", true);
                             onBackPressed();
                             return;
                         }
                         Log.e(TAG, "action_delete: Delete note permanently failed");
                     })
-                    .setNegativeButton("No", null)
+                    .setNegativeButton(R.string.action_no, null)
                     .setCancelable(true)
                     .show();
         }

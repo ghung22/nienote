@@ -159,8 +159,10 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
 
         if (result != null) {
-            updateDataSet();
-            result = null;
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                updateDataSet();
+                result = null;
+            }, normalAni);
         }
     }
 
@@ -694,7 +696,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void action_add_generate_start(int generateCount) {
-        for (int i = 0; i < generateCount; ++i) {
+        for (int i = 0; i < generateCount; i++) {
             Lorem lorem = LoremIpsum.getInstance();
             Random random = new Random();
             String title, text = "", folder = currentFolder;
@@ -857,8 +859,66 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Delete selected notes
+     */
     private void action_delete() {
-        adapter.delete(delete_permanently || currentFolder.equals("/" + FOLDER_TRASH));
+        if (delete_permanently || currentFolder.equals("/" + FOLDER_TRASH)) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage(R.string.info_delete_confirm)
+                    .setPositiveButton(R.string.action_yes, (dialog, which) -> {
+                        if (!action_delete_start(true)) {
+                            Log.e(TAG, "action_delete: Delete note permanently failed");
+                        }
+                    })
+                    .setNegativeButton(R.string.action_no, null)
+                    .setCancelable(true)
+                    .show();
+        } else {
+            action_delete_start(false);
+        }
+    }
+
+    /**
+     * Start deleting notes
+     *
+     * @param permanently Whether to delete notes permanently
+     * @return Whether delete succeed or not
+     */
+    private boolean action_delete_start(boolean permanently) {
+        List<Note> ns = adapter.getNotes();
+        // If selection array & note list do not match -> abort
+        if (ns.size() != notes.size()) {
+            return false;
+        }
+        for (int i = 0; i < ns.size(); i++) {
+            Note note1 = ns.get(i),
+                    note2 = notes.get(i);
+            if (!note1.equals(note2)) {
+                return false;
+            }
+        }
+
+        // Get selection in adapter and delete those that are selected
+        ArrayList<Note> deletingNotes = new ArrayList<>();
+        ArrayList<Integer> deletingPos = new ArrayList<>();
+        for (int i = 0; i < ns.size(); i++) {
+            Note note = ns.get(i);
+            // - If note is not selected, skip
+            if (!note.isChecked) {
+                continue;
+            }
+
+            // - If yes, deselect and delete (abort if error occurred)
+            if (!notes.get(i).delete(permanently)) {
+                return false;
+            }
+            deletingNotes.add(notes.get(i));
+            deletingPos.add(i);
+        }
+        notes.removeAll(deletingNotes);
+        adapter.notifyItemsRemove(deletingPos);
+        return true;
     }
 
     // endregion

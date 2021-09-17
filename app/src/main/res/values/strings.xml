@@ -148,4 +148,5 @@
   <string name="action_color_light_magenta">Magenta</string>
   <string name="action_color_light_pink">Pink</string>
   <string name="action_color_lightergray">Lighter gray</string>
+  <string name="info_delete_confirm">This note will be deleted permanently, do you want to continue?</string>
 </resources>
