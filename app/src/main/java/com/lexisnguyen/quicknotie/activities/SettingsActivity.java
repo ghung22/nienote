@@ -163,6 +163,7 @@ public class SettingsActivity extends AppCompatActivity implements
         private Preference manage_folders;
 
         // Editor settings
+        private SwitchPreference show_preview;
         private SeekBarPreference note_text_size;
         private ListPreference note_background;
         private SeekBarPreference undo_size;
@@ -170,6 +171,7 @@ public class SettingsActivity extends AppCompatActivity implements
 
         // Advanced settings
         private SwitchPreference delete_permanently;
+        private SwitchPreference debugging;
 
         private final String TAG = "SettingsFragment";
 
@@ -191,21 +193,29 @@ public class SettingsActivity extends AppCompatActivity implements
             app_theme = prefManager.findPreference("app_theme");
             auto_save = prefManager.findPreference("auto_save");
             manage_folders = prefManager.findPreference("manage_folders");
+
+            show_preview = prefManager.findPreference("show_preview");
             note_text_size = prefManager.findPreference("note_text_size");
             note_background = prefManager.findPreference("note_background");
             undo_size = prefManager.findPreference("undo_size");
             undo_delay = prefManager.findPreference("undo_delay");
+
             delete_permanently = prefManager.findPreference("delete_permanently");
+            debugging = prefManager.findPreference("debugging");
 
             // Set settings
             set_app_theme();
             set_auto_save();
             set_manage_folders();
+
+            set_show_preview();
             set_note_text_size();
             set_note_background();
             set_undo_size();
             set_undo_delay();
+
             set_delete_permanently();
+            set_debugging();
 
             // Update UI
             updateUi();
@@ -238,6 +248,16 @@ public class SettingsActivity extends AppCompatActivity implements
             manage_folders.setOnPreferenceClickListener((
                     (preference) -> {
                         startActivity(preference.getIntent());
+                        return true;
+                    }));
+        }
+
+        private void set_show_preview() {
+            show_preview.setOnPreferenceChangeListener((
+                    (preference, newValue) -> {
+                        String val = String.valueOf(newValue);
+                        settingsManager.show_preview = Boolean.parseBoolean(val);
+                        update_show_preview();
                         return true;
                     }));
         }
@@ -291,17 +311,30 @@ public class SettingsActivity extends AppCompatActivity implements
                     }));
         }
 
+        private void set_debugging() {
+            debugging.setOnPreferenceChangeListener((
+                    (preference, newValue) -> {
+                        String val = String.valueOf(newValue);
+                        settingsManager.debugging = Boolean.parseBoolean(val);
+                        update_debugging();
+                        return true;
+                    }));
+        }
 
         // endregion
 
         public void updateUi() {
             update_app_theme();
             update_auto_save();
+
+            update_show_preview();
             update_note_text_size();
             update_note_background();
             update_undo_size();
             update_undo_delay();
+
             update_delete_permanently();
+            update_debugging();
         }
 
         // region Update each single preferences
@@ -334,6 +367,10 @@ public class SettingsActivity extends AppCompatActivity implements
             auto_save.setChecked(settingsManager.auto_save);
         }
 
+        private void update_show_preview() {
+            show_preview.setChecked(settingsManager.show_preview);
+        }
+
         private void update_note_text_size() {
             note_text_size.setValue(settingsManager.note_text_size);
             note_text_size.setSummary(settingsManager.note_text_size + "sp");
@@ -363,6 +400,10 @@ public class SettingsActivity extends AppCompatActivity implements
 
         private void update_delete_permanently() {
             delete_permanently.setChecked(settingsManager.delete_permanently);
+        }
+
+        private void update_debugging() {
+            debugging.setChecked(settingsManager.debugging);
         }
 
         // endregion

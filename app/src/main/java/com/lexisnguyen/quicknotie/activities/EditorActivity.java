@@ -8,9 +8,11 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.Spanned;
 import android.text.TextUtils;
@@ -70,7 +72,6 @@ import com.lexisnguyen.quicknotie.components.undo.UndoManager;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -127,9 +128,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private String folder;
     private Bundle result;
     private String path;
-    private boolean previewFirst = false;
     // - Settings
     private boolean auto_save;
+    private boolean show_preview = false;
     private int note_text_size;
     private String note_background;
     private int undo_size;
@@ -238,7 +239,12 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 intent.putExtras(bundle);
 
                 Uri data = intent.getData();
-                path = new File(data.getPath()).getName();
+                try (Cursor cursor = getContentResolver().query(data, null, null, null, null, null)) {
+                    if (cursor != null && cursor.moveToFirst()) {
+                        path = cursor.getString(
+                                cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
+                    }
+                }
                 int extPos = path.lastIndexOf(".");
                 if (extPos != -1) {
                     path = path.substring(0, extPos);
@@ -246,7 +252,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 editTextTitle.setText(path);
                 editText.setText(readData(data));
 
-                previewFirst = true;
+                show_preview = true;
             }
         } else {
             // - Default state
@@ -273,6 +279,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         // - Get settings
         SettingsManager settingsManager = new SettingsManager(this);
         auto_save = settingsManager.auto_save;
+        show_preview = show_preview || settingsManager.show_preview;
         note_text_size = settingsManager.note_text_size;
         note_background = settingsManager.note_background;
         undo_size = settingsManager.undo_size * 10;
@@ -314,7 +321,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             List<Trash> trashes = Trash.find(Trash.class, "note = ?", String.valueOf(id));
             if (!trashes.isEmpty()) {
                 trash = trashes.get(0);
-                previewFirst = true;
+                show_preview = true;
             }
         }
         // - If this is a new note -> Init new data
@@ -660,7 +667,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         textView.setMovementMethod(LinkMovementMethod.getInstance());
 
         // Switch to preview if specified
-        if (previewFirst) {
+        if (show_preview) {
             Menu menu = toolbar.getMenu();
             onCreateOptionsMenu(menu);
             action_preview(menu.findItem(R.id.action_preview));

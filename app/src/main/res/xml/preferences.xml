@@ -38,6 +38,12 @@
     android:title="Note editor"
     app:allowDividerBelow="true">
 
+    <SwitchPreference
+      android:key="show_preview"
+      android:title="Show preview first"
+      android:defaultValue="false"
+      android:summary="Show a note preview after opening a note" />
+
     <SeekBarPreference
       android:key="note_text_size"
       android:title="Text size"
