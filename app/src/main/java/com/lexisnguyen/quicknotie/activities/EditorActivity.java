@@ -245,10 +245,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                                 cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME));
                     }
                 }
-                int extPos = path.lastIndexOf(".");
-                if (extPos != -1) {
-                    path = path.substring(0, extPos);
-                }
                 editTextTitle.setText(path);
                 editText.setText(readData(data));
 
