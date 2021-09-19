@@ -34,6 +34,7 @@
   <!-- Alert text - To display warnings -->
   <string name="alert_permission_denied_title">Permission request was denied</string>
   <string name="alert_permission_denied_message_storage">Storage permission is needed by \'%s\' to save notes into the device.</string>
+  <string name="alert_permission_denied_message_camera">Camera permission is needed by \'%s\' to add photos into notes.</string>
 
   <!-- Placeholder text - Temporary text for development -->
   <string name="placeholder_undo_redo">Undo Increase indent</string>

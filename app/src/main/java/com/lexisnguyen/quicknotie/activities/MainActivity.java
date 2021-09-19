@@ -52,6 +52,7 @@ import com.lexisnguyen.quicknotie.components.sql.Note;
 import com.lexisnguyen.quicknotie.components.sql.Trash;
 import com.orm.SugarDb;
 import com.orm.SugarRecord;
+import com.squareup.picasso.Picasso;
 import com.thedeanda.lorem.Lorem;
 import com.thedeanda.lorem.LoremIpsum;
 
@@ -87,7 +88,6 @@ public class MainActivity extends AppCompatActivity {
     // region Variables: Data
     // - Activity results
     private ActivityResultLauncher<Intent> editorLauncher;
-    private ActivityResultLauncher<Intent> settingsLauncher;
     private ActivityResult result;
     // - Settings
     private String app_theme;
@@ -215,6 +215,9 @@ public class MainActivity extends AppCompatActivity {
 
             selectCountBefore = integer;
         });
+
+        // Init Picasso
+        Picasso.setSingletonInstance(new Picasso.Builder(this).build());
     }
 
     /**
@@ -248,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
      */
     private void fromDatabase() {
         db = new SugarDb(this);
-        db.onCreate(db.getDB());
+        // db.onCreate(db.getDB());
     }
 
     /**

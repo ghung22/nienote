@@ -55,6 +55,9 @@ dependencies {
     implementation 'io.noties.markwon:ext-tables:4.6.2'
     implementation 'io.noties.markwon:syntax-highlight:4.6.2'
     implementation 'io.noties:prism4j:2.0.0'
+    // - Picasso
+    implementation 'com.squareup.picasso:picasso:2.71828'
+    implementation 'io.noties.markwon:image-picasso:4.6.2'
     // - SQLite
     implementation 'com.github.satyan:sugar:1.5'
     // - Debugging

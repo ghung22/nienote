@@ -9,6 +9,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.res.Resources;
 import android.database.Cursor;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -39,6 +40,8 @@ import android.widget.ScrollView;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.ColorInt;
 import androidx.annotation.ColorRes;
 import androidx.annotation.DrawableRes;
@@ -48,7 +51,10 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.content.FileProvider;
+import androidx.lifecycle.MutableLiveData;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomappbar.BottomAppBar;
@@ -56,6 +62,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.card.MaterialCardView;
 import com.google.android.material.color.MaterialColors;
+import com.lexisnguyen.quicknotie.BuildConfig;
 import com.lexisnguyen.quicknotie.R;
 import com.lexisnguyen.quicknotie.components.markdown.NotieGrammarLocator;
 import com.lexisnguyen.quicknotie.components.markdown.ThemePunctuationSpan;
@@ -68,10 +75,13 @@ import com.lexisnguyen.quicknotie.components.sql.Note;
 import com.lexisnguyen.quicknotie.components.sql.Trash;
 import com.lexisnguyen.quicknotie.components.undo.UndoAdapter;
 import com.lexisnguyen.quicknotie.components.undo.UndoManager;
+import com.squareup.picasso.Picasso;
+import com.squareup.picasso.RequestCreator;
 
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -92,6 +102,8 @@ import io.noties.markwon.editor.MarkwonEditorTextWatcher;
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin;
 import io.noties.markwon.ext.tables.TablePlugin;
 import io.noties.markwon.html.HtmlPlugin;
+import io.noties.markwon.image.AsyncDrawable;
+import io.noties.markwon.image.picasso.PicassoImagesPlugin;
 import io.noties.markwon.linkify.LinkifyPlugin;
 import io.noties.markwon.syntax.Prism4jTheme;
 import io.noties.markwon.syntax.Prism4jThemeDarkula;
@@ -171,6 +183,11 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private UndoManager undoManager;
     private CountDownTimer textChangedTimer = null;
     private TextWatcher textWatcher;
+    // - Image markdown support
+    private ActivityResultLauncher<String> imagePickerLauncher;
+    private final MutableLiveData<Uri> imageUri = new MutableLiveData<>(null);
+    private ActivityResultLauncher<Uri> cameraLauncher;
+    private Uri imageFolder;
     // endregion
 
     // Debugging
@@ -183,6 +200,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         initGuiElements();
         initData();
+        initActivityResults();
         initMarkdown(this, bgColor);
         initRootLayout();
         initTopToolbar();
@@ -218,6 +236,13 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         fromActivityResult(intent);
         fromSettings();
         fromDatabase(intent);
+
+        // Image loading
+        // - Init image uri changed listener
+        imageUri.observe(this, this::action_add_image);
+        // - Init folder to save captured photos
+        File file = getExternalMediaDirs()[0];
+        imageFolder = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider", file);
     }
 
     /**
@@ -352,6 +377,27 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         return text.toString();
     }
 
+    private void initActivityResults() {
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.GetContent(),
+                result -> {
+                    if (result == null) {
+                        return;
+                    }
+                    imageUri.setValue(result);
+                }
+        );
+
+        cameraLauncher = registerForActivityResult(
+                new ActivityResultContracts.TakePicture(),
+                result -> {
+                    if (!result) {
+                        return;
+                    }
+                    action_add_camera();
+                });
+    }
+
     /**
      * Init markdown functionalities by using <b>Markwon</b>
      * Plugins used:
@@ -364,6 +410,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      *   <li><b>alignTags</b>: Align text using HTML tags</li>
      *   <li><b>colorTags</b>: Change text color using HTML tags</li>
      *   <li><b>tablePlugin</b>: Enable Markdown's table display</li>
+     *   <li><b>picasso</b>: Enable Markdown's image display, using Picasso to load images</li>
      *   <li><b>inlineCodeNoBackground</b>: Disable inline code background (for monospace font functionality)</li>
      *   <li>
      *     <b>SyntaxHighlightPlugin</b>: Syntax highlight support with using Prism4j <br/>
@@ -407,7 +454,34 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                         .tableHeaderRowBackgroundColor(bgColorContrastInt)
                         .tableEvenRowBackgroundColor(bgColorInt)
                         .tableOddRowBackgroundColor(bgColorInt)
-        ), inlineCodeNoBackground = new AbstractMarkwonPlugin() {
+        ), picasso = PicassoImagesPlugin.create(new PicassoImagesPlugin.PicassoStore() {
+            @NonNull
+            @Override
+            public RequestCreator load(@NonNull AsyncDrawable drawable) {
+                // Create a Picasso instance
+                Picasso picasso = Picasso.get();
+                picasso.setLoggingEnabled(true);
+                RequestCreator requestCreator = Picasso.get()
+                        .load(drawable.getDestination())
+                        .tag(drawable);
+
+                // Add a placeholder image
+                Drawable placeholderTinted = AppCompatResources.getDrawable(context, R.drawable.info_no_image);
+                if (placeholderTinted != null) {
+                    placeholderTinted.setTint(bgColorContrastInt);
+                    requestCreator.placeholder(placeholderTinted);
+                } else {
+                    requestCreator.placeholder(R.drawable.info_no_image);
+                }
+                return requestCreator;
+            }
+
+            @Override
+            public void cancel(@NonNull AsyncDrawable drawable) {
+                Picasso.get()
+                        .cancelTag(drawable);
+            }
+        }), inlineCodeNoBackground = new AbstractMarkwonPlugin() {
             @Override
             public void configureTheme(@NonNull MarkwonTheme.Builder builder) {
                 builder.codeBackgroundColor(context.getColor(R.color.black));
@@ -419,6 +493,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         Prism4jTheme prism4jTheme = isDarkMode(bgColor) ?
                 new Prism4jThemeDarkula(bgColorInt) :
                 new Prism4jThemeDefault(bgColorInt);
+        // - Picasso image plugin
+
 
         // Build Markwon
         Markwon.Builder builder = Markwon.builder(context)
@@ -430,13 +506,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                 .usePlugin(alignTags)
                 .usePlugin(colorTags)
                 .usePlugin(tablePlugin)
+                .usePlugin(picasso)
                 .usePlugin(inlineCodeNoBackground)
+                .usePlugin(anchorHeading)
                 .usePlugin(SyntaxHighlightPlugin.create(prism4j, prism4jTheme));
-        if (context instanceof EditorActivity) {
-            builder = builder
-                    // .usePlugin(new TableOfContentsPlugin())
-                    .usePlugin(anchorHeading);
-        }
+        // if (context instanceof EditorActivity) {
+        //     builder = builder
+        //                  .usePlugin(new TableOfContentsPlugin());
+        // }
         markwon = builder.build();
 
         // Build Markwon Editor
@@ -830,10 +907,10 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             case R.id.action_add_line:
                 switch (viewId) {
                     case R.id.action_add_camera:
-                        // TODO: Take camera and add to note
+                        cameraLauncher.launch(imageFolder);
                         break;
                     case R.id.action_add_image:
-                        // TODO: Upload image to note
+                        imagePickerLauncher.launch("image/*");
                         break;
                     case R.id.action_add_table:
                         action_add_table();
@@ -1453,6 +1530,24 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     // endregion
 
     // region Button actions in Add Content dialog
+
+    private void action_add_camera() {
+        action_add_image(imageFolder);
+    }
+
+    private void action_add_image(Uri uri) {
+        if (uri == null) {
+            return;
+        }
+
+        int endOfLine = getEndOfLine(editText.getText().toString(), textSelectionStart);
+        Editable newString = editText.getText();
+        String img = String.format("\n![alt text](%s)\n", uri);
+        newString.insert(endOfLine, img);
+        textSelectionStart += 3;
+        editText.setSelection(textSelectionStart, textSelectionStart + "alt text".length());
+        showKeyboard();
+    }
 
     /**
      * Put a table after the current line
