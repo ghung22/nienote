@@ -13,6 +13,8 @@ import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.OpenableColumns;
 import android.text.Editable;
 import android.text.Spanned;
@@ -41,12 +43,14 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContract;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.ColorInt;
 import androidx.annotation.ColorRes;
 import androidx.annotation.DrawableRes;
 import androidx.annotation.LayoutRes;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -82,12 +86,15 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
+import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.Executors;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -186,8 +193,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     // - Image markdown support
     private ActivityResultLauncher<String> imagePickerLauncher;
     private final MutableLiveData<Uri> imageUri = new MutableLiveData<>(null);
-    private ActivityResultLauncher<Uri> cameraLauncher;
-    private Uri imageFolder;
+    private ActivityResultLauncher<Void> cameraLauncher;
+    private Uri cameraOutputUri;
     // endregion
 
     // Debugging
@@ -238,11 +245,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         fromDatabase(intent);
 
         // Image loading
-        // - Init image uri changed listener
         imageUri.observe(this, this::action_add_image);
-        // - Init folder to save captured photos
-        File file = getExternalMediaDirs()[0];
-        imageFolder = FileProvider.getUriForFile(this, BuildConfig.APPLICATION_ID + ".provider", file);
     }
 
     /**
@@ -389,14 +392,52 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         );
 
         cameraLauncher = registerForActivityResult(
-                new ActivityResultContracts.TakePicture(),
+                new ActivityResultContract<Void, Uri>() {
+                    @NonNull
+                    @Override
+                    public Intent createIntent(@NonNull Context context, Void input) {
+                        Intent intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+                        File photoFile;
+                        try {
+                            photoFile = createImageFile();
+                        } catch (IOException ex) {
+                            return new Intent();
+                        }
+                        cameraOutputUri = FileProvider.getUriForFile(
+                                context,
+                                BuildConfig.APPLICATION_ID + ".provider",
+                                photoFile);
+                        intent.putExtra(MediaStore.EXTRA_OUTPUT, cameraOutputUri);
+                        return intent;
+                    }
+
+                    @Nullable
+                    @Override
+                    public Uri parseResult(int resultCode, @Nullable Intent intent) {
+                        if (intent == null || resultCode != Activity.RESULT_OK) return null;
+                        return cameraOutputUri;
+                    }
+                },
                 result -> {
-                    if (!result) {
+                    if (result == null) {
                         return;
                     }
-                    action_add_camera();
+                    action_add_camera(result);
                 });
     }
+
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String timeStamp = new SimpleDateFormat("ddMMyy_HHmmss", Locale.ROOT).format(new Date());
+        String imageFileName = "JPEG_" + timeStamp + "_";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        return File.createTempFile(
+                imageFileName,
+                ".jpg",
+                storageDir
+        );
+    }
+
 
     /**
      * Init markdown functionalities by using <b>Markwon</b>
@@ -907,7 +948,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
             case R.id.action_add_line:
                 switch (viewId) {
                     case R.id.action_add_camera:
-                        cameraLauncher.launch(imageFolder);
+                        cameraLauncher.launch(null);
                         break;
                     case R.id.action_add_image:
                         imagePickerLauncher.launch("image/*");
@@ -1224,7 +1265,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     private void hideKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE);
-        View v = this.getCurrentFocus();
+        View v = getCurrentFocus();
         if (v == null) {
             v = new View(this);
         }
@@ -1240,7 +1281,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
      */
     private void showKeyboard() {
         InputMethodManager imm = (InputMethodManager) getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE);
-        View v = this.getCurrentFocus();
+        View v = getCurrentFocus();
         if (v == null) {
             v = new View(this);
         }
@@ -1531,10 +1572,16 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     // region Button actions in Add Content dialog
 
-    private void action_add_camera() {
-        action_add_image(imageFolder);
+
+    private void action_add_camera(Uri uri) {
+        action_add_image(uri);
     }
 
+    /**
+     * Put an image with a URI address after the current line
+     *
+     * @param uri The URI in question
+     */
     private void action_add_image(Uri uri) {
         if (uri == null) {
             return;
