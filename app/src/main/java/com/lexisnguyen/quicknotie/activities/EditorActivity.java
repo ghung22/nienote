@@ -191,7 +191,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private CountDownTimer textChangedTimer = null;
     private TextWatcher textWatcher;
     // - Image markdown support
-    private ActivityResultLauncher<String> imagePickerLauncher;
+    private ActivityResultLauncher<String[]> imagePickerLauncher;
     private final MutableLiveData<Uri> imageUri = new MutableLiveData<>(null);
     private ActivityResultLauncher<Void> cameraLauncher;
     private Uri cameraOutputUri;
@@ -243,6 +243,14 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         fromActivityResult(intent);
         fromSettings();
         fromDatabase(intent);
+
+        // Hidden content
+        int hiddenRegionStart = editText.getText().toString().indexOf(getString(R.string.predefined_hidden_text));
+        if (hiddenRegionStart == -1) {
+            editText.getText().append("\n")
+                    .append(getString(R.string.predefined_hidden_text))
+                    .append("\n");
+        }
 
         // Image loading
         imageUri.observe(this, this::action_add_image);
@@ -382,7 +390,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
     private void initActivityResults() {
         imagePickerLauncher = registerForActivityResult(
-                new ActivityResultContracts.GetContent(),
+                new ActivityResultContracts.OpenDocument(),
                 result -> {
                     if (result == null) {
                         return;
@@ -951,7 +959,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                         cameraLauncher.launch(null);
                         break;
                     case R.id.action_add_image:
-                        imagePickerLauncher.launch("image/*");
+                        imagePickerLauncher.launch(new String[]{"image/*"});
                         break;
                     case R.id.action_add_table:
                         action_add_table();
@@ -1589,8 +1597,31 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         int endOfLine = getEndOfLine(editText.getText().toString(), textSelectionStart);
         Editable newString = editText.getText();
-        String img = String.format("\n![alt text](%s)\n", uri);
+
+        // Find last referenced image
+        // - Get RegEx pattern
+        Pattern pattern = Pattern.compile(getString(R.string.regex_image_reference));
+        Matcher matcher = pattern.matcher(newString);
+        String last_ref = "";
+        // - Get number of last referenced image
+        if (matcher.matches()) {
+            while (matcher.find()) {
+                last_ref = matcher.group();
+            }
+            last_ref = last_ref.split(":")[0];
+            Pattern p = Pattern.compile("[0-9]*");
+            last_ref = p.matcher(last_ref).group();
+        } else {
+            last_ref = "0";
+        }
+        int next_ref = Integer.parseInt(last_ref) + 1;
+        // - Insert image with a reference
+        String img = String.format(Locale.ROOT,
+                "\n" + getString(R.string.predefined_image) + "\n", next_ref),
+                ref = String.format(Locale.ROOT,
+                        "\n" + getString(R.string.predefined_image_reference) + "\n", next_ref, uri);
         newString.insert(endOfLine, img);
+        newString.append(ref);
         textSelectionStart += 3;
         editText.setSelection(textSelectionStart, textSelectionStart + "alt text".length());
         showKeyboard();
@@ -1669,7 +1700,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         Editable newString = editText.getText();
         if (textSelectionStart == textSelectionEnd) {
             // If nothing is selected, insert a link preset
-            newString.insert(textSelectionStart, "[Link name](link)");
+            newString.insert(textSelectionStart, getString(R.string.predefined_link));
             textSelectionStart++;
             textSelectionEnd = textSelectionStart + "Link name".length();
         } else {
