@@ -56,6 +56,9 @@ import com.squareup.picasso.Picasso;
 import com.thedeanda.lorem.Lorem;
 import com.thedeanda.lorem.LoremIpsum;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -657,21 +660,8 @@ public class MainActivity extends AppCompatActivity {
         DialogInterface.OnClickListener dialogClickListener = (dialog, which) -> {
             switch (which) {
                 case DialogInterface.BUTTON_NEGATIVE:
-                    // Clear first button
-                    switch (currentFolder) {
-                        case "/" + FOLDER_FAVORITES:
-                            // Favorite.deleteAll(Favorite.class);
-                            break;
-                        case "/" + FOLDER_LOCKED:
-                            // Locked.deleteAll(Locked.class);
-                            break;
-                        case "/" + FOLDER_TRASH:
-                            Trash.deleteAll(Trash.class);
-                            break;
-                    }
-                    Note.deleteInTx(notes);
-                    notes.clear();
-                    adapter.notifyDataSetChanged(notes);
+                    // Cheatsheet button
+                    action_add_generate_cheatsheet();
                 case DialogInterface.BUTTON_POSITIVE:
                     // Generate button
                     int generateCount = 0;
@@ -693,7 +683,7 @@ public class MainActivity extends AppCompatActivity {
                 .setMessage("[DEBUGGING] Generate a specified number of notes")
                 .setView(input)
                 .setPositiveButton("Generate", dialogClickListener)
-                .setNegativeButton("Clear first", dialogClickListener)
+                .setNegativeButton("Generate markdown cheatsheet", dialogClickListener)
                 .setNeutralButton("Cancel", dialogClickListener)
                 .setCancelable(true)
                 .show();
@@ -792,6 +782,39 @@ public class MainActivity extends AppCompatActivity {
                     trash.add(t);
                     break;
             }
+        }
+        sort(sort_type, sort_order);
+        adapter.notifyDataSetChanged(notes);
+    }
+
+    private void action_add_generate_cheatsheet() {
+        StringBuilder text = new StringBuilder();
+        try {
+            InputStream input = getResources().openRawResource(R.raw.markdown_cheatsheet);
+            BufferedReader reader = new BufferedReader(new InputStreamReader(input));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                text.append(line).append("\n");
+            }
+        } catch (Exception ignored) {
+        }
+        Note note = new Note("/", "Cheatsheet", text.toString(), R.color.white);
+        note.save();
+        notes.add(note);
+
+        // Handle special folders
+        switch (currentFolder) {
+            case "/" + FOLDER_FAVORITES:
+                // TODO: Add favorite entry
+                break;
+            case "/" + FOLDER_LOCKED:
+                // TODO: Add locked entry
+                break;
+            case "/" + FOLDER_TRASH:
+                Trash t = new Trash(note);
+                t.save();
+                trash.add(t);
+                break;
         }
         sort(sort_type, sort_order);
         adapter.notifyDataSetChanged(notes);
