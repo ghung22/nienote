@@ -254,8 +254,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
                     .append(getString(R.string.predefined_hidden_text))
                     .append("\n");
             text = editText.getText().toString();
+            hiddenRegionStart = text.indexOf(getString(R.string.predefined_hidden_text));
         }
-        hiddenRegionStart = text.indexOf(getString(R.string.predefined_hidden_text));
         hidden_region = text.substring(hiddenRegionStart);
         editText.setText(text.substring(0, hiddenRegionStart));
 
@@ -2539,6 +2539,9 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         if (saveAbort()) {
             return;
         }
+
+        // Clean up hidden region
+        hidden_region = hidden_region.replace("\n\n", "\n");
 
         // Save in SQLite
         note.title = editTextTitle.getText().toString();
