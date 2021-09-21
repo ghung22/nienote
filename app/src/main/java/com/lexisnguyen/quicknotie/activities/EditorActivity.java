@@ -195,6 +195,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
     private final MutableLiveData<Uri> imageUri = new MutableLiveData<>(null);
     private ActivityResultLauncher<Void> cameraLauncher;
     private Uri cameraOutputUri;
+    // - Hidden text
+    private String hidden_region = "";
     // endregion
 
     // Debugging
@@ -245,12 +247,17 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         fromDatabase(intent);
 
         // Hidden content
-        int hiddenRegionStart = editText.getText().toString().indexOf(getString(R.string.predefined_hidden_text));
+        String text = editText.getText().toString();
+        int hiddenRegionStart = text.indexOf(getString(R.string.predefined_hidden_text));
         if (hiddenRegionStart == -1) {
             editText.getText().append("\n")
                     .append(getString(R.string.predefined_hidden_text))
                     .append("\n");
+            text = editText.getText().toString();
         }
+        hiddenRegionStart = text.indexOf(getString(R.string.predefined_hidden_text));
+        hidden_region = text.substring(hiddenRegionStart);
+        editText.setText(text.substring(0, hiddenRegionStart));
 
         // Image loading
         imageUri.observe(this, this::action_add_image);
@@ -542,8 +549,6 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         Prism4jTheme prism4jTheme = isDarkMode(bgColor) ?
                 new Prism4jThemeDarkula(bgColorInt) :
                 new Prism4jThemeDefault(bgColorInt);
-        // - Picasso image plugin
-
 
         // Build Markwon
         Markwon.Builder builder = Markwon.builder(context)
@@ -1599,29 +1604,18 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         Editable newString = editText.getText();
 
         // Find last referenced image
-        // - Get RegEx pattern
-        Pattern pattern = Pattern.compile(getString(R.string.regex_image_reference));
-        Matcher matcher = pattern.matcher(newString);
-        String last_ref = "";
-        // - Get number of last referenced image
-        if (matcher.matches()) {
-            while (matcher.find()) {
-                last_ref = matcher.group();
-            }
-            last_ref = last_ref.split(":")[0];
-            Pattern p = Pattern.compile("[0-9]*");
-            last_ref = p.matcher(last_ref).group();
-        } else {
-            last_ref = "0";
-        }
-        int next_ref = Integer.parseInt(last_ref) + 1;
+        // - Get number of image references and add 1
+        int next_ref = StringUtils.countMatches(hidden_region, "[image_");
+        next_ref++;
         // - Insert image with a reference
         String img = String.format(Locale.ROOT,
-                "\n" + getString(R.string.predefined_image) + "\n", next_ref),
+                "\n" + "![alt text][image_%d]" + "\n", next_ref),
                 ref = String.format(Locale.ROOT,
-                        "\n" + getString(R.string.predefined_image_reference) + "\n", next_ref, uri);
+                        "\n" + "[image_%d]: %s" + "\n", next_ref, uri);
         newString.insert(endOfLine, img);
-        newString.append(ref);
+        hidden_region += ref;
+
+        // Set selection
         textSelectionStart += 3;
         editText.setSelection(textSelectionStart, textSelectionStart + "alt text".length());
         showKeyboard();
@@ -1700,7 +1694,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         Editable newString = editText.getText();
         if (textSelectionStart == textSelectionEnd) {
             // If nothing is selected, insert a link preset
-            newString.insert(textSelectionStart, getString(R.string.predefined_link));
+            newString.insert(textSelectionStart, "[Link name](link)");
             textSelectionStart++;
             textSelectionEnd = textSelectionStart + "Link name".length();
         } else {
@@ -2402,8 +2396,8 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         // Parse content of EditText into TextView
         if (preview) {
-            Editable text = editText.getText();
-            markwon.setMarkdown(textView, text.toString());
+            String text = editText.getText().toString() + hidden_region;
+            markwon.setMarkdown(textView, text);
             hideKeyboard();
         }
 
@@ -2548,7 +2542,7 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
 
         // Save in SQLite
         note.title = editTextTitle.getText().toString();
-        note.text = editText.getText().toString();
+        note.text = editText.getText().toString() + hidden_region;
         note.bgColor = bgColor;
         note.savedDate = Date.from(Instant.now());
         note.save();

@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
   <!-- App-wide -->
   <string name="app_name">Quick Notie</string>
   <string name="app_description">Take your notes the quick way. Made by Lexis.</string>
@@ -52,15 +52,9 @@
   <string name="regex_hidden_region">
     <![CDATA[</[\\s\\t]*color[\\s\\t]*>]]>
   </string>
-  <string name="regex_image_reference" tools:ignore="TypographyDashes">
-    \\[image_[0-9]+]:.*
-  </string>
 
   <!-- Predefined text - For reuse in many functions -->
   <string name="predefined_hidden_text"><![CDATA[[hidden]: <>]]></string>
-  <string name="predefined_link">[Link name](link)</string>
-  <string name="predefined_image">\n![alt text][image_%d]\n</string>
-  <string name="predefined_image_reference">\n[image_%d]: %s\n</string>
 
   <!-- Transition text - For opening another activity with an animation -->
   <string name="transition_open_note">openNote</string>
