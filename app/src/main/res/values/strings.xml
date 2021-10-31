@@ -1,6 +1,6 @@
 <resources>
   <!-- App-wide -->
-  <string name="app_name">Quick Notie</string>
+  <string name="app_name">Nie Note</string>
   <string name="app_description">Take your notes the quick way. Made by Lexis.</string>
 
   <!-- Info text - To display any normal text -->
@@ -96,7 +96,7 @@
   <string name="action_delete">Delete</string>
   <string name="action_lock">Lock note</string>
   <string name="action_restore">Restore</string>
-  <string name="action_save_to_quicknotie">Save to QuickNotie</string>
+  <string name="action_save_to_nienote">Save to NieNote</string>
   <!-- EditorActivity bottom sheet dialog -->
   <string name="action_undo">Undo</string>
   <string name="action_redo">Redo</string>

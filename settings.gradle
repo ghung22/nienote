@@ -1,2 +1,2 @@
 include ':app'
-rootProject.name = "Quick Notie"
+rootProject.name = "NieNote"

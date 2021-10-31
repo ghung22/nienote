@@ -28,9 +28,9 @@
       android:title="Manage folders">
 
       <intent
-        android:action="com.lexisnguyen.quicknotie.SETTING_START_ACTIVITY"
-        android:targetClass="com.lexisnguyen.quicknotie.ManageFoldersActivity"
-        android:targetPackage="com.lexisnguyen.quicknotie" />
+        android:action="com.lexisnguyen.nienote.SETTING_START_ACTIVITY"
+        android:targetClass="com.lexisnguyen.nienote.ManageFoldersActivity"
+        android:targetPackage="com.lexisnguyen.nienote" />
     </Preference>
   </PreferenceCategory>
 

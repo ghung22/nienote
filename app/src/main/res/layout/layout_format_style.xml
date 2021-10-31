@@ -115,6 +115,7 @@
           android:layout_height="wrap_content"
           android:padding="@dimen/rounded_layout_padding"
           android:layout_margin="@dimen/rounded_layout_margin"
+          android:visibility="gone"
           android:orientation="horizontal"
           android:background="@drawable/rounded_rectangle"
           android:backgroundTint="?colorPrimary">
@@ -185,19 +186,12 @@
             android:backgroundTint="@color/transparent"
             android:contentDescription="@string/action_format_strikethrough" />
         </LinearLayout>
-      </RelativeLayout>
-
-      <RelativeLayout
-        android:id="@+id/layout_third_row"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/layout_second_row"
-        android:layout_centerHorizontal="true">
 
         <LinearLayout
           android:id="@+id/layout_text_script"
           android:layout_width="wrap_content"
           android:layout_height="wrap_content"
+          android:layout_toEndOf="@id/layout_text_style"
           android:padding="@dimen/rounded_layout_padding"
           android:layout_margin="@dimen/rounded_layout_margin"
           android:orientation="horizontal"

@@ -61,23 +61,25 @@
           android:layout_height="wrap_content"
           android:text="@string/action_drawer_all"
           app:drawableLeftCompat="@drawable/action_drawer_all"
-          style="@style/Theme.QuickNotie.DrawerMenuItem" />
+          style="@style/Theme.NieNote.DrawerMenuItem" />
 
         <Button
           android:id="@+id/action_drawer_favorites"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
+          android:visibility="gone"
           android:text="@string/action_drawer_favorites"
           app:drawableLeftCompat="@drawable/action_drawer_favorites"
-          style="@style/Theme.QuickNotie.DrawerMenuItem" />
+          style="@style/Theme.NieNote.DrawerMenuItem" />
 
         <Button
           android:id="@+id/action_drawer_locked"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
+          android:visibility="gone"
           android:text="@string/action_drawer_locked"
           app:drawableLeftCompat="@drawable/action_drawer_locked"
-          style="@style/Theme.QuickNotie.DrawerMenuItem" />
+          style="@style/Theme.NieNote.DrawerMenuItem" />
 
         <Button
           android:id="@+id/action_drawer_trash"
@@ -85,7 +87,7 @@
           android:layout_height="wrap_content"
           android:text="@string/action_drawer_trash"
           app:drawableLeftCompat="@drawable/action_drawer_trash"
-          style="@style/Theme.QuickNotie.DrawerMenuItem" />
+          style="@style/Theme.NieNote.DrawerMenuItem" />
 
         <View
           android:layout_width="match_parent"
@@ -96,11 +98,13 @@
           android:id="@+id/expandableListView"
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
+          android:visibility="gone"
           android:divider="@color/transparent" />
 
         <LinearLayout
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
+          android:visibility="gone"
           android:orientation="horizontal">
 
           <Button
