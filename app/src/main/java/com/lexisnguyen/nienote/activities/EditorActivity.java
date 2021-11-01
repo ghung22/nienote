@@ -2336,15 +2336,19 @@ public class EditorActivity extends AppCompatActivity implements AdapterView.OnI
         getWindow().getDecorView().setSystemUiVisibility(statusBarIconColorFlag);
         // - Top Toolbar
         toolbar.getNavigationIcon().setTint(fgColorInt);
-        if (trash == null) {
-            toolbar.getMenu().findItem(R.id.action_preview).getIcon().setTint(fgColorInt);
-            toolbar.getMenu().findItem(R.id.action_remind).getIcon().setTint(fgColorInt);
-            toolbar.getOverflowIcon().setTint(fgColorInt);
-        } else {
-            action_delete.setTextColor(fgColorInt);
-            action_delete.setBackgroundColor(btnBgColor);
-            action_restore.setTextColor(fgColorInt);
-            action_restore.setBackgroundColor(btnBgColor);
+        try {
+            if (trash == null) {
+                toolbar.getMenu().findItem(R.id.action_preview).getIcon().setTint(fgColorInt);
+                toolbar.getMenu().findItem(R.id.action_remind).getIcon().setTint(fgColorInt);
+                toolbar.getOverflowIcon().setTint(fgColorInt);
+            } else {
+                action_delete.setTextColor(fgColorInt);
+                action_delete.setBackgroundColor(btnBgColor);
+                action_restore.setTextColor(fgColorInt);
+                action_restore.setBackgroundColor(btnBgColor);
+            }
+        } catch (Exception e) {
+            return;
         }
         // - Content Layout
         editTextTitle.setTextColor(fgColorInt);

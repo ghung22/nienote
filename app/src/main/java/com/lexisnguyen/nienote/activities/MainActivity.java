@@ -220,7 +220,10 @@ public class MainActivity extends AppCompatActivity {
         });
 
         // Init Picasso
-        Picasso.setSingletonInstance(new Picasso.Builder(this).build());
+        try {
+            Picasso.setSingletonInstance(new Picasso.Builder(this).build());
+        } catch (Exception ignored) {
+        }
     }
 
     /**
